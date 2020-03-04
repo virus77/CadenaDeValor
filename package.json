@@ -14,7 +14,8 @@
     "cors": "^2.8.5",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-scripts": "3.4.0"
+    "react-scripts": "3.4.0",
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -43,5 +44,5 @@
     "concurrently": "^5.1.0",
     "sp-rest-proxy": "^2.10.3"
   },
-    "proxy": "http://localhost:8081"  
+  "proxy": "http://localhost:8081"
 }
