@@ -1,8 +1,8 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Principal from './Componentes/Principal';
-import Generico from './Componentes/Generico';
+import Principal from './componentes/Principal';
+import Generico from './componentes/Generico';
 
 function App() {
   return (
