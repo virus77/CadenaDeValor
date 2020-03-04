@@ -1,0 +1,52 @@
+.tabla{
+    width: 98%;
+    text-align: left;
+}
+
+.nombreTerreno{
+    width: 35%;
+    padding-left: 5px;
+}
+
+.columna{
+    width: 5%;
+}
+
+.menu{
+    width: 40%;
+}
+
+.egupload{
+    text-align: right;
+}
+
+img{
+    cursor: pointer;
+    vertical-align: bottom;
+}
+
+.cluster{
+    background-color: lightseagreen;
+    text-align: left;
+}
+.filaTerreno{
+    background-color: lightskyblue;
+    text-align: left;
+    padding-left: 20px;
+}
+.contenedor{
+    width: 100%;
+}
+.columnaActividad{
+    text-align: left;
+    padding-left: 25px;
+}
+.filaActividad{
+    border-style: solid;
+    border-width: 1px;
+    border-color: lightslategrey;
+    background-color: lightcyan;
+}
+p{
+    margin: 5px;
+}
