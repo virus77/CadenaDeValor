@@ -4,16 +4,24 @@ import '../estilos/encabezado.css';
 
 class Generico extends Component{
     render(){
+        const Columna = (props) =>{
+            return(
+                <td>{props.titulo}</td>
+            );
+        }
+        const Header = (props) =>{
+            const filaHeader = props.ventanaEg.columnas.map((fila)=>{
+                return (
+                    <Columna titulo= {fila.titulo } />
+                )
+            });
+        return <thead><tr>{filaHeader}</tr></thead>
+        }
+
         return(
             <div>
                 <table className='contenedor'>
-                    <thead>
-                        <tr>
-                            <td></td>
-                            <td>Grupo responsable</td>
-                            <td>Asignados</td>
-                        </tr>
-                    </thead>
+                    <Header ventanaEg= {this.props.ventanaEg} />
                     <tbody>
                         <tr>
                             <td colSpan='3' className='cluster'>

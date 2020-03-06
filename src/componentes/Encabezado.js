@@ -31,10 +31,24 @@ class Encabezado extends Component {
                             <td className='columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal('¿Qué tipo de MACO es?')} } ></img></td>
                             <td className='columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></td>
                             <td className='menu'>
-                                <input type='button' id='btn_administracion' className='boton' value='Administración'></input>
+                                <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <label className="btn btn-secondary">
+                                        <input type="radio" name="options" id="option1" />Administración
+                                    </label>
+                                    <label className="btn btn-secondary">
+                                        <input type="radio" name="options" id="option2" />Normativo
+                                    </label>
+                                    <label className="btn btn-secondary">
+                                        <input type="radio" name="options" id="option3" /> Proyectos
+                                    </label>
+                                    <label className="btn btn-primary">
+                                        <input type="radio" name="options" id="option4" /> Estrategia de gestión
+                                    </label>
+                                </div>
+                                {/*<input type='button' id='btn_administracion' className='boton' value='Administración'></input>
                                 <input type='button' id='btn_normativo' className='boton' value='Normativo'></input>
                                 <input type='button' id='btn_proyectos' className='boton' value='Proyectos'></input>
-                                <input type='button' id='btn_eg' className='boton' value='Estrategia de gestión'></input>
+                                <input type='button' id='btn_eg' className='boton' value='Estrategia de gestión'></input>*/}
                             </td>
                         </tr>
                         <tr>
