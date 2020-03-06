@@ -1,0 +1,33 @@
+.ui.styled.accordion, .ui.styled.accordion .accordion
+{
+    background-color:#60D7AF!important;
+}
+
+.ui.styled.accordion
+{
+    width: 85% !important;
+    margin-left: 8%;
+    margin-top: 1%;
+}
+
+.ui.accordion .accordion .active.content, .ui.accordion .active.content
+{
+    background:white!important;
+
+}
+
+.HeaderAcc{
+    font-size: 14pt !important;
+    text-align: left !important;
+    background-color:#30BE8F;
+    color: white!important;
+    border-radius: 15%;
+}
+
+td
+{
+    padding-right: 60px;
+    font-size: 12pt;
+    color: gray;
+    cursor: pointer;
+}
