@@ -15,14 +15,28 @@ class Generico extends Component{
                     <Columna titulo= {fila.titulo } />
                 )
             });
-        return <thead><tr>{filaHeader}</tr></thead>
+            return <thead><tr key={0} className="HeaderAcc">{filaHeader}</tr></thead>
+        }
+
+        const Body = (props) =>{
+            const filaBody = props.ventanaEg.datos.map((fila)=>{
+                return (
+                    <tr key ={fila.ID} className="table table-striped table-bordered table-hover">
+                        <Columna titulo= {fila.Title } />
+                        <Columna titulo= {fila.Grupo.NombreCortoGantt } />
+                        <Columna titulo= 'Sin datos' />
+                    </tr>
+                )
+            });
+            return <tbody>{filaBody}</tbody>
         }
 
         return(
             <div>
                 <table className='contenedor'>
                     <Header ventanaEg= {this.props.ventanaEg} />
-                    <tbody>
+                    <Body ventanaEg= {this.props.ventanaEg} />
+                    {/*<tbody>
                         <tr>
                             <td colSpan='3' className='cluster'>
                                 <p>
@@ -44,7 +58,7 @@ class Generico extends Component{
                             <td>NT</td>
                             <td>Icono</td>
                         </tr>
-                    </tbody>
+                    </tbody>*/}
                 </table>
             </div>
         );
