@@ -1,0 +1,22 @@
+.encabezado{
+    background-color: #40B9C7;
+    color: white;
+    font-size: 25px;
+    padding: 5px;
+}
+
+.datoTerreno{
+    background-color: #8ED6DE;
+    color: #6A7172;
+    font-size: 15px;
+    text-align: right;
+    padding: 5px;
+}
+
+.cuerpo{
+    padding: 5px;
+}
+.pie{
+    padding-top: 5px;
+    text-align: right;
+}
