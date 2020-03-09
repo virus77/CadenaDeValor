@@ -26,8 +26,9 @@
 
 td
 {
-    padding-right: 60px;
-    font-size: 12pt;
-    color: gray;
+    color: grey;
     cursor: pointer;
+    font-size: 12pt;
+    padding-right: 60px;
+    text-align: left!important;
 }

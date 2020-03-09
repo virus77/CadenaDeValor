@@ -8,55 +8,16 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { _SharePointQueryable } from '@pnp/sp/sharepointqueryable';
 import "../estilos/Principal.css"
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Tabla from './Tabla';
 
 class Principal extends Component {
 
-    async componentDidMount() {
-        //var listItemsT = await sp.web.lists.getByTitle("Flujo Tareas").views.getbytitle('MyView').items
-        var listItemsT = await sp.web.lists.getByTitle("Flujo Tareas").items
-            .select("ID", "Modified", "IdProyectoInversion/ID", "IdProyectoInversion/NombreProyectoInversion",
-                "IdTerreno/ID", "IdTerreno/NombredelTerreno", "IdTarea/ID", "IdTarea/Title", "Estatus/Title",
-                "Editor/Title")
-            .expand("IdProyectoInversion", "IdTerreno", "IdTarea", "Estatus", "Editor")
-            .filter("(IdTerreno/Empadronamiento eq null) and (IdTerreno/ID ne null)")
-            .orderBy("IdTarea/ID", true)
-            .getAll();
-
-        listItemsT.sort(function (a, b) {
-            if (a.IdTerreno.ID > b.IdTerreno.ID)
-                return 1;
-            if (a.IdTerreno.ID < b.IdTerreno.ID)
-                return -1;
-
-            return 0;
-        });
-        this.setState({ itemsT: listItemsT });
-
-        var listItemsPI = await sp.web.lists.getByTitle("Proyecto Inversion").items
-            .select("ID", "NombreProyectoInversion").orderBy("ID", false)
-            .getAll();
-
-        listItemsPI.sort(function (a, b) {
-            if (a.NombreProyectoInversion > b.NombreProyectoInversion)
-                return 1;
-            if (a.NombreProyectoInversion < b.NombreProyectoInversion)
-                return -1;
-
-            return 0;
-        });
-        this.setState({ itemsPI: listItemsPI });
-
+    constructor(props) {
+        super(props);
+        //this.initialState = { activeIndex: 0, isActive: false }
+        this.initialState = { activeIndex: -1, isActive: false }
+        this.state = this.initialState;
     }
-
-    state = {
-        itemsT: [],
-        itemsPI: [],
-        activeIndex: 0,
-        isActive: false,
-        idPI: 0
-    };
 
     handleClick = (e, titleProps) => {
         const { index } = titleProps
@@ -74,8 +35,8 @@ class Principal extends Component {
 
     render() {
 
-        const { activeIndex, itemsT, itemsPI } = this.state
-
+        const { activeIndex } = this.state
+        const { selecciontereno, itemsT, itemsPI } = this.props
         { this.styleLink() }
 
         return (
@@ -89,11 +50,11 @@ class Principal extends Component {
                             <Icon name='dropdown' />
                             {item.NombreProyectoInversion}
                         </Accordion.Title>
-                        <Accordion.Content active={activeIndex === index}>
-                            <div><Tabla itemsData={itemsT} indice={item} /></div>
+                        {/*<Accordion.Content active={activeIndex === index}>*/}
+                        <Accordion.Content active={activeIndex !== index}>
+                            <div><Tabla selecciontereno={selecciontereno} itemsData={itemsT} indice={item} /></div>
                         </Accordion.Content>
                     </Accordion>
-
                     <div id={"root"}></div>
                 </div>
             ))
