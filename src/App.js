@@ -39,13 +39,12 @@ class App extends Component {
   //función utilizada para seleccionar el terreno y abrir los clusters
   onSeleccionTereno = (texto, text) => {
     this.setState({ idTerren: texto })
-    if (window.confirm('Esta seguro que sesea abrir el detalle del terreno ' + text + "?"))
-    {
+    if (window.confirm('Esta seguro que sesea abrir el detalle del terreno ' + text + "?")) {
       this.setState({ isInActive: false })
       this.setState({ isActive: true })
     }
-      else
-        this.setState({ isActive: false })
+    else
+      this.setState({ isActive: false })
   }
 
   onOpenModal = ventana => {
