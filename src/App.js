@@ -30,8 +30,26 @@ class App extends Component {
       encabezado: '',
       terreno: ''
     }],
+<<<<<<< HEAD
     veg: [{
       columnas: [{ titulo: '' }, { titulo: 'Grupo responsable' }, { titulo: 'Asignado a' }],
+=======
+    veg:[{
+      columnas: [{titulo:''},{titulo:'Responsable'}, {titulo:'Asignado a'}],
+      datos: []
+    }],
+    v:[{
+      columnas: [
+                  {titulo:''},
+                  {titulo:'Responsable'},
+                  {titulo:'Asignado a'},
+                  {titulo:'Linea base'},
+                  {titulo:'F. estimada'},
+                  {titulo:'Estatus'},
+                  {titulo:'Adjunto'},
+                  {titulo:'Detalle'}
+                ],
+>>>>>>> 37ab08887c7dbda7fbc0c6d5c522e18838716260
       datos: []
     }]
   }
@@ -98,6 +116,7 @@ class App extends Component {
       .orderBy("IdTarea/ID", true)
       .getAll();
     var currentItem = await sp.web.lists.getByTitle('Terrenos').items.getById(this.state.idTerreno).get();
+<<<<<<< HEAD
     var actividades = await sp.web.lists.getByTitle('Flujo Tareas').items.filter('(IdProyectoInversion/ID eq ' + currentItem.IdProyectoInversionId + ') or (IdTerreno/ID eq ' + this.state.idTerreno + ')').select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID', 'IdTerreno/Title', 'Nivel/ID', 'IdTarea/ID', 'IdTarea/TxtCluster', 'IdTarea/TxtVentana').expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea').getAll();
 
     const actsCluster = actividades.sort((a, b) =>
@@ -107,6 +126,33 @@ class App extends Component {
     this.setState({ itemsT: listItemsT, itemsPI: listItemsPI, datosTerreno: currentItem, datosActividades: actividades });*/
 
     this.setState({ itemsT: listItemsT, itemsPI: listItemsPI });
+=======
+    var actividades = await sp.web.lists.getByTitle('Flujo Tareas').items.filter('(IdProyectoInversion/ID eq ' + currentItem.IdProyectoInversionId + ') or (IdTerreno/ID eq ' + this.state.idTerreno + ')').select('ID','Title','IdProyectoInversion/ID','IdProyectoInversion/Title', 'IdTerreno/ID','IdTerreno/Title', 'Nivel/ID', 'IdTarea/ID', 'IdTarea/TxtCluster', 'IdTarea/TxtVentana','EstatusId').expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea').getAll();
+    var RFSEnviado=false;
+    var datosEG = [{
+      columnas: [{titulo:''},{titulo:'Responsable'}, {titulo:'Asignado a'}],
+      datos: []
+    }];
+    actividades.sort(function(a, b){
+      if (a.IdTarea.ID === 24){
+        if(a.EstatusId===3){
+          RFSEnviado = true;
+        }
+      }
+      if (a.IdTarea.TxtCluster > b.IdTarea.TxtCluster)
+            return 1;
+        if (a.IdTarea.TxtCluster < b.IdTarea.TxtCluster)
+            return -1;
+
+        return 0;
+    });
+
+    if(!RFSEnviado){
+      datosEG[0].datos = await sp.web.lists.getByTitle('Tareas').items.filter('DetonacionInicial eq 1').select('ID','Title','Cluster','Grupo/NombreCortoGantt').expand('Grupo').orderBy('Orden', true).get();
+    }
+
+    this.setState({datosTerreno: currentItem, datosActividades: actividades, veg: datosEG});
+>>>>>>> 37ab08887c7dbda7fbc0c6d5c522e18838716260
   }
 
   render() {
