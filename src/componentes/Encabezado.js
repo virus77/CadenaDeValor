@@ -15,53 +15,48 @@ class Encabezado extends Component {
         this.props.abrirModal(textoVentana);
     }
 
+    onChangeWindow = (idVentana) =>{
+        this.props.cambiarVentana(idVentana);
+    }
+
     render(){
         const {terreno} = this.props;
         return (
             <div>
-                <table className='tabla'>
-                    <thead>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className='nombreTerreno'><label id='NombreTerreno'><b>{ terreno.NombredelTerreno2 }</b></label></td>
-                            <td className='columna'><img id='FiltroFavoritos' src={favoritos_icon} alt='favoritos_icon' ></img></td>
-                            <td className='columna'><img id='FiltroGantt' src={gantt_icon} alt='gantt_icon' ></img></td>
-                            <td className='columna'><img id='FiltroVerTodo' src={user_icon} alt='user_icon' ></img></td>
-                            <td className='columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal('¿Qué tipo de MACO es?')} } ></img></td>
-                            <td className='columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></td>
-                            <td className='menu'>
-                                <div className="btn-group btn-group-toggle" data-toggle="buttons">
-                                    <label className="btn btn-secondary">
-                                        <input type="radio" name="options" id="option1" />Administración
-                                    </label>
-                                    <label className="btn btn-secondary">
-                                        <input type="radio" name="options" id="option2" />Normativo
-                                    </label>
-                                    <label className="btn btn-secondary">
-                                        <input type="radio" name="options" id="option3" /> Proyectos
-                                    </label>
-                                    <label className="btn btn-primary">
-                                        <input type="radio" name="options" id="option4" /> Estrategia de gestión
-                                    </label>
-                                </div>
-                                {/*<input type='button' id='btn_administracion' className='boton' value='Administración'></input>
-                                <input type='button' id='btn_normativo' className='boton' value='Normativo'></input>
-                                <input type='button' id='btn_proyectos' className='boton' value='Proyectos'></input>
-                                <input type='button' id='btn_eg' className='boton' value='Estrategia de gestión'></input>*/}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colSpan={7} className='egupload'>
-                                <p>
-                                    <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal('Estrategia de gestión autorizada')} }></img>
-                                    E. de G. autorizada
-                                </p>
-                            </td>
-                        </tr>
-                    </tbody>
-                    
-                </table>
+                <div className='container-fluid'>
+                    <div className='row'>
+                        <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{ terreno.NombredelTerreno2 }</b></label></div>
+                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' src={favoritos_icon} alt='favoritos_icon' ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroGantt' src={gantt_icon} alt='gantt_icon' ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' src={user_icon} alt='user_icon' ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal('¿Qué tipo de MACO es?')} } ></img></div>
+                        <div className='col-sm-1 columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></div>
+                        <div className='col-sm-4 menu'>
+                            <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label className="btn btn-secondary btn-sm">
+                                    <input type="radio" onClick = {()=>this.onChangeWindow(1)} />Administración
+                                </label>
+                                <label className="btn btn-secondary btn-sm">
+                                    <input type="radio" onClick = {()=>this.onChangeWindow(2)} />Normativo
+                                </label>
+                                <label className="btn btn-secondary btn-sm">
+                                    <input type="radio" onClick = {()=>this.onChangeWindow(3)} /> Proyectos
+                                </label>
+                                <label className="btn btn-primary btn-sm">
+                                    <input type="radio" onClick = {()=>this.onChangeWindow(4)} /> Estrategia de gestión
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div className='row'>
+                        <div colSpan={7} className='col-sm egupload'>
+                            <p>
+                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal('Estrategia de gestión autorizada')} }></img>
+                                E. de G. autorizada
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
           );
     }

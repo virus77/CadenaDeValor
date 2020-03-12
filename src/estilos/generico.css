@@ -1,0 +1,81 @@
+.titulo{
+  font-size: 12pt !important;
+  font-weight: bold;
+  text-align: left !important;
+  background-color:#30BE8F;
+  color: black!important;
+  border-radius: 3%;
+}
+
+.item{
+  background-color: whitesmoke;
+  border: white;
+  border-style: solid;
+  border-width: 1pt;
+  font-weight: normal!important;
+  color: black;
+  font-size: 10pt;
+  margin-left: 5px;
+}
+
+.item-personal{
+  background-color: #D9D9D9;
+  border: white;
+  border-style: solid;
+  border-width: 1pt;
+  font-weight: normal!important;
+  color: black;
+  font-size: 10pt;
+  margin-left: 5px;
+}
+
+.empty-space{
+  background-color:white!important;
+  height: 10pt;
+}
+
+.checkBox{
+  width: 15pt;
+  height: 15pt;
+  background-color: #B9B9B9;
+  border-radius: 50%;
+  vertical-align: middle;
+  border: 1px solid #B9B9B9;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.checkBox:hover{
+  transform: scale(1.2);
+}
+
+.checkBox:checked {
+  background-color: #67C100;
+  border: 1px solid #67C100;
+}
+
+.checkBox-sm{
+  width: 10pt;
+  height: 10pt;
+  background-color: #B9B9B9;
+  border-radius: 50%;
+  vertical-align: middle;
+  border: 1px solid #B9B9B9;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.checkBox-sm:hover{
+  transform: scale(1.2);
+}
+
+.checkBox-sm:checked {
+  background-color: #67C100;
+  border: 1px solid #67C100;
+}
+
+.ok{
+  text-align: right;
+}
