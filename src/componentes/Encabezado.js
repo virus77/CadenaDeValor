@@ -16,7 +16,9 @@ class Encabezado extends Component {
     }
 
     onChangeWindow = (idVentana) =>{
-        this.props.cambiarVentana(idVentana);
+        if(idVentana !== this.props.idVentana){
+            this.props.cambiarVentana(idVentana);
+        }
     }
 
     render(){
@@ -25,11 +27,11 @@ class Encabezado extends Component {
             <div>
                 <div className='container-fluid'>
                     <div className='row'>
-                        <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{ terreno.NombredelTerreno2 }</b></label></div>
+                        <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{ terreno }</b></label></div>
                         <div className='col-sm-1 columna'><img id='FiltroFavoritos' src={favoritos_icon} alt='favoritos_icon' ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroGantt' src={gantt_icon} alt='gantt_icon' ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroVerTodo' src={user_icon} alt='user_icon' ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal('¿Qué tipo de MACO es?')} } ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal(268)} } ></img></div>
                         <div className='col-sm-1 columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></div>
                         <div className='col-sm-4 menu'>
                             <div className="btn-group btn-group-toggle" data-toggle="buttons">
@@ -51,7 +53,7 @@ class Encabezado extends Component {
                     <div className='row'>
                         <div colSpan={7} className='col-sm egupload'>
                             <p>
-                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal('Estrategia de gestión autorizada')} }></img>
+                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal(269)} }></img>
                                 E. de G. autorizada
                             </p>
                         </div>

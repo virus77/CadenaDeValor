@@ -1,7 +1,7 @@
 {
-  "siteUrl": "http://con.quierocasa.com.mx:21520/CompraDeTerreno/",
+  "siteUrl": "http://con.quierocasa.com.mx:21520/compradeterreno/",
   "strategy": "OnpremiseUserCredentials",
   "username": "az.adconsultor",
-  "domain": "quierocasa",
-  "password": "195a2aff5753cf467ceae3f1e87e0c4593b2b5484c391d54dc29dd221a3e3bbb3bbd980c862ce3bd0e550c13f7925e2dYX5aWoRjlwfN2a0AFa1BpQ=="
+  "password": "c83a4e8e7c7cd93afd60ec9fd8a33e47c8b448eb26ae1e5a86a75515afda626abf09a01ae9f97a6946579f70bbec7c55SZfiz3PdhpNYfNUjZEh+Sw==",
+  "domain": "quierocasa"
 }

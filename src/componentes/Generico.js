@@ -31,13 +31,6 @@ class Generico extends Component{
             checkedItems[indice].datos.Seleccionado = event.target.checked;
             checkedItems[indice].cambio = !checkedItems[indice].cambio;
         }
-        /*if(event.target.checked){
-            checkedItems = checkedItems.concat({id: idElemento, tarea: parseInt(event.target.name), terreno: idTerreno})
-        }else{
-            checkedItems = checkedItems.filter((item, i)=>{
-                return item.id !== idElemento
-            });
-        }*/
     }
 
     onSave = async elementos =>{
@@ -57,20 +50,23 @@ class Generico extends Component{
                     }).then(async a=>{
                         await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
                             Seleccionado: elemento.datos.Seleccionado,
-                            IdFlujoTareasId: a.ID
+                            IdFlujoTareasId: a.data.Id
                         }).then(u=>{
-                            elemento.datos.IdFlujoTareas = a.ID
+                            const indice = checkedItems.findIndex((obj => obj.datos.ID === elemento.datos.ID));
+                            if(indice!== -1){
+                                checkedItems[indice].datos.IdFlujoTareasId = a.data.Id
+                            }
                         });
                     });
                 }else{
                     //Actualiza la tarea en flujo tareas
-                    await sp.web.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareas).update({
-                        AsignadoA: elemento.datos.AsignadoA !== undefined ? elemento.datos.AsignadoA : {result: []},
-                        Visible: !elemento.datos.Seleccionado
+                    await sp.web.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareasId).update({
+                        AsignadoA: elemento.datos.AsignadoA !== undefined ? elemento.datos.AsignadoA : {results: []},
+                        Visible: elemento.datos.Seleccionado
                     }).then(async u=>{
                         //Establece como seleccionado en la lista de EG
                         await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
-                            Seleccionado: !elemento.datos.Seleccionado
+                            Seleccionado: elemento.datos.Seleccionado
                         });
                     });
                 }
@@ -108,6 +104,7 @@ class Generico extends Component{
                                     {fila.cluster.Tarea.TxtCluster}
                                 </p>
                                 <Body datos = {props.datos} idCluster = {fila.cluster.Tarea.OrdenEG} esCheckable = {fila.cluster.Tarea.Checkable}  />
+                                <div className= 'row item-personal col-sm-12' onDoubleClick={()=>{ this.abrirModal('Nueva actividad personal')}}>Agregar nueva actividad personal</div>
                                 <div className='row empty-space' ></div>
                             </div>
                         )

@@ -22,6 +22,7 @@ class App extends Component {
     datosActividades: [],
     modal:[{
       showModal: false,
+      id: 0,
       encabezado: '',
       terreno: ''
     }],
@@ -46,12 +47,12 @@ class App extends Component {
   }
 
 
-  onOpenModal = ventana => {  
-    this.setState({ modal: [{ showModal: true, encabezado: ventana, terreno: this.state.datosTerreno.NombredelTerreno2 }] });
+  onOpenModal = idTarea => {  
+    this.setState({ modal: [{ showModal: true, id: idTarea, terreno: this.state.datosTerreno.NombredelTerreno2 }] });
   };
 
   onCloseModal = () => {
-    this.setState({ modal: [{ showModal: false, encabezado: '', terreno: '' }] });
+    this.setState({ modal: [{ showModal: false, id: 0, encabezado: '', terreno: '' }] });
   };
 
   onSelectWindow = idVentana =>{
@@ -143,7 +144,7 @@ class App extends Component {
     return (
       <div className="App">
         {/*<Principal />*/}
-        <Encabezado terreno = {datosTerreno} idVentana = {this.state.ventana} abrirModal={this.onOpenModal} cambiarVentana={this.onSelectWindow}  />
+        <Encabezado terreno = {datosTerreno.NombredelTerreno2} idVentana = {this.state.ventana} abrirModal={this.onOpenModal} cambiarVentana={this.onSelectWindow}  />
         <Generico clusters = {this.state.clustersVentana} datosVentana = {this.state.ventana === 4 ? veg[0] : v[0]} idVentana = {this.state.ventana} abrirModal={this.onOpenModal} />
         <Modal open = {modal} cerrar={this.onCloseModal} />
       </div>
