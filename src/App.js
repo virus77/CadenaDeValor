@@ -121,7 +121,7 @@ class App extends Component {
     if(!RFSEnviado){
       datosEG[0].datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
       .filter('ProyectoInversionId eq ' + this.state.idPI)
-      .select('ID','ProyectoInversion/ID','Terreno/ID','Tarea/ID','Tarea/Title','Tarea/TxtCluster','Tarea/OrdenEG','Tarea/Checkable','GrupoResponsable/NombreCortoGantt','Seleccionado')
+      .select('ID','ProyectoInversion/ID','Terreno/ID','Tarea/ID','Tarea/Title','Tarea/TxtCluster','Tarea/OrdenEG','Tarea/Checkable','GrupoResponsable/ID','GrupoResponsable/NombreCortoGantt','Seleccionado', 'IdFlujoTareasId')
       .expand('ProyectoInversion', 'Terreno', 'Tarea','GrupoResponsable').orderBy('Tarea/OrdenEG',true).get();
 
       var result = [];

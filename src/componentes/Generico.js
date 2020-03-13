@@ -5,14 +5,18 @@ import more_details_icon from '../imagenes/more_details_icon.png';
 import assignedTo_icon from '../imagenes/assignedTo_icon.png';
 import plus_icon from '../imagenes/plus_icon.png';
 import '../estilos/generico.css';
-import {onSave, onSave2} from '../js/eg.js';
+//import {onSave} from '../js/eg.js';
+import { sp } from "@pnp/sp";
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+import "@pnp/sp/items";
 
+var checkedItems = [];
 class Generico extends Component{
     constructor(props){
         super(props)
         this.inialState = {
-            clusterStatus: [],
-            checkedItems: []
+            clusterStatus: []
         }
         this.state = this.inialState;
     }
@@ -21,17 +25,57 @@ class Generico extends Component{
         this.props.abrirModal(textoVentana);
     }
 
-    onSeleccionarItem = event =>{
-        if(event.target.checked){
-            this.setState({checkedItems: this.state.checkedItems.concat([event.target.name])})
-        }else{
-            var array = [...this.state.checkedItems];
-            var index = array.indexOf(event.target.name);
-            if (index !== -1) {
-                array.splice(index, 1);
-                this.setState({checkedItems: array});
-              }
+    onSeleccionarItem = (event, idElemento) =>{
+        const indice = checkedItems.findIndex((obj => obj.datos.ID === idElemento));
+        if(indice!== -1){
+            checkedItems[indice].datos.Seleccionado = event.target.checked;
+            checkedItems[indice].cambio = !checkedItems[indice].cambio;
         }
+        /*if(event.target.checked){
+            checkedItems = checkedItems.concat({id: idElemento, tarea: parseInt(event.target.name), terreno: idTerreno})
+        }else{
+            checkedItems = checkedItems.filter((item, i)=>{
+                return item.id !== idElemento
+            });
+        }*/
+    }
+
+    onSave = async elementos =>{
+        elementos.forEach(async elemento => {
+            if(elemento.cambio){
+                if(elemento.datos.IdFlujoTareasId === null){
+                    //Crea la tarea en flujo tareas
+                    await sp.web.lists.getByTitle("Flujo Tareas").items.add({
+                        IdProyectoInversionId: elemento.datos.ProyectoInversion.ID,
+                        IdTareaId: elemento.datos.Tarea.ID,
+                        IdTerrenoId: elemento.datos.Terreno.ID,
+                        NivelId: 2,
+                        GrupoResponsableId: elemento.datos.GrupoResponsable.ID,
+                        AsignadoAId: elemento.datos.AsignadoA !== undefined ? elemento.datos.AsignadoA : {results: []},
+                        EstatusId: 1,
+                        Visible: true
+                    }).then(async a=>{
+                        await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
+                            Seleccionado: elemento.datos.Seleccionado,
+                            IdFlujoTareasId: a.ID
+                        }).then(u=>{
+                            elemento.datos.IdFlujoTareas = a.ID
+                        });
+                    });
+                }else{
+                    //Actualiza la tarea en flujo tareas
+                    await sp.web.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareas).update({
+                        AsignadoA: elemento.datos.AsignadoA !== undefined ? elemento.datos.AsignadoA : {result: []},
+                        Visible: !elemento.datos.Seleccionado
+                    }).then(async u=>{
+                        //Establece como seleccionado en la lista de EG
+                        await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
+                            Seleccionado: !elemento.datos.Seleccionado
+                        });
+                    });
+                }
+            }
+        });
     }
 
     render(){
@@ -68,7 +112,8 @@ class Generico extends Component{
                             </div>
                         )
                     });
-                    return <div key={0} className="row justify-content-end">{filaCluster}<input type='button' value='OK' className='btn btn-primary' onClick={()=>onSave2('otro texto')} /></div>
+                    //return <div key={0} className="row justify-content-end">{filaCluster}<input type='button' value='OK' className='btn btn-primary' onClick={()=>onSave(checkedItems)} /></div>
+                    return <div key={0} className="row justify-content-end">{filaCluster}<input type='button' value='OK' className='btn btn-primary' onClick={()=>this.onSave(checkedItems)} /></div>
                 }
             }else{
                 return null
@@ -97,12 +142,15 @@ class Generico extends Component{
 
         const Body = (props) =>{
             if(props.idCluster >= 4){
-                //Otras ventanas
+                //Estrategia de gestión
                 const filaBody = props.datos.datos.map((fila)=>{
                     if(fila.Tarea.OrdenEG === props.idCluster){
+                        if(props.esCheckable){
+                            checkedItems = checkedItems.concat({datos:fila, cambio: false})
+                        }
                         return (
                             <div key ={fila.ID} className="row item">
-                                {props.esCheckable === '1' ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={this.onSeleccionarItem} ></input>: null}
+                                {props.esCheckable === '1' ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e)=>this.onSeleccionarItem(e, fila.ID)} ></input>: null}
                                 <Columna key={fila.Tarea.ID} titulo= {fila.Tarea.Title } estilo = 'col-sm' editable= { props.esCheckable === '1' ? false: true} />
                                 <Columna titulo= {fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo = 'col-sm' editable= {false} />
                                 <Columna titulo= {<p><img title={fila.AsignadoA !== undefined ? fila.AsignadoA : 'Sin asignar'} src= {fila.AsignadoA !== undefined ? assignedTo_icon : plus_icon} alt='assignedTo_icon' /></p> } estilo = 'col-sm' editable= {false} />
@@ -114,7 +162,7 @@ class Generico extends Component{
                 });
                 return filaBody
             }else{
-                //Estrategia de gestión
+                //Otras ventanas
                 const filaBody = props.datos.datos.map((fila)=>{
                     if(fila.IdTarea.Orden === props.idCluster){
                         return (
