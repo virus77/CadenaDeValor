@@ -21,8 +21,8 @@ class Generico extends Component{
         this.state = this.inialState;
     }
 
-    abrirModal = textoVentana=>{
-        this.props.abrirModal(textoVentana);
+    abrirModal = (id, esTarea)=>{
+        this.props.abrirModal(id, esTarea);
     }
 
     onSeleccionarItem = (event, idElemento) =>{
@@ -120,7 +120,7 @@ class Generico extends Component{
             //Si abre el modal cuando se da doble clic
             if(props.editable){
                 return(
-                    <div className={props.estilo} onDoubleClick={()=>{ this.abrirModal(props.titulo )} } >{props.titulo}</div>
+                    <div className={props.estilo} onDoubleClick={()=>{ this.abrirModal(props.idElemento, props.esTarea )} } >{props.titulo}</div>
                 );
             }else{
                 return(
@@ -164,7 +164,7 @@ class Generico extends Component{
                     if(fila.IdTarea.Orden === props.idCluster){
                         return (
                             <div key ={fila.ID} className="row item">
-                                <Columna titulo= {fila.IdTarea.Title } estilo = 'col-sm-5' editable= {true} />
+                                <Columna titulo= {fila.IdTarea.Title } estilo = 'col-sm-5' editable= {true} idElemento = {fila.ID} esTarea={true} />
                                 <Columna titulo= {fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo = 'col-sm-1' editable= {false} />
                                 <Columna titulo= {<p><img title={fila.AsignadoA !== undefined ? fila.AsignadoA : 'Sin asignar'} src= {fila.AsignadoA !== undefined ? assignedTo_icon : plus_icon} alt='assignedTo_icon' /></p> } estilo = 'col-sm-1' editable= {false} />
                                 <Columna titulo= {fila.LineaBase !== null ? fila.LineaBase : <p><img title='Agregar' src= {plus_icon} alt='plus_icon' /></p>} estilo = 'col-sm-1' editable= {false} />

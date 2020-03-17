@@ -11,8 +11,8 @@ import macoc from '../imagenes/macoc_16.png';
 import '../estilos/encabezado.css';
 
 class Encabezado extends Component {
-    abrirModal = textoVentana=>{
-        this.props.abrirModal(textoVentana);
+    abrirModal = (id, esTarea)=>{
+        this.props.abrirModal(id, esTarea);
     }
 
     onChangeWindow = (idVentana) =>{
@@ -31,7 +31,7 @@ class Encabezado extends Component {
                         <div className='col-sm-1 columna'><img id='FiltroFavoritos' src={favoritos_icon} alt='favoritos_icon' ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroGantt' src={gantt_icon} alt='gantt_icon' ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroVerTodo' src={user_icon} alt='user_icon' ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal(268)} } ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={macob} alt='macob' onClick={()=>{ this.abrirModal(268, false)} } ></img></div>
                         <div className='col-sm-1 columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></div>
                         <div className='col-sm-4 menu'>
                             <div className="btn-group btn-group-toggle" data-toggle="buttons">
@@ -53,7 +53,7 @@ class Encabezado extends Component {
                     <div className='row'>
                         <div colSpan={7} className='col-sm egupload'>
                             <p>
-                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal(269)} }></img>
+                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={()=>{ this.abrirModal(269, false)} }></img>
                                 E. de G. autorizada
                             </p>
                         </div>
