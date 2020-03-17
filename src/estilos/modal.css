@@ -1,3 +1,8 @@
+.modals.dimmer .ui.scrolling.modal
+{
+    margin-left: 10% !important;
+}
+
 .encabezado{
     background-color: #40B9C7;
     color: white;

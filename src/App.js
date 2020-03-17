@@ -17,10 +17,9 @@ class App extends Component {
   state = {
     itemsT: [],
     itemsPI: [],
-    idPI: 0,
     isActive: false,
     isInActive: true,
-    //idTerreno: 285,
+    idProyecto: 0,
     idTerreno: 0,
     ventana: 4,
     datosTerreno: [],
@@ -37,12 +36,11 @@ class App extends Component {
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
-  onSeleccionTereno = (texto, text) => {
-    this.setState({ idTerren: texto })
-    if (window.confirm('Esta seguro que sesea abrir el detalle del terreno ' + text + "?")) {
-      this.setState({ isInActive: false })
-      this.setState({ isActive: true })
-    }
+  onSeleccionTereno = (IdTerreno, IdProyecto, TxtTerreno) => {
+    this.setState({ idTerreno: IdTerreno, idProyecto: IdProyecto })
+
+    if (window.confirm('Esta seguro que sesea abrir el detalle del terreno ' + TxtTerreno + "?"))
+      this.setState({ isInActive: false, isActive: true })
     else
       this.setState({ isActive: false })
   }
@@ -113,9 +111,9 @@ class App extends Component {
     const { itemsT, itemsPI, datosTerreno, modal, veg } = this.state;
     return (
       <div className="App">
-        {this.state.isInActive ? <Principal selecciontereno={this.onSeleccionTereno} itemsT={itemsT} itemsPI={itemsPI} seleccionTereno={this.onSeleccionTereno} /> : null}
+        {this.state.isInActive ? <Principal selecciontereno={this.onSeleccionTereno} itemsT={itemsT} itemsPI={itemsPI} /> : null}
         {this.state.isActive ? <Encabezado terreno={datosTerreno} abrirModal={this.onOpenModal} /> : null}
-        {this.state.isActive ? <Generico ventanaEg={veg[0]} /> : null}
+        {this.state.isActive ? <Generico ventanaEg={veg[0]} fetchmoredata={this.fetchMoreData} /> : null}
         <Modal open={modal} cerrar={this.onCloseModal} />
       </div>
     );

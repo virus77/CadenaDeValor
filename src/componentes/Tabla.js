@@ -19,7 +19,7 @@ const TableBody = (props) => {
         if (indice.ID === fila.IdProyectoInversion.ID) {
             var date = new Date(fila.Modified);
             return (
-                <tr  key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.NombredelTerreno2)}>
+                <tr  key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, fila.NombredelTerreno2)}>
                     <td>{fila.ID}</td>
                     <td>{fila.Title}</td>
                     <td>{fila.NombredelTerreno2}</td>
