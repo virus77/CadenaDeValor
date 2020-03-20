@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.9.7",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.46",
     "@pnp/common": "^2.0.3",
     "@pnp/logging": "^2.0.3",
     "@pnp/odata": "^2.0.3",
     "@pnp/sp": "^2.0.3",
+    "@pnp/spfx-controls-react": "1.16.0",
+    "@pnp/spfx-property-controls": "1.17.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.1",
     "@testing-library/user-event": "^7.2.1",
@@ -22,6 +27,7 @@
     "react-scripts": "3.4.0",
     "reactstrap": "^8.4.1",
     "semantic-ui-react": "^0.88.2",
+    "styled-components": "^5.0.1",
     "typescript": "^3.8.3"
   },
   "scripts": {
@@ -48,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@microsoft/sp-build-web": "^1.10.0",
     "concurrently": "^5.1.0",
     "sp-rest-proxy": "^2.10.3"
   },
