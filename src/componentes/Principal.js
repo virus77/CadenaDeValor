@@ -8,17 +8,10 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { _SharePointQueryable } from '@pnp/sp/sharepointqueryable';
 import "../estilos/Principal.css"
-<<<<<<< HEAD
-import Tabla from './Tabla';
-
-class Principal extends Component {
-
-=======
 //import 'bootstrap/dist/css/bootstrap.min.css';
 import Tabla from './Tabla';
 
 class Principal extends Component {
->>>>>>> f360dec2648f391192f05eb349422b33ab9022ed
     constructor(props) {
         super(props);
         //this.initialState = { activeIndex: 0, isActive: false }
