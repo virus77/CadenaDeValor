@@ -1,11 +1,16 @@
 import React, {Component} from 'react';
+import axios, {post} from 'axios';
 import '../estilos/modal.css';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
+import { Web } from "@pnp/sp/webs";
+import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
+import "@pnp/sp/files";
+import "@pnp/sp/folders";
 //import PeoplePicker from './PeoplePicker'
 import PeoplePicker from './UserPicker'
 
@@ -17,23 +22,44 @@ class Ventana extends Component{
             campos: [],
             usuarios: [],
             ejecutado:false,
-            usuarioAsignados: []
+            usuarioAsignados: props.abrir.id === 270 ? props.datos.valor : [],
+            radioChecked: props.datos.valor
         }
         this.onGuardar = this.onGuardar.bind(this);
         this.onEnviar = this.onEnviar.bind(this);
         this.state = this.initialState
     }
     
-
-    onGuardar(idTarea) {
-        switch(idTarea){
+    async onGuardar() {
+        switch(this.props.abrir.id){
             case 268:
+                if(this.props.esTerrenoOriginal){
+                    const items = await sp.web.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.idPITerr + ' and Empadronamiento eq null').get();
+                    
+                    if (items.length > 0) {
+                        for(var i=0; i<items.length; i++){
+                            await sp.web.lists.getByTitle("Terrenos").items.getById(items[i].ID).update({
+                                MACO: this.state.radioChecked
+                              });
+                        }
+                    }
+                    this.props.evento(this.state.radioChecked)
+                    this.onCerrar()
+                }else{
+                    const items = await sp.web.lists.getByTitle("Terrenos").items.filter('ID eq ' + this.props.idPITerr).get();
+                    
+                    if (items.length > 0) {
+                        await sp.web.lists.getByTitle("Terrenos").items.getById(items[0].ID).update({
+                            MACO: this.state.radioChecked
+                          });
+                    }
+                    this.props.evento(this.state.radioChecked)
+                    this.onCerrar()
+                }
                 break;
             default:
                 break;
         }
-        //event.preventDefault();
-        alert('Guardando...')
     }
 
     onEnviar = () => {
@@ -47,7 +73,6 @@ class Ventana extends Component{
     }
     
     obtenerCampos = async idTarea =>{
-        const users = await sp.web.siteUsers();
         if(!this.props.abrir.esTarea){
             if(idTarea>0){
                 //Obtiene los campos a pintar en el formulario
@@ -59,7 +84,7 @@ class Ventana extends Component{
                 .orderBy('Ordenamiento', true).get();
                 //this.props.abrir.id = 0
                 //const users = await sp.web.siteUsers();
-                this.setState({campos: campos, usuarios: users})
+                this.setState({campos: campos, [idTarea]: 'B'})
                 //Establece el estado el resultado de la consulta
                 //this.setState({campos: campos})
             }
@@ -70,9 +95,14 @@ class Ventana extends Component{
         }
     }
 
-    componentDidMount(){
+    async componentDidMount(){
         if(this.props.abrir.abierto){
             this.obtenerCampos(this.props.abrir.id)
+            if(this.props.abrir.id === 270){
+                const users = await sp.web.siteUsers();
+                this.obtenerPosiciones(users)
+                this.setState({usuarios: users})
+            }
         }
     }
     
@@ -88,8 +118,50 @@ class Ventana extends Component{
         this.setState({usuarioAsignados : items})
     }
 
+    handleChange = e => {
+        const {id} = e.target;
+        this.setState({ radioChecked: id});
+    };
+
+    obtenerPosiciones = usuarios =>{
+        var indices = this.state.usuarioAsignados.map((usuario)=>{
+            return usuarios.findIndex((obj => obj.Id === usuario.ID))
+        })
+        this.setState({usuarioAsignados: indices})
+    }
+
+    //FALTA TERMINAR
+    async onCargarArchivo(e, nombreDocumento){
+        if (window.confirm('¿Está seguro que desea cargar el archivo "' + e.target.files[0].name + '"?')){
+            const archivo = e.target.files[0]
+            var webCdV = await sp.web.getParentWeb();
+            /*let reader = new FileReader()
+            reader.readAsDataURL(archivo[0])
+
+            reader.onload = async (e) =>{
+                var webCdV = await sp.web.getParentWeb();
+                webCdV = new Web(webCdV.data.Url)
+                const formData = {file : e.target.result}
+
+                return post(webCdV.data.parentUrl + '/Documents/I-04124/', formData, { crossdomain: true })
+                .then(response =>{
+                    console.warn("result: " + response)
+                })
+                
+            }*/
+            const file = await webCdV.web.getFolderByServerRelativeUrl("/Documentos/I-04124/").files.add(archivo.name, archivo, true)
+            const item = await file.file.getItem();
+            await item.update({
+                Title: nombreDocumento
+            }).then(()=>{
+                alert('Se cargó el archivo correctamente')
+            }).catch((error)=>{
+                alert('Error: ' + error)
+            })
+        }
+    }
     render(){
-        var boton = "";
+        var boton = '';
         var ID = 0;
         const Formulario = ()=>{
             const formulario = this.state.campos.map((campo)=>{
@@ -101,18 +173,18 @@ class Ventana extends Component{
                             switch(campo.TipoDeCampo) {
                                 case 'Radio':
                                     return <div key={campo.ID}>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} placeholder={campo.Title} />
+                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo } onChange={this.handleChange} />
                                                 <label>{campo.Title}</label>
                                             </div>
                                 case 'File':
                                     return <div key={campo.ID}>
                                                 <label>{campo.Title}</label>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} placeholder={campo.Title} />
+                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e)=>this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
                                             </div>
                                 case 'PeoplePicker':
                                     return  <div key={campo.ID}>
                                                 <label>{campo.Title}</label>
-                                                <PeoplePicker usuarios={this.state.usuarios} seleccionarItems = {this.seleccionarItems} />
+                                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados = {this.state.usuarioAsignados} seleccionarItems = {this.seleccionarItems} />
                                             </div>
                                 default:
                                     break;
@@ -128,21 +200,24 @@ class Ventana extends Component{
             switch (boton) {
                 case "Enviar":
                     return (
-                        <div key={ID}>
-                            <input type="button" className="btn btn-primary" onClick={this.onEnviar} value='Enviar' />
+                        <div key={ID} className="row">
+                            <input type="button" className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar' />
+                            <input type="button" className="btn btn-danger btn-md"  onClick={this.onCerrar} value='Cerrar' />
                         </div>
                     )
                 case "GuardarEnviar":
                     return (
-                        <div key={ID}>
-                            <input type="button" className="btn btn-primary" onClick={this.onGuardar} value='Guardar' />
-                            <input type='button' className="btn btn-danger" onClick={this.onEnviar} value='Enviar' />
+                        <div key={ID} className="row">
+                            <input type='button' className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar ' />
+                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type="button" className="btn btn-danger btn-md"  onClick={this.onCerrar} value='Cerrar ' />
                         </div>
                     )
                 case "Guardar":
                     return (
-                        <div key={ID}>
-                            <input type="button" className="btn btn-primary" onClick={this.onGuardar} value='Guardar' />
+                        <div key={ID} className="row">
+                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type="button" className="btn btn-danger btn-md" onClick={this.onCerrar} value='Cerrar ' />
                         </div>
                     )
                 default:
