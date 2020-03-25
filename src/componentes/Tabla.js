@@ -18,8 +18,13 @@ const TableBody = (props) => {
     const filas = props.itemsData.map((fila, index) => {
         if (indice.ID === fila.IdProyectoInversion.ID) {
             var date = new Date(fila.Modified);
+            var RFS = fila.Title;
+            RFS = RFS.substring(0, 2);
+            RFS = RFS == "T-" ? false : true;
+            var txtTerreno = RFS == true ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
             return (
-                <tr  key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, fila.NombredelTerreno2)}>
+                <tr key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, txtTerreno,
+                    fila.MACO, RFS)}>
                     <td>{fila.ID}</td>
                     <td>{fila.Title}</td>
                     <td>{fila.NombredelTerreno2}</td>

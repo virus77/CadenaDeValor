@@ -52,7 +52,7 @@ class Principal extends Component {
                         </Accordion.Title>
                         {/*<Accordion.Content active={activeIndex === index}>*/}
                         <Accordion.Content active={activeIndex !== index}>
-                            <div><Tabla selecciontereno={selecciontereno} itemsData={itemsT} indice={item} /></div>
+                            <div><Tabla selecciontereno={selecciontereno} itemsData={itemsT} indice={item}/></div>
                         </Accordion.Content>
                     </Accordion>
                     <div id={"root"}></div>
