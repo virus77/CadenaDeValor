@@ -41,7 +41,6 @@ class Generico extends Component {
             cargado: false,
             idProyecto: props.idProyecto,
             idTerreno: props.idTerreno,
-            MACO: props.maco,
             idVentana: 4,
             totalAdmin: 0,
             totalNorm: 0,

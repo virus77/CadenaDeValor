@@ -20,20 +20,20 @@ class Encabezado extends Component {
                 abierto: false,
                 id: 0,
                 terreno: '',
-                esTarea: false
-            },
-            datos: {
+                esTarea:false
+              },
+            datos:{
                 campo: '',
-                valor: ''
+                valor:''
             },
             maco: props.maco,
         }
         this.state = this.inialState;
     }
 
-    onCambiarVentana = (idVentana) => {
-        if (idVentana !== this.props.idVentana) {
-            this.props.cambiarVentana(idVentana)
+    onCambiarVentana = (idVentana) =>{
+        if(idVentana !== this.props.idVentana){
+            this.props.cambiarVentana(idVentana, 'Cargando contenido...')
         }
     }
 
@@ -41,8 +41,9 @@ class Encabezado extends Component {
         this.setState({ modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea }, datos: { campo: campo, valor: valor } })
     }
 
-    onActualizarMaco = nuevoMaco => {
-        this.setState({ maco: nuevoMaco })
+    onActualizarMaco = nuevoMaco =>{
+        this.props.cambioMaco(nuevoMaco.dato)
+        this.setState({maco: nuevoMaco.dato})
     }
 
     onCerrarModal = () => {
@@ -55,12 +56,12 @@ class Encabezado extends Component {
             <div>
                 <div className='container-fluid'>
                     <div className='row'>
-                        <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
+                    <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
                         <div className='col-sm-1 columna'><img id='FiltroFavoritos' onClick={() => this.onCambiarVentana(5)} src={idVentana !== 4 ? favoritos_icon : disabled_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroGantt' onClick={() => this.onCambiarVentana(6)} src={idVentana !== 4 ? gantt_icon : disabled_icon} alt='gantt_icon' disabled={disabled} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroVerTodo' onClick={() => this.onCambiarVentana(7)} src={idVentana !== 4 ? viewAll : disabled_icon} alt='user_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' onClick={() => this.onCambiarVentana(8)} src={this.state.maco === '' ? macox : (this.state.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', this.state.maco) }} ></img></div>
-                        <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(9)} src={toGantt} alt='toGantt' ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={this.state.maco === '' ? macox : (this.state.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', this.state.maco) }} ></img></div>
+                        <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img></div>
                         <div className='col-sm-4 menu'>
                             <Button className={idVentana === 1 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(1, e)}>
                                 Administración <Badge color="secondary">{totalAdmin}</Badge>
@@ -77,7 +78,7 @@ class Encabezado extends Component {
                             <hr className='hr' />
                         </div>
                     </div>
-                    {/* {idVentana === 4 ?
+                     {/* {idVentana === 4 ?
                         <div className='row'>
                             <div colSpan={7} className='col-sm egupload'>
                                 <p>
@@ -88,7 +89,7 @@ class Encabezado extends Component {
                         </div> : null
                     }*/}
                 </div>
-                {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} esTerrenoOriginal={this.props.esTerrenoOriginal} idPITerr={this.state.idPITerr} evento={this.onActualizarMaco} datos={this.state.datos} /> : null}
+                {this.state.modal.abierto ? <Modal abrir = {this.state.modal} cerrar={this.onCerrarModal} rfs = {this.props.rfs} idPITerr = {this.state.idPITerr} evento = {this.onActualizarMaco} datos = {this.state.datos} /> : null}
             </div>
         );
     }
