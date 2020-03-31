@@ -1,26 +1,32 @@
 import React, { Component } from 'react';
 import Modal from './Ventana';
+import disabled_icon from '../imagenes/disabled.png';
 import favoritos_icon from '../imagenes/favoritos_icon.png';
-import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
-import gantt_icon from '../imagenes/gantt_icon.png';
-import user_icon from '../imagenes/user_icon.png';
-import user_icon_clicked from '../imagenes/user_icon_clicked.png';
-import external_icon from '../imagenes/external_icon.png';
-import egupload_icon from '../imagenes/egupload_icon.png';
-import macob from '../imagenes/macob_24.png';
-import macoc from '../imagenes/macoc_16.png';
+import gantt_icon from '../imagenes/gantt.png';
+import viewAll from '../imagenes/viewAll.png';
+import macob from '../imagenes/macoB.png';
+import macoc from '../imagenes/macoC.png';
+import macox from '../imagenes/macoX.png';
+import toGantt from '../imagenes/toGantt.png';
 import '../estilos/encabezado.css';
+import { Badge, Button } from 'reactstrap';
 
 class Encabezado extends Component {
     constructor(props) {
         super(props)
         this.inialState = {
+            idPITerr: props.idPITerr,
             modal: {
                 abierto: false,
                 id: 0,
                 terreno: '',
                 esTarea: false
-            }
+            },
+            datos: {
+                campo: '',
+                valor: ''
+            },
+            maco: props.maco,
         }
         this.state = this.inialState;
     }
@@ -31,8 +37,12 @@ class Encabezado extends Component {
         }
     }
 
-    onAbrirModal = (terreno, id, esTarea) => {
-        this.setState({ modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea } })
+    onAbrirModal = (terreno, id, esTarea, campo, valor) => {
+        this.setState({ modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea }, datos: { campo: campo, valor: valor } })
+    }
+
+    onActualizarMaco = nuevoMaco => {
+        this.setState({ maco: nuevoMaco })
     }
 
     onCerrarModal = () => {
@@ -40,46 +50,45 @@ class Encabezado extends Component {
     };
 
     render() {
-        const { terreno, totalAdmin, totalNorm, totalProy, maco, disabled } = this.props
-        var mimaco = maco;
-        var mimacoAlt = maco;
+        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana } = this.props
         return (
             <div>
                 <div className='container-fluid'>
                     <div className='row'>
                         <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
-                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' onClick={() => this.onCambiarVentana(5)} src={favoritos_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroGantt' onClick={() => this.onCambiarVentana(6)} src={gantt_icon} alt='gantt_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' onClick={() => this.onCambiarVentana(7)} src={user_icon} alt='user_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' onClick={() => { this.onAbrirModal(terreno, 268, false) }} ></img></div>
-                        <div className='col-sm-1 columna'><img id='ToGantt' src={external_icon} alt='external_icon' ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' onClick={() => this.onCambiarVentana(5)} src={idVentana !== 4 ? favoritos_icon : disabled_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroGantt' onClick={() => this.onCambiarVentana(6)} src={idVentana !== 4 ? gantt_icon : disabled_icon} alt='gantt_icon' disabled={disabled} ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' onClick={() => this.onCambiarVentana(7)} src={idVentana !== 4 ? viewAll : disabled_icon} alt='user_icon' disabled={disabled} ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' onClick={() => this.onCambiarVentana(8)} src={this.state.maco === '' ? macox : (this.state.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', this.state.maco) }} ></img></div>
+                        <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(9)} src={toGantt} alt='toGantt' ></img></div>
                         <div className='col-sm-4 menu'>
-                            <div className="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label className="btn btn-secondary btn-sm">
-                                    <input type="radio" onClick={() => this.onCambiarVentana(1)} />Administración - {totalAdmin}
-                                </label>
-                                <label className="btn btn-secondary btn-sm">
-                                    <input type="radio" onClick={() => this.onCambiarVentana(2)} />Normativo - {totalNorm}
-                                </label>
-                                <label className="btn btn-secondary btn-sm">
-                                    <input type="radio" onClick={() => this.onCambiarVentana(3)} /> Proyectos - {totalProy}
-                                </label>
-                                <label className="btn btn-primary btn-sm">
-                                    <input type="radio" onClick={() => this.onCambiarVentana(4)} /> Estrategia de gestión
-                                </label>
+                            <Button className={idVentana === 1 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(1, e)}>
+                                Administración <Badge color="secondary">{totalAdmin}</Badge>
+                            </Button>
+                            <Button name='norm' className={idVentana === 2 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(2, e)}>
+                                Normativo <Badge color="secondary">{totalNorm}</Badge>
+                            </Button>
+                            <Button name='proy' className={idVentana === 3 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(3, e)}>
+                                Proyectos <Badge color="secondary">{totalProy}</Badge>
+                            </Button>
+                            <Button name='eg' className={idVentana === 4 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(4, e)}>
+                                Estrategia de gestión
+                            </Button>
+                            <hr className='hr' />
+                        </div>
+                    </div>
+                    {/* {idVentana === 4 ?
+                        <div className='row'>
+                            <div colSpan={7} className='col-sm egupload'>
+                                <p>
+                                    <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(terreno, 269, false) }}></img>
+                                    E. de G. autorizada
+                                </p>
                             </div>
-                        </div>
-                    </div>
-                    <div className='row'>
-                        <div colSpan={7} className='col-sm egupload'>
-                            <p>
-                                <img id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(terreno, 269, false) }}></img>
-                                E. de G. autorizada
-                            </p>
-                        </div>
-                    </div>
+                        </div> : null
+                    }*/}
                 </div>
-                {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} /> : null}
+                {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} esTerrenoOriginal={this.props.esTerrenoOriginal} idPITerr={this.state.idPITerr} evento={this.onActualizarMaco} datos={this.state.datos} /> : null}
             </div>
         );
     }

@@ -4,10 +4,12 @@ import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 export default function ComboBox(props) {
+
   return (
     <Autocomplete
       id="combo-box-demo"
       options={props.usuarios}
+      defaultValue={[props.usuarios[1]]}
       size="small"
       onChange = {function(event,value,reason){
         props.seleccionarItems(value)
