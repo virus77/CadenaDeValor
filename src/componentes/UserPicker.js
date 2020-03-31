@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -9,10 +8,10 @@ export default function ComboBox(props) {
     <Autocomplete
       id="combo-box-demo"
       options={props.usuarios}
-      defaultValue={[props.usuarios[1]]}
+      defaultValue={props.itemsSeleccionados}
       size="small"
       onChange = {function(event,value,reason){
-        props.seleccionarItems(value)
+          props.seleccionarItems(value)
         }
       }
       getOptionLabel={option => option.Title}

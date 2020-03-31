@@ -18,7 +18,7 @@ export default function SimpleBackdrop(props) {
       <Backdrop className={classes.backdrop} open={props.abierto}>
         <CircularProgress color="inherit" />
         <br />
-        <h2>Cargando contenido...</h2>
+        <h2>{props.mensaje}</h2>
       </Backdrop>
     </div>
   );

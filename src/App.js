@@ -21,6 +21,8 @@ class App extends Component {
     idTerreno: 0,
     Maco: '',
     RFS: false,
+    TerrenoId: "",
+    IdProyInv: "",
     //idProyecto:135,
     //idTerreno: 285,
     ventana:4,
@@ -67,11 +69,11 @@ class App extends Component {
   }
 
   render(){
-    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS } = this.state;
+    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv } = this.state;
     return (
       <div className="App">
         {this.state.isInActive ? <Principal selecciontereno={this.onSeleccionTerreno} itemsT={itemsT} itemsPI={itemsPI} /> : null}
-        {this.state.isActive ? <Generico rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} /> : null}
+        {this.state.isActive ? <Generico rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} /> : null}
       </div>
     );
   }
