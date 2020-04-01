@@ -18,6 +18,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { InputLabel, Select, MenuItem } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import update from 'immutability-helper';
+import padLeft from '../js/util'
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -205,11 +206,10 @@ class Generico extends Component {
                 });
             }
             else {
-                alert("No encontramos datos que coinsidan con el filtro seleccionado, de favor intente nuevamente")
+                alert("No hay datos que coincidan con los filtros seleccionados. Por favor, intentelo de nuevo")
             }
         }
     }
-
 
     onCambiarVentana = async (idVentanaSeleccionada, mensaje) => {
         const { idProyecto, idTerreno } = this.state
@@ -431,7 +431,7 @@ class Generico extends Component {
                         });
                     }
                     else {
-                        alert("No encontramos datos que coinsidan con el filtro seleccionado, de favor intente nuevamente")
+                        alert("No hay datos que coincidan con los filtros seleccionados. Por favor, intentelo de nuevo")
                     }
                 }
                 break;
@@ -461,7 +461,7 @@ class Generico extends Component {
 
     establecerContador = (contadores, ventana, tipo) => {
         switch (ventana) {
-            case "AdministraciÃ³n":
+            case "Administración":
                 if (tipo === 1) { contadores.admin += 1 }
                 else { contadores.admin -= 1 }
                 break;
@@ -588,7 +588,6 @@ class Generico extends Component {
 
     obtenerAsignados = campo => {
         var usuarios = campo.map((registro) => {
-            var a = registro.Title;
             return (registro.Title)
         })
         return usuarios
@@ -600,7 +599,7 @@ class Generico extends Component {
             if (arregloDatos.tarea === 0) {
                 const filaEGIndice = this.state.datosVentanaEG.datos.findIndex(datosEG => datosEG.ID === this.state.modal.filaSeleccionada.ID)
                 let newData = this.state.datosVentanaEG.datos[filaEGIndice]
-                newData.AsignadoA = arregloDatos.datos
+                newData.AsignadoA = arregloDatos.dato
                 let datosActualizados = {
                     columnas: [
                         { titulo: '', interN: '', Arreglo: "", estilo: 'col-sm-6' },
@@ -613,13 +612,13 @@ class Generico extends Component {
                 datosActualizados.datos = update(this.state.datosVentanaEG.datos, { $splice: [[filaEGIndice, 1, newData]] })
                 this.setState({ datosVentanaEG: datosActualizados })
             } else {
-                //Si el evento viene desde un modal que sÃ­ es tarea
+                //Si el evento viene desde un modal que sí­ es tarea
                 switch (arregloDatos.tarea) {
                     case 24:
-                        //Si se definiÃ³ RFSN como 'Ninguno' y ya hay MACO definida...
+                        //Si se definió RFSN como 'Ninguno' y ya hay MACO definida...
                         if (arregloDatos.dato && this.state.MACO !== null) {
                             //Establece el spinner mientras se generan los datos de la EG
-                            this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestiÃ³n. Esto podrÃ­a tardar unos minutos...' } })
+                            this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestión. Esto podrí­a tardar unos minutos...' } })
 
                             const terrenosPI = await sp.web.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + this.state.idProyecto + ' and Empadronamiento eq null').get()
                             const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + this.state.MACO + "'))").get();
@@ -627,7 +626,7 @@ class Generico extends Component {
                             const generarEG = async () => {
                                 await asyncForEach(terrenosPI, async terrenoPI => {
                                     await asyncForEach(nuevasTareasEG, async nuevaTarea => {
-                                        //Crea el elemento en la estrategia de gestiÃ³n por cada terreno
+                                        //Crea el elemento en la estrategia de gestión por cada terreno
                                         await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
                                             ProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                             TerrenoId: terrenoPI.ID,
@@ -648,6 +647,93 @@ class Generico extends Component {
                             //Establece el spinner mientras para cargar la nueva tarea generada a partir del RFS
                             this.onCambiarVentana(4, 'Cargando contenido generado...')
                         }
+                        break;
+                    case 25:
+                    case 30:
+                    case 35:
+                        const unionMetrajes = arregloDatos.dato.metrajesTr.map((metraje) =>{
+                            return metraje.valor
+                        }).join(',')
+                        
+                        const rootweb = await sp.web.getParentWeb()
+                        let cdversionado = await rootweb.web.webs()
+                        cdversionado = cdversionado[0]
+                        cdversionado = await sp.site.openWebById(cdversionado.Id)
+                        
+                        const terrenosVersionadoPI = await cdversionado.web.lists.getByTitle("Terrenos").items
+                        .filter("IdPredio/IdPredio eq '" + this.props.datos.ProyectoInversion.Title + "'")
+                        .select('ID','Title','Metraje','IdPredio/ID','IdPredio/Title','IdPredio/IdPredio','Calle','Colonia','CodigoPostal','NoExterior','Municipio')
+                        .expand('IdPredio').orderBy('ID',false).get()
+                        
+                        await sp.web.lists.getByTitle('RFSN').items.add({
+                            IdProyectoInversionId: this.props.datos.ProyectoInversion.ID,
+                            FRSN: this.props.tipo === 'TS' ? 'Subdivisión' : (this.tipo === 'TR' ? 'Relotificación': 'Fusión'),
+                            IdFlujoId: this.props.datos.IdFlujoTareasId,
+                            IdTerrenoId: arregloDatos.dato.terrenos[0].ID,
+                            CantidadTerrenos: arregloDatos.dato.cantidadTerrenos,
+                            Metrajes: unionMetrajes
+                        }).then(async ()=>{
+                            //Establece la tarea como Enviada
+                            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.datos.IdFlujoTareasId).update({
+                                EstatusId: 3
+                            }).then(async ()=>{
+                                //Establece el empadronamiento al terreno
+                                await sp.web.lists.getByTitle("Terrenos").items.getById(arregloDatos.dato.terrenos[0].ID).update({
+                                    Empadronamiento: 'Sí'
+                                }).then(async ()=>{
+                                    await asyncForEach(arregloDatos.dato.terrenosResultantes, async (terrenoResultante, index) =>{
+                                        const maxTerrenos = await cdversionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID',false).get()
+                                        const nuevoTerrenoId = this.props.tipo + '-' +padLeft(maxTerrenos[0].Id + 1, 5)
+                                        await cdversionado.web.lists.getByTitle('Terrenos').items.add({
+                                            IdPredioId: terrenosVersionadoPI[0].IdPredio.ID,
+                                            Title: nuevoTerrenoId,
+                                            Calle: terrenosVersionadoPI[0].Calle,
+                                            Colonia: terrenosVersionadoPI[0].Colonia,
+                                            CodigoPostal: terrenosVersionadoPI[0].CodigoPostal,
+                                            NoExterior: terrenosVersionadoPI[0].NoExterior,
+                                            Municipio: terrenosVersionadoPI[0].Municipio,
+                                            Metraje: arregloDatos.dato.metrajesTr[index].valor
+                                        }).then(async ()=>{
+                                            await sp.web.lists.getByTitle('Terrenos').items.add({
+                                                IdProyectoInversionId: this.props.datos.ProyectoInversion.ID,
+                                                Title: nuevoTerrenoId,
+                                                NombredelTerreno: 'Subdivisión',
+                                                NombredelTerreno2: 'Subdivisión',
+                                                MACO: terrenoResultante.MACO,
+                                                Calle: terrenosVersionadoPI[0].Calle,
+                                                Colonia: terrenosVersionadoPI[0].Colonia,
+                                                CodigoPostal: terrenosVersionadoPI[0].CodigoPostal,
+                                                NoExterior: terrenosVersionadoPI[0].NoExterior,
+                                                Delegacion: terrenosVersionadoPI[0].Municipio,
+                                                Metraje: arregloDatos.dato.metrajesTr[index].valor
+                                            })
+                                        }).then(async (terr)=>{
+                                            if(arregloDatos.dato.terrenos[0].MACO !== null){
+                                                const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + terrenoResultante.MACO + "'))").get();
+
+                                                const generarEG = async () => {
+                                                    await asyncForEach(nuevasTareasEG, async nuevaTarea => {
+                                                        //Crea el elemento en la estrategia de gestión por cada terreno
+                                                        await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                            ProyectoInversionId: this.props.datos.ProyectoInversion.ID,
+                                                            TerrenoId: terr.ID,
+                                                            TareaId: nuevaTarea.ID,
+                                                            GrupoResponsableId: nuevaTarea.GrupoId,
+                                                            Seleccionado: false
+                                                        })
+                                                        .then()
+                                                        .catch(error => {
+                                                            console.warn('Error al generar la EG: ' + error)
+                                                        })
+                                                    });
+                                                }
+                                                generarEG();
+                                            }                                            
+                                        })
+                                    });
+                                })
+                            })
+                        })
                         break;
                     default:
                         break;
@@ -745,17 +831,15 @@ class Generico extends Component {
                                 </p>
                             </div>
                         )
-                        break;
                     case 'E. de G. autorizada':
                         return (
                             <div key={index} className={fila.estilo} >
                                 <p style={{ marginTop: "30px", textAlign: "right" }}>
-                                    <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 269, false) }}></img>
+                                    <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 269, false, null, null, {Tarea:{ID:269}}) }}></img>
                                     {fila.titulo}
                                 </p>
                             </div>
                         )
-                        break;
                     case 'Asignado a':
                         const uniqueTagsA = [];
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
@@ -778,7 +862,6 @@ class Generico extends Component {
                                 </FormControl>
                             </div>
                         )
-                        break;
                     case 'Responsable':
                     case 'Estatus':
                         const uniqueTagsE = [];
@@ -801,7 +884,6 @@ class Generico extends Component {
                                 </FormControl>
                             </div>
                         )
-                        break;
                     default:
                         const uniqueTagsAll = [];
                         return (
@@ -823,7 +905,6 @@ class Generico extends Component {
                                 </FormControl>
                             </div>
                         )
-                        break;
                 }
             });
 
