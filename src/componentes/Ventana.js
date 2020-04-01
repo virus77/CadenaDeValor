@@ -58,6 +58,7 @@ class Ventana extends Component{
                 }
                 break;
             case 270:
+                //Establece los usuarios asignados del modal de Asignado a
                 this.props.evento({tarea:0, dato: this.state.usuarioAsignados})
                 break;
             default:
@@ -66,7 +67,7 @@ class Ventana extends Component{
         this.onCerrar()
     }
 
-    async onEnviar (){
+    async onEnviar (datos){
         switch(this.props.abrir.filaSeleccionada.Tarea.ID){
             case 24:
                 const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : ( this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
@@ -138,18 +139,29 @@ class Ventana extends Component{
                                     //Establecer estado para nueva tarea creada
                                     //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
                                     this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: false})
+                                }).catch(error => {
+                                    console.warn('Error al generar la estrategia de gestión: ' + error)
                                 })
                             }else{
-                                //Sino pasa por RFS, crea el resto de la EG
+                                //Sino pasa por RFS (Ninguno), crea el resto de la EG
                                 //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
                                 this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: true})
                             }
+                        }).catch(error => {
+                            console.warn('Error al guardar: ' + error)
                         })
                     })
                     this.props.cerrar();
                 }else{
                     alert(mensajeError)
                 }
+                break;
+            case 25:
+            case 30:
+            case 35:
+                //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
+                this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: datos})
+                this.props.cerrar();
                 break;
             default:
                 break;
@@ -340,7 +352,7 @@ class Ventana extends Component{
                                     this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
                                     this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
                                     this.props.abrir.filaSeleccionada.Tarea.ID === 35 ?
-                                    <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} />
+                                    <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno = {this.onEnviar} cerrar = {this.onCerrar} />
                                     :<Formulario />}
                             </fieldset>
                         </ModalBody>

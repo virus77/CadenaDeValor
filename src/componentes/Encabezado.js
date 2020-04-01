@@ -20,8 +20,9 @@ class Encabezado extends Component {
                 abierto: false,
                 id: 0,
                 terreno: '',
-                esTarea:false
-              },
+                esTarea: false,
+                filaSeleccionada: {}
+            },
             datos:{
                 campo: '',
                 valor:''
@@ -37,13 +38,15 @@ class Encabezado extends Component {
         }
     }
 
-    onAbrirModal = (terreno, id, esTarea, campo, valor) => {
-        this.setState({ modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea }, datos: { campo: campo, valor: valor } })
+    onAbrirModal = (terreno, id, esTarea, campo, valor, fila)=>{
+        this.setState({
+            modal: { abierto: true, id: id, terreno: terreno, esTarea:esTarea, filaSeleccionada: fila},
+            datos: {campo: campo, valor: valor} })
     }
 
     onActualizarMaco = nuevoMaco =>{
-        this.props.cambioMaco(nuevoMaco.dato)
-        this.setState({maco: nuevoMaco.dato})
+        this.props.cambioMaco(nuevoMaco)
+        this.setState({maco: nuevoMaco })
     }
 
     onCerrarModal = () => {
@@ -60,7 +63,7 @@ class Encabezado extends Component {
                         <div className='col-sm-1 columna'><img id='FiltroFavoritos' onClick={() => this.onCambiarVentana(5)} src={idVentana !== 4 ? favoritos_icon : disabled_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroGantt' onClick={() => this.onCambiarVentana(6)} src={idVentana !== 4 ? gantt_icon : disabled_icon} alt='gantt_icon' disabled={disabled} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroVerTodo' onClick={() => this.onCambiarVentana(7)} src={idVentana !== 4 ? viewAll : disabled_icon} alt='user_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={this.state.maco === '' ? macox : (this.state.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', this.state.maco) }} ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={this.state.maco === '' ? macox : (this.state.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', this.state.maco, {Tarea:{ID:268}}) }} ></img></div>
                         <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img></div>
                         <div className='col-sm-4 menu'>
                             <Button className={idVentana === 1 ? "btn btn-info btn-sm" : "btn btn-secondary btn-sm"} onClick={(e) => this.onCambiarVentana(1, e)}>

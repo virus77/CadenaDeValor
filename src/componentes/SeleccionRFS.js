@@ -46,6 +46,11 @@ class SeleccionRFS extends Component{
         this.setState({terrenosResultantes: arrayTrs})
     }
 
+    onCerrar = () =>{
+        this.setState(this.initialState)
+        this.props.cerrar()
+    }
+
     onGenerarCampos =() =>{
         if(this.state.cantidadTerrenos>0){
             let array =[]
@@ -83,11 +88,14 @@ class SeleccionRFS extends Component{
     onEnviar = async ()=>{
         switch(this.props.tipo){
             case 'TS':
-                if(this.state.terrenos.length === 1){
+                if(this.state.terrenos.length === 1 && this.state.terrenosResultantes.length>0){
                     if(this.state.sumaSeleccion !== this.state.sumatoriaNueva){
                         alert('No validación: Las sumatorias no coinciden')
                     }else{
-                        const unionMetrajes = this.state.metrajesTr.map((metraje) =>{
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
+
+                        /*const unionMetrajes = this.state.metrajesTr.map((metraje) =>{
                             return metraje.valor
                         }).join(',')
                         
@@ -96,16 +104,12 @@ class SeleccionRFS extends Component{
                         cdversionado = cdversionado[0]
                         cdversionado = await sp.site.openWebById(cdversionado.Id)
                         
-                        const terrenosVersionado = await cdversionado.web.lists.getByTitle("Terrenos").items.select('ID','Title','Metraje','IdPredio/Id','IdPredio/Title').filter("IdPredio/Title eq '" + this.props.datos.ProyectoInversion.Title + "'").expand('IdPredio').orderBy('ID',false).get()
+                        const terrenosVersionadoPI = await cdversionado.web.lists.getByTitle("Terrenos").items
+                        .filter("IdPredio/IdPredio eq '" + this.props.datos.ProyectoInversion.Title + "'")
+                        .select('ID','Title','Metraje','IdPredio/ID','IdPredio/Title','IdPredio/IdPredio','Calle','Colonia','CodigoPostal','NoExterior','Municipio')
+                        .expand('IdPredio').orderBy('ID',false).get()
                         
-                        let metrajesTerrenosVersionado = terrenosVersionado.map((terrenoVersionado)=>{
-                            return this.state.terrenos.find(x=> x.ID === terrenosVersionado.ID).Metraje
-                        })
-
-                        const maxTerrenos = await cdversionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID',false).get()
-                        const nuevoTerrenoId = this.props.tipo + '-' +padLeft(maxTerrenos[0].Id + 1, 5)
-                        let a = nuevoTerrenoId
-                        /*await sp.web.lists.getByTitle('RFSN').items.add({
+                        await sp.web.lists.getByTitle('RFSN').items.add({
                             IdProyectoInversionId: this.props.datos.ProyectoInversion.ID,
                             FRSN: this.props.tipo === 'TS' ? 'Subdivisión' : (this.tipo === 'TR' ? 'Relotificación': 'Fusión'),
                             IdFlujoId: this.props.datos.IdFlujoTareasId,
@@ -121,41 +125,56 @@ class SeleccionRFS extends Component{
                                 await sp.web.lists.getByTitle("Terrenos").items.getById(this.state.terrenos[0].ID).update({
                                     Empadronamiento: 'Sí'
                                 }).then(async ()=>{
-                                    //const rootwebData = await sp.sites.rootWeb();
-                                    //const terrenosVersionado = await rootwebData.web.lists.getByTitle("Terrenos").filter('IdPredioId eq ' + this.props.datos.ProyectoInversion.ID).get()
-                                    const terrenos = await sp.web.lists.getByTitle("Terrenos").filter('IdPredioId eq ' + this.props.datos.ProyectoInversion.ID + ' and substringof("' + this.props.tipo + '"').get()
-                                    const generarTerrenos = async ()=>{
-                                        await asyncForEach(this.state.terrenosResultantes, async (terrenoResultante, index) =>{
-                                            const terrenosVersionado = await rootwebData.web.lists.getByTitle("Terrenos").filter('IdPredioId eq ' + this.props.datos.ProyectoInversion.ID).get().max('ID')
-                                            await asyncForEach (nuevasTareasEG, async nuevaTarea=>{
-                                                //Crea el elemento en la estrategia de gestión por cada terreno
-                                                await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
-                                                    ProyectoInversionId: terrenoPI.IdProyectoInversionId,
-                                                    TerrenoId: terrenoPI.ID,
-                                                    TareaId: nuevaTarea.ID,
-                                                    GrupoResponsableId: nuevaTarea.GrupoId,
-                                                    Seleccionado: false
-                                                }).then()
-                                                .catch(error=>{
-                                                    console.warn('Error al generar la EG: ' + error)
-                                                })
-                                            });
-                                        });
-                                        //Establece el spinner mientras se cargan los datos generados anteriormente
-                                        this.onCambiarVentana(4, 'Cargando contenido generado...')
-                                    }
-                                    generarTerrenos();
-                                    //Genera los terrenos resultantes
-                                    await sp.web.lists.getByTitle("Terrenos").items.add({
-                                        IdProyectoInversionId: this.props.datos.ProyectoInversion.ID,
-                                        Title: elemento.datos.Tarea.ID,
-                                        IdTerrenoId: elemento.datos.Terreno.ID,
-                                        NivelId: 2,
-                                        GrupoResponsableId: elemento.datos.GrupoResponsable.ID,
-                                        AsignadoAId: elemento.datos.AsignadoA !== undefined ? elemento.datos.AsignadoA : {results: []},
-                                        EstatusId: 1,
-                                        Visible: true
-                                    })
+                                    await asyncForEach(this.state.terrenosResultantes, async (terrenoResultante, index) =>{
+                                        const maxTerrenos = await cdversionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID',false).get()
+                                        const nuevoTerrenoId = this.props.tipo + '-' +padLeft(maxTerrenos[0].Id + 1, 5)
+                                        await cdversionado.web.lists.getByTitle('Terrenos').items.add({
+                                            IdPredioId: terrenosVersionadoPI[0].IdPredio.ID,
+                                            Title: nuevoTerrenoId,
+                                            Calle: terrenosVersionadoPI[0].Calle,
+                                            Colonia: terrenosVersionadoPI[0].Colonia,
+                                            CodigoPostal: terrenosVersionadoPI[0].CodigoPostal,
+                                            NoExterior: terrenosVersionadoPI[0].NoExterior,
+                                            Municipio: terrenosVersionadoPI[0].Municipio,
+                                            Metraje: this.state.metrajesTr[index].valor
+                                        }).then(async ()=>{
+                                            await sp.web.lists.getByTitle('Terrenos').items.add({
+                                                IdProyectoInversionId: this.props.datos.ProyectoInversion.ID,
+                                                Title: nuevoTerrenoId,
+                                                NombredelTerreno: 'Subdivisión',
+                                                NombredelTerreno2: 'Subdivisión',
+                                                MACO: terrenoResultante.MACO,
+                                                Calle: terrenosVersionadoPI[0].Calle,
+                                                Colonia: terrenosVersionadoPI[0].Colonia,
+                                                CodigoPostal: terrenosVersionadoPI[0].CodigoPostal,
+                                                NoExterior: terrenosVersionadoPI[0].NoExterior,
+                                                Delegacion: terrenosVersionadoPI[0].Municipio,
+                                                Metraje: this.state.metrajesTr[index].valor
+                                            })
+                                        }).then(async (terr)=>{
+                                            if(this.state.terrenos[0].MACO !== null){
+                                                const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + terrenoResultante.MACO + "'))").get();
+
+                                                const generarEG = async () => {
+                                                    await asyncForEach(nuevasTareasEG, async nuevaTarea => {
+                                                        //Crea el elemento en la estrategia de gestión por cada terreno
+                                                        await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                            ProyectoInversionId: this.props.datos.ProyectoInversion.ID,
+                                                            TerrenoId: terr.ID,
+                                                            TareaId: nuevaTarea.ID,
+                                                            GrupoResponsableId: nuevaTarea.GrupoId,
+                                                            Seleccionado: false
+                                                        })
+                                                        .then()
+                                                        .catch(error => {
+                                                            console.warn('Error al generar la EG: ' + error)
+                                                        })
+                                                    });
+                                                }
+                                                generarEG();
+                                            }                                            
+                                        })
+                                    });
                                 })
                             })
                         })*/
@@ -172,7 +191,7 @@ class SeleccionRFS extends Component{
     async componentDidMount(){
         const terrenos = await sp.web.lists.getByTitle("Terrenos").items
         .filter('IdProyectoInversionId eq ' + this.props.datos.ProyectoInversion.ID + ' and Empadronamiento eq null')
-        .select('ID', 'Title', 'NombredelTerreno2', 'Metraje')
+        .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO')
         .get();
         this.setState({terrenos: terrenos})
     }
