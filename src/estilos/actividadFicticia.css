@@ -1,0 +1,49 @@
+.texto{
+    color: #3D808C
+}
+
+.izquierda{
+    text-align: left!important;
+}
+
+.derecha{
+    text-align: right!important;
+}
+
+.borde{
+    border-right-color: #40B9C7;
+    border-right-style: solid;
+    box-shadow: 2px 0px #888888;
+}
+
+.anchoBoton{
+    width: 50%!important;
+}
+
+.obligatorio{
+    color: red!important;
+}
+
+.concluido{
+    background-color: #1EE8A8;
+}
+
+.pendiente{
+    background-color: #FFF17E;
+}
+
+.vencido{
+    background-color: #FFB061;
+}
+
+.rechazado{
+    background-color:#FF6F61;
+}
+
+.detenido{
+    background-color:#ADB0B6;
+}
+
+.cancelado{
+    background-color:#5B5C5E;
+}

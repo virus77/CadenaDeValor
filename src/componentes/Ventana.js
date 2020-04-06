@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
 import SeleccionRFS from './SeleccionRFS'
-import axios, {post} from 'axios';
 import '../estilos/modal.css';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -12,8 +10,8 @@ import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
-//import PeoplePicker from './PeoplePicker'
 import PeoplePicker from './UserPicker'
+import ActividadFicticia from './ActividadFicticia'
 
 class Ventana extends Component{
     constructor(props){
@@ -29,6 +27,7 @@ class Ventana extends Component{
         this.onEnviar = this.onEnviar.bind(this);
         this.state = this.initialState
     }
+
     //#region Eventos de botones
     async onGuardar() {
         switch(this.props.abrir.id){
@@ -60,6 +59,8 @@ class Ventana extends Component{
             case 270:
                 //Establece los usuarios asignados del modal de Asignado a
                 this.props.evento({tarea:0, dato: this.state.usuarioAsignados})
+                break;
+            case 271:
                 break;
             default:
                 break;
@@ -203,6 +204,7 @@ class Ventana extends Component{
         }
     }
 
+    //#region Métodos de ciclo de vida
     async componentDidMount(){
         if(this.props.abrir.abierto){
             if(this.props.abrir.id === 270){
@@ -221,6 +223,7 @@ class Ventana extends Component{
             return true
         }
     }
+    //#endregion
 
     seleccionarItems = items=>{
         this.setState({usuarioAsignados : items})
@@ -344,8 +347,9 @@ class Ventana extends Component{
             <div>
                 {this.state.campos.length>0 ?
                 <Modal isOpen={this.props.abrir.abierto} size='lg'>
-                    <form onSubmit={this.handleSubmit}>
+                    <form>
                         <ModalHeader className='encabezado'>{this.state.campos[0].Tarea.Title}</ModalHeader>
+                        <div className='datoTerreno'>{this.props.abrir.terreno}</div>
                         <ModalBody>
                             <fieldset>
                                 {
@@ -353,14 +357,16 @@ class Ventana extends Component{
                                     this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
                                     this.props.abrir.filaSeleccionada.Tarea.ID === 35 ?
                                     <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno = {this.onEnviar} cerrar = {this.onCerrar} />
-                                    :<Formulario />}
+                                    : (this.props.abrir.filaSeleccionada.Tarea.ID === 271 ? <ActividadFicticia datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} /> : <Formulario />)
+                                }
                             </fieldset>
                         </ModalBody>
                         <ModalFooter>
                             {
                                 this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
                                 this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
-                                this.props.abrir.filaSeleccionada.Tarea.ID === 35 ?
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 35 ||
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 271 ?
                                 null :<Botones />
                             }
                         </ModalFooter>

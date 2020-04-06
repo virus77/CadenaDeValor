@@ -16,6 +16,17 @@
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#30be8f', endColorstr='#41a382', GradientType=1 );
 }
 
+.terreno{
+  background-color: #D1F7E9;
+  border: white;
+  border-style: solid;
+  border-width: 1pt;
+  font-weight: normal!important;
+  color: black;
+  font-size: 10pt;
+  margin-left: -10px;
+}
+
 .item{
   background-color: whitesmoke;
   border: white;
@@ -23,8 +34,9 @@
   border-width: 1pt;
   font-weight: normal!important;
   color: black;
-  font-size: 10pt;
-  margin-left: 5px;
+  font-size: 9pt;
+  margin-left: -5px!important;
+  margin-right: 5px!important;
 }
 
 .item-personal{
@@ -34,7 +46,7 @@
   border-width: 1pt;
   font-weight: normal!important;
   color: black;
-  font-size: 10pt;
+  font-size: 9pt;
   margin-left: 5px;
 }
 
@@ -53,6 +65,7 @@
   -webkit-appearance: none;
   outline: none;
   cursor: pointer;
+  margin: 5px!important;
 }
 
 .checkBox:hover{
@@ -74,6 +87,7 @@
   -webkit-appearance: none;
   outline: none;
   cursor: pointer;
+  margin: 3px!important;
 }
 
 .checkBox-sm:hover{

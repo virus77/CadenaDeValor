@@ -23,8 +23,6 @@ class App extends Component {
     RFS: false,
     TerrenoId: "",
     IdProyInv: "",
-    //idProyecto:135,
-    //idTerreno: 285,
     ventana:4,
     nombreTerreno: ''
   }
