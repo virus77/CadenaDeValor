@@ -23,28 +23,8 @@ class App extends Component {
     RFS: false,
     TerrenoId: "",
     IdProyInv: "",
-<<<<<<< HEAD
-    //idProyecto:135,
-    //idTerreno: 285,
-    ventana: 4,
-    nombreTerreno: '',
-    modal: [{
-      showModal: false,
-      id: 0,
-      encabezado: '',
-      terreno: '',
-      esTarea: false
-    }],
-    veg: [],
-    v: [],
-    clustersVentana: [],
-    contadorAdministracion: 0,
-    contadorNormativo: 0,
-    contadorProyectos: 0,
-=======
     ventana:4,
     nombreTerreno: ''
->>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
