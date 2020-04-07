@@ -1,0 +1,142 @@
+.titulo {
+  font-size: 16pt !important;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  width: 100%;
+  color: black!important;
+  border: 1px;
+  border-radius: 11px;
+  background: #30BE8F;
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#30be8f', endColorstr='#41a382', GradientType=1);
+}
+
+.item {
+  border: white;
+  border-style: solid;
+  border-width: 8pt;
+  font-weight: normal!important;
+  color: black;
+  font-size: 12pt;
+  padding-left: 25px!important;
+  border-bottom: #30BE8F;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-left: #30BE8F;
+  border-left-style: solid;
+  border-left-width: 8px;
+  cursor: text !important;
+}
+
+.table td, .table th {
+  border-top: 1px solid transparent!important;
+}
+
+.myTable {
+  width: 100%;
+  margin-bottom: 0px;
+  color: #212529;
+}
+
+.item-personal {
+  border: white;
+  border-style: solid;
+  border-width: 1pt;
+  font-weight: normal!important;
+  color: black;
+  font-size: 9pt;
+  font-style: italic;
+  padding-left: 3%!important;
+  border-left: gray;
+  border-left-style: solid;
+  border-left-width: 7px;
+  cursor: pointer;
+  height: 25px;
+}
+
+.empty-space {
+  background-color: white!important;
+  height: 10pt;
+}
+
+.checkBox {
+  width: 25px;
+  height: 25px;
+  background-image: url(gray_Icon.png);
+  border-radius: 50%;
+  vertical-align: middle;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.checkBox:hover {
+  transform: scale(1.2);
+}
+
+.checkBox:checked {
+  width: 25px;
+  height: 25px;
+  background-image: url(green_Icon.png);
+}
+
+.checkBox-sm {
+  width: 25px;
+  height: 25px;
+  background-image: url(gray_Icon.png);
+  border-radius: 50%;
+  vertical-align: middle;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.checkBox-sm:hover {
+  transform: scale(1.2);
+}
+
+.checkBox-sm:checked {
+  width: 25px;
+  height: 25px;
+  background-image: url(green_Icon.png);
+}
+
+.ok {
+  text-align: right;
+}
+
+.numberCircle {
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: 1px solid #666;
+  color: #666;
+  text-align: center;
+  font-size: 12px !important;
+}
+
+.numberCircleEG {
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: 1px solid #666;
+  color: #666;
+  text-align: center;
+  font-size: 12px !important;
+  visibility: hidden;
+}
+
+.pad {
+  padding-left: 5px;
+  padding-top: 8px;
+  padding-bottom: 6px;
+  padding-right: 6px;
+}
+
+.pad100 {
+  padding-left: 2px;
+  padding-top: 7px;
+  padding-bottom: 5px;
+  padding-right: 2px;
+}

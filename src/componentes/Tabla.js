@@ -20,8 +20,8 @@ const TableBody = (props) => {
             var date = new Date(fila.Modified);
             var RFS = fila.Title;
             RFS = RFS.substring(0, 2);
-            RFS = RFS === "T-" ? true : false;
-            var txtTerreno = RFS === true ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
+            RFS = RFS === "T-" ? false : true;
+            var txtTerreno = RFS === false ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
             return (
                 <tr key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, txtTerreno,
                     fila.MACO, RFS, fila.Title, fila.IdProyectoInversion.Title)}>
