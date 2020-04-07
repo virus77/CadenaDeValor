@@ -1,27 +1,19 @@
 import React from 'react';
 import "../estilos/Principal.css"
 
-/*const TableHeader = () => {
-    return (
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-            </tr>
-        </thead>
-    )
-}*/
-
 const TableBody = (props) => {
     const indice = props.indice
-    var id = -1;
     const filas = props.itemsData.map((fila, index) => {
         if (indice.ID === fila.IdProyectoInversion.ID) {
-            var date = new Date(fila.Modified);
-            var RFS = fila.Title;
+            let date = new Date(fila.Modified);
+            let RFS = fila.Title;
             RFS = RFS.substring(0, 2);
             RFS = RFS === "T-" ? false : true;
+<<<<<<< HEAD
             var txtTerreno = RFS === false ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
+=======
+            let txtTerreno = !RFS ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
+>>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
             return (
                 <tr key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, txtTerreno,
                     fila.MACO, RFS, fila.Title, fila.IdProyectoInversion.Title)}>

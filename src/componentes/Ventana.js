@@ -1,11 +1,17 @@
 import React, { Component } from 'react';
 import SeleccionRFS from './SeleccionRFS'
+<<<<<<< HEAD
 import ActividadFicticia from './ActividadFicticia'
 import Detalle from './Detalle'
 import PeoplePicker from './UserPicker'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
 
+=======
+import '../estilos/modal.css';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { sp } from "@pnp/sp";
+>>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -13,7 +19,12 @@ import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
+<<<<<<< HEAD
 import '../estilos/modal.css';
+=======
+import PeoplePicker from './UserPicker'
+import ActividadFicticia from './ActividadFicticia'
+>>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
 
 class Ventana extends Component {
     constructor(props) {
@@ -62,6 +73,8 @@ class Ventana extends Component {
             case 270:
                 //Establece los usuarios asignados del modal de Asignado a
                 this.props.evento({ tarea: 0, dato: this.state.usuarioAsignados })
+                break;
+            case 271:
                 break;
             case 271:
                 break;
@@ -211,9 +224,15 @@ class Ventana extends Component {
     }
 
     //#region Métodos de ciclo de vida
+<<<<<<< HEAD
     async componentDidMount() {
         if (this.props.abrir.abierto) {
             if (this.props.abrir.id === 270) {
+=======
+    async componentDidMount(){
+        if(this.props.abrir.abierto){
+            if(this.props.abrir.id === 270){
+>>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
                 const users = await sp.web.siteUsers();
                 this.obtenerPosiciones(users)
                 this.setState({ usuarios: users })
@@ -347,6 +366,7 @@ class Ventana extends Component {
         }
         return (
             <div>
+<<<<<<< HEAD
                 {this.state.campos.length > 0 ?
                     <Modal isOpen={this.props.abrir.abierto} size='lg'>
                         <form>
@@ -374,6 +394,35 @@ class Ventana extends Component {
                             </ModalFooter>
                         </form>
                     </Modal>
+=======
+                {this.state.campos.length>0 ?
+                <Modal isOpen={this.props.abrir.abierto} size='lg'>
+                    <form>
+                        <ModalHeader className='encabezado'>{this.state.campos[0].Tarea.Title}</ModalHeader>
+                        <div className='datoTerreno'>{this.props.abrir.terreno}</div>
+                        <ModalBody>
+                            <fieldset>
+                                {
+                                    this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
+                                    this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
+                                    this.props.abrir.filaSeleccionada.Tarea.ID === 35 ?
+                                    <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno = {this.onEnviar} cerrar = {this.onCerrar} />
+                                    : (this.props.abrir.filaSeleccionada.Tarea.ID === 271 ? <ActividadFicticia datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} /> : <Formulario />)
+                                }
+                            </fieldset>
+                        </ModalBody>
+                        <ModalFooter>
+                            {
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 35 ||
+                                this.props.abrir.filaSeleccionada.Tarea.ID === 271 ?
+                                null :<Botones />
+                            }
+                        </ModalFooter>
+                    </form>
+                </Modal>
+>>>>>>> 523f3bf3eb3973cf4d095b6252c4078d00ae4d4b
                     : null
                 }
             </div>

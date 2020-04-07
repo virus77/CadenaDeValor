@@ -1,14 +1,6 @@
 import React, { Component } from 'react';
-import * as ReactDOM from 'react-dom';
 import { Accordion, Icon } from 'semantic-ui-react'
-import { sp } from '@pnp/sp';
-import { Web } from "@pnp/sp/webs";
-import "@pnp/sp/webs";
-import "@pnp/sp/lists";
-import "@pnp/sp/items";
-import { _SharePointQueryable } from '@pnp/sp/sharepointqueryable';
 import "../estilos/Principal.css"
-//import 'bootstrap/dist/css/bootstrap.min.css';
 import Tabla from './Tabla';
 
 class Principal extends Component {
@@ -37,7 +29,7 @@ class Principal extends Component {
 
         const { activeIndex } = this.state
         const { selecciontereno, itemsT, itemsPI } = this.props
-        { this.styleLink() }
+        this.styleLink()
 
         return (
             itemsPI.map((item, index) => (
@@ -50,7 +42,6 @@ class Principal extends Component {
                             <Icon name='dropdown' />
                             {item.NombreProyectoInversion}
                         </Accordion.Title>
-                        {/*<Accordion.Content active={activeIndex === index}>*/}
                         <Accordion.Content active={activeIndex !== index}>
                             <div><Tabla selecciontereno={selecciontereno} itemsData={itemsT} indice={item} /></div>
                         </Accordion.Content>
