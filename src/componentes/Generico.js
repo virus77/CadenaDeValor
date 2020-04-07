@@ -318,7 +318,7 @@ class Generico extends Component {
                             return -1;
                         return 0;
                     });
-    
+
                     var ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
                     var datosActs = {
                         columnas: [
@@ -334,14 +334,14 @@ class Generico extends Component {
                         ],
                         datos: actividades
                     }
-    
+
                     result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
                         .map(currentCluster => {
                             return {
                                 cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.IdTarea.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.IdTarea.Orden) < parseFloat(idVentanaSeleccionada + 1)))
                             };
                         });
-    
+
                     result = result.filter(x => x.cluster !== undefined);
                     this.setState({
                         idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, totalAdmin: ventanas[0].Administración.length,
@@ -575,7 +575,7 @@ class Generico extends Component {
             checkedItems[indice].cambio = true
         }
     }
-    
+
     //Guarda la información capturada en la E.G.
     onSave = async elementos => {
         let contadores = {
@@ -1090,8 +1090,8 @@ class Generico extends Component {
                         const uniqueTagsA = [];
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
                         return (
-                            <div key={index} className={fila.estilo}>Asignado a
-                                {/*<FormControl className={classes.formControl}>
+                            <div key={index} className={fila.estilo}>
+                                {<FormControl className={classes.formControl}>
                                     <InputLabel id={"lbl" + fila.interN}>{fila.titulo}</InputLabel>
                                     <Select key={index} labelId="lblAsignado" id={"cmb" + fila.interN} name={fila.titulo + "|" + fila.Tipo} onChange={this.onHandleChange}>
                                         {fila.Arreglo.sort().map((element, index) => (
@@ -1105,7 +1105,7 @@ class Generico extends Component {
                                                 : null
                                         ))}
                                     </Select>
-                                </FormControl>*/}
+                                </FormControl>}
                             </div>
                         )
                     case 'Responsable':
@@ -1156,19 +1156,19 @@ class Generico extends Component {
 
             return (
                 <div key={0} className="row">
-                    <table className="myTable"  >
-                        <td style={{ paddingTop: "10px", backgroundColor: "white" }}>
-                            <tr>
+                    <table className="myTable">
+                        <tr style={{ paddingTop: "10px", backgroundColor: "white" }}>
+                            <td>
                                 {<input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
-                            </tr>
-                        </td>
-                        <td style={{ width: "100%" }}>
-                            <div className="row">
-                                {filaHeader}
-                            </div>
-                        </td>
+                            </td>
+                            <td style={{ width: "100%" }}>
+                                <div className="row">
+                                    {filaHeader}
+                                </div>
+                            </td>
+                        </tr>
                     </table>
-                </div >
+                </div>
             )
         }
 
@@ -1258,7 +1258,7 @@ class Generico extends Component {
                                             <Columna titulo={fila.FechaEstimada} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
                                         </MuiPickersUtilsProvider>
                                     </div>
                                 )
@@ -1279,7 +1279,7 @@ class Generico extends Component {
                                             <Columna titulo={fila.FechaEstimada} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
                                         </MuiPickersUtilsProvider>
 
                                     </div>
