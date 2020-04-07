@@ -2,23 +2,28 @@ import React, { Component } from 'react';
 import Encabezado from '../componentes/Encabezado';
 import Modal from '../componentes/Ventana';
 import Backdrop from '../componentes/Backdrop';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { InputLabel, Select, MenuItem } from '@material-ui/core';
+import FormControl from '@material-ui/core/FormControl';
+import update from 'immutability-helper';
+import DateFnsUtils from '@date-io/date-fns';
+import { MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker, DatePicker } from '@material-ui/pickers';
+import TextField from '@material-ui/core/TextField';
 import arrow_down_icon from '../imagenes/arrow_down_icon.png';
 import attach_icon from '../imagenes/attach_icon.png';
 import more_details_icon from '../imagenes/more_details_icon.png';
 import assignedTo_icon from '../imagenes/assignedTo_icon.png';
 import plus_icon from '../imagenes/plus_icon.png';
 import egupload_icon from '../imagenes/egupload_icon.png';
-import '../estilos/generico.css';
-//import {onSave} from '../js/eg.js';
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import { InputLabel, Select, MenuItem } from '@material-ui/core';
-import FormControl from '@material-ui/core/FormControl';
-import update from 'immutability-helper';
 import util from '../js/util'
+//import {onSave} from '../js/eg.js';
+import '../estilos/generico.css';
+import { es, ca } from 'date-fns/locale';
+import moment from 'moment'
 
 /*async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -27,6 +32,7 @@ import util from '../js/util'
 }*/
 
 var checkedItems = [];
+var webUrl = ''
 const useStyles = makeStyles(theme => ({
     formControl: {
         margin: theme.spacing(1),
@@ -99,6 +105,7 @@ class Generico extends Component {
         this.setState({ modal: this.inialState.modal })
     };
     //#endregion
+
     onHandleChange = async (event) => {
 
         var actividades = [];
@@ -247,7 +254,7 @@ class Generico extends Component {
                 case 4:
                     var datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
                         .filter('ProyectoInversionId eq ' + idProyecto)
-                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
                             'Tarea/Checkable', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'AsignadoA/ID',
                             'AsignadoA/Title')
                         .expand('ProyectoInversion', 'Terreno', 'Tarea', 'GrupoResponsable', 'AsignadoA')
@@ -286,9 +293,10 @@ class Generico extends Component {
                     actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                         .filter('(IdProyectoInversionId eq ' + idProyecto + ') or (IdTerrenoId eq ' + idTerreno + ')')
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
-                            'IdTerreno/Title', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
+                            'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                             'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
-                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada')
+                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada',
+                            'UrlDocumentos', 'UrlTarea')
                         .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA')
                         .getAll();
     
@@ -408,9 +416,10 @@ class Generico extends Component {
                         actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                             .filter(filterStar + filterGantt + '(IdProyectoInversionId eq ' + idProyecto + ') or (IdTerrenoId eq ' + idTerreno + ')')
                             .select('ID', 'Title' + selectStar, 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
-                                'IdTerreno/Title', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
+                                'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                                 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
-                                'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada' + selectGantt)
+                                'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase',
+                                'UrlDocumentos', 'UrlTarea','FechaEstimada' + selectGantt)
                             .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA' + expandGantt)
                             .getAll();
     
@@ -477,6 +486,7 @@ class Generico extends Component {
         this.setState({ MACO: maco })
     }
 
+    //Establece el contador de los cambios por clúster por cada una de las tareas modificadas en la E.G.
     establecerContador = (contadores, ventana, tipo) => {
         switch (ventana) {
             case "Administración":
@@ -495,7 +505,48 @@ class Generico extends Component {
                 break;
         }
     }
+    
+    //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
+    onSeleccionarFecha = async (fecha, fila, campo) =>{
+        const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
+        let newData = this.state.datosVentana.datos[filaIndice]
+        switch(campo){
+            case 'LineaBase':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    LineaBase: fecha,
+                  }).then(()=>{
+                    newData.LineaBase = fecha
+                  })
+                break;
+            case 'FechaEstimada':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    FechaEstimada: fecha,
+                  }).then(()=>{
+                    newData.FechaEstimada = fecha
+                  })
+                break;
+            default:
+                break;
+        }
 
+        let datosActualizados = {
+            columnas: [
+                { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' }
+            ],
+            datos: []
+        };
+        datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+        this.setState({ datosVentana: datosActualizados })
+    }
+
+    //Almacena temporalmente los items seleccionados o modificados en la E.G.
     onSeleccionarItem = (event, idElemento) => {
         const indice = checkedItems.findIndex((obj => obj.datos.ID === idElemento));
         if (indice !== -1) {
@@ -514,6 +565,7 @@ class Generico extends Component {
         }
         elementos.forEach(async elemento => {
             if (elemento.cambio) {
+                //Si no tiene ID de elemento asignado, se creará la tarea en Flujo Tareas
                 if (elemento.datos.IdFlujoTareasId === null) {
                     this.establecerContador(contadores, elemento.datos.Tarea.TxtVentana, '+')
                     const usuariosAsignados = this.obtenerIdAsignados(elemento.datos.AsignadoA)
@@ -544,7 +596,7 @@ class Generico extends Component {
                         });
                     });
                 } else {
-                    //Actualiza la tarea en flujo tareas
+                    //Si ya tiene ID de elemento asignado, se actualizará la tarea en flujo tareas
                     const usuariosAsignados = this.obtenerIdAsignados(elemento.datos.AsignadoA)
                     this.establecerContador(contadores, elemento.datos.Tarea.TxtVentana, elemento.datos.Seleccionado ? '+' : '-')
                     await sp.web.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareasId).update({
@@ -567,20 +619,22 @@ class Generico extends Component {
         let actividades = []
         let datos = []
         let terrenos= []
+        webUrl = await sp.web()
+        webUrl = webUrl.Url.replace('/CompraDeTerreno', '')
         //Si es terreno(s) original(es)
         if(!this.props.rfs){
             actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
             .filter('(IdProyectoInversionId eq ' + this.props.idProyecto + ')')
-            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title')
+            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
             .expand('IdTarea', 'IdTerreno')
             .get();
 
-            terrenos = [...new Set(actividades.map(x=> (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
-            terrenos = terrenos.filter(x => x !== '')
+            terrenos = [...new Set(actividades.map(x=> (x.IdTerreno !== undefined ? x.IdTerreno.Title: '')))]
+            //terrenos = terrenos.filter(x => x !== '')
             
             datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
             .filter('(ProyectoInversionId eq ' + this.props.idProyecto + ')')
-            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2','Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
                     'Tarea/Checkable', 'AsignadoA/ID', 'AsignadoA/Title', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId')
             .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
             .orderBy('Tarea/OrdenEG', true)
@@ -589,16 +643,16 @@ class Generico extends Component {
             //Si es terreno RFS
             actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
             .filter("(IdProyectoInversionId eq " + this.props.idProyecto + ") and ((IdTerrenoId eq " + this.props.idTerreno + ") or (IdTerrenoId eq null) or (substringof('T-', IdTerreno/Title)))")
-            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title')
+            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
             .expand('IdTarea','IdTerreno')
             .getAll();
 
             terrenos = [...new Set(actividades.map(x=> (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
-            terrenos = terrenos.filter(x => x !== '')
+            //terrenos = terrenos.filter(x => x !== '')
 
             datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
             .filter("(ProyectoInversionId eq " + this.props.idProyecto + ") and ((TerrenoId eq " + this.props.idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
-            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
                     'Tarea/Checkable', 'AsignadoA/ID', 'AsignadoA/Title', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId')
             .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
             .orderBy('Tarea/OrdenEG', true)
@@ -882,10 +936,8 @@ class Generico extends Component {
                                 </div>
                                 {this.state.terrenos.map((terr) =>{
                                     return(
-                                        <div className='col-sm-12'>
-                                            <div className='terreno'>{terr}</div>
-                                            <Body datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
-                                            <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div>
+                                        <div key={terr} className='col-sm-12'>
+                                            <Body tituloTerreno = {terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
                                         </div>
                                     )
                                 })}
@@ -908,10 +960,8 @@ class Generico extends Component {
                                 </div>
                                 {this.state.terrenos.map((terr) =>{
                                     return(
-                                        <div className='col-sm-12'>
-                                            <div className='terreno'>{terr}</div>
-                                            <Body datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
-                                            <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div>
+                                        <div key={terr} className='col-sm-12'>
+                                            <Body tituloTerreno = {terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                         </div>
                                     )
                                 })}
@@ -966,8 +1016,8 @@ class Generico extends Component {
                         const uniqueTagsA = [];
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
                         return (
-                            <div key={index} className={fila.estilo}>Asignado a
-                                {/*<FormControl className={classes.formControl}>
+                            <div key={index} className={fila.estilo}>
+                                <FormControl className={classes.formControl}>
                                     <InputLabel id={"lbl" + fila.interN}>{fila.titulo}</InputLabel>
                                     <Select key={index} labelId="lblAsignado" id={"cmb" + fila.interN} name={fila.titulo + "|" + fila.Tipo} onChange={this.onHandleChange}>
                                         {fila.Arreglo.sort().map((element, index) => (
@@ -981,7 +1031,7 @@ class Generico extends Component {
                                                 : null
                                         ))}
                                     </Select>
-                                </FormControl>*/}
+                                </FormControl>
                             </div>
                         )
                     case 'Responsable':
@@ -1036,47 +1086,124 @@ class Generico extends Component {
         const Body = (props) => {
             if (props.idCluster >= 4) {
                 //Estrategia de gestión
-                const filaBody = props.datos.map((fila) => {
-                    if (fila.Tarea.OrdenEG === props.idCluster) {
-                        if (props.esCheckable) {
-                            //Agrega al arreglo los datos de la fila que tiene un check
-                            checkedItems = checkedItems.concat({ datos: fila, cambio: false })
+                let nombreTerreno = ''
+                let filaBody = props.datos.map((fila) => {
+                    if(fila.Terreno !== undefined){
+                        if(fila.Terreno.Title === props.tituloTerreno){
+                            nombreTerreno = fila.Terreno.NombredelTerreno2
+                            if (fila.Tarea.OrdenEG === props.idCluster) {
+                                if (props.esCheckable) {
+                                    //Agrega al arreglo los datos de la fila que tiene un check
+                                    checkedItems = checkedItems.concat({ datos: fila, cambio: false })
+                                }
+                                return (
+                                    <div key={fila.ID} className="row item">
+                                        {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                        <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
+                                        <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                        <Columna estilo='col-sm-2' />
+                                    </div>
+                                )
+                            } else {
+                                return null
+                            }
                         }
-                        return (
-                            <div key={fila.ID} className="row item">
-                                {props.esCheckable === '1'  || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
-                                <Columna titulo={fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
-                                <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
-                                <Columna estilo='col-sm-2' />
-                            </div>
-                        )
-                    } else {
-                        return null
+                    }else{
+                        if(props.tituloTerreno === ''){
+                            if (fila.Tarea.OrdenEG === props.idCluster) {
+                                if (props.esCheckable) {
+                                    //Agrega al arreglo los datos de la fila que tiene un check
+                                    checkedItems = checkedItems.concat({ datos: fila, cambio: false })
+                                }
+                                return (
+                                    <div key={fila.ID} className="row item">
+                                        {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                        <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
+                                        <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                        <Columna estilo='col-sm-2' />
+                                    </div>
+                                )
+                            } else {
+                                return null
+                            }
+                        }
                     }
                 });
-                return filaBody
+                filaBody = filaBody.filter(x => x !== undefined && x !== null);
+                return filaBody.length>0 ?
+                    (props.tituloTerreno !== '' ?
+                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                    :   <div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                    ) : null
+
             } else {
                 //Otras ventanas
-                const filaBody = props.datos.map((fila) => {
-                    if (fila.IdTarea.Orden === props.idCluster) {
-                        return (
-                            <div key={fila.ID} className="row item">
-                                <Columna titulo={fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
-                                <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
-                                <Columna titulo={fila.LineaBase !== null ? fila.LineaBase : <p style={{ textAlign: "center" }}><img title='Agregar' src={plus_icon} alt='plus_icon' /></p>} estilo='col-sm-1' editable={false} />
-                                <Columna titulo={fila.FechaEstimada !== null ? fila.FechaEstimada : <p style={{ textAlign: "center" }}><img title='Agregar' src={plus_icon} alt='plus_icon' /></p>} estilo='col-sm-1' editable={true} />
-                                <Columna titulo={fila.Estatus.Title} estilo='col-sm-1' editable={false} />
-                                <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' /></p>} estilo='col-sm-1' editable={false} />
-                                <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, null, null, null, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
-                            </div>
-                        )
-                    } else {
-                        return null
+                let nombreTerreno = ''
+                let filaBody = props.datos.map((fila) => {
+                    let urlLink = fila.UrlDocumentos.substring(fila.UrlDocumentos.indexOf('<a'));
+                    urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
+                    const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html");
+                    const parsedUrlDocto = parseResultDocto.documentElement.textContent;
+
+                    let urlTarea = fila.UrlTarea.substring(fila.UrlTarea.indexOf('<a'));
+                    urlTarea = urlTarea.replace('<a href="', '').replace(' target="_blank">Ver Tarea</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
+                    const parseResult = new DOMParser().parseFromString(urlTarea, "text/html");
+                    const parsedUrl = parseResult.documentElement.textContent;
+
+                    if(fila.IdTerreno !== undefined){
+                        if(fila.IdTerreno.Title === props.tituloTerreno){
+                            nombreTerreno = fila.IdTerreno !== undefined ? fila.IdTerreno.NombredelTerreno2 : ''
+
+                            if (fila.IdTarea.Orden === props.idCluster) {
+                                return (
+                                    <div key={fila.ID} className="row item">
+                                        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
+                                            <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
+                                            <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'LineaBase')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={()=>window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                        </MuiPickersUtilsProvider>
+                                    </div>
+                                )
+                            } else {
+                                return null
+                            }
+                        }
+                    }else{
+                        if(props.tituloTerreno === ''){
+                            if (fila.IdTarea.Orden === props.idCluster) {
+                                return (
+                                    <div key={fila.ID} className="row item">
+                                        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
+                                            <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
+                                            <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'LineaBase')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={()=>window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                        </MuiPickersUtilsProvider>
+                                    </div>
+                                )
+                            } else {
+                                return null
+                            }
+                        }
                     }
                 });
-                return filaBody
+                filaBody = filaBody.filter(x => x !== undefined && x !== null);
+                return filaBody.length>0 ?
+                    (props.tituloTerreno !== '' ?
+                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                    :   <div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                    ) : null
             }
         }
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO } = this.state

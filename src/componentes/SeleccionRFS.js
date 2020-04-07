@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import { sp } from "@pnp/sp";
-import '../estilos/modal.css';
+import update from 'immutability-helper';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/sites";
-import update from 'immutability-helper';
+import '../estilos/modal.css';
 
 class SeleccionRFS extends Component{
     constructor(props){
@@ -25,6 +25,11 @@ class SeleccionRFS extends Component{
         this.state = this.initialState
     }
     
+    obtenerDatosGuardados = async () =>{
+        const item = await sp.web.lists.getByTitle("RFSN").items.getById(this.state.idFlujoTareas).get()
+
+    }
+
     onCambiarCantidad = e =>{
         const {name, valueAsNumber} = e.target;
         this.setState({[name]: valueAsNumber});

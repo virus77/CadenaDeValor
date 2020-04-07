@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Modal from './Ventana';
+import { Badge, Button } from 'reactstrap';
 import disabled_icon from '../imagenes/disabled.png';
 import favoritos_icon from '../imagenes/favoritos_icon.png';
 import gantt_icon from '../imagenes/gantt.png';
@@ -10,7 +11,6 @@ import macoc from '../imagenes/macoC.png';
 import macox from '../imagenes/macoX.png';
 import toGantt from '../imagenes/toGantt.png';
 import '../estilos/encabezado.css';
-import { Badge, Button } from 'reactstrap';
 
 class Encabezado extends Component {
     constructor(props){

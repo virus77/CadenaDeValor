@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import SeleccionRFS from './SeleccionRFS'
-import '../estilos/modal.css';
+import ActividadFicticia from './ActividadFicticia'
+import Detalle from './Detalle'
+import PeoplePicker from './UserPicker'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
 import "@pnp/sp/sites";
@@ -10,13 +12,13 @@ import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
-import PeoplePicker from './UserPicker'
-import ActividadFicticia from './ActividadFicticia'
+import '../estilos/modal.css';
 
 class Ventana extends Component{
     constructor(props){
         super(props)
         this.initialState = {
+            idTarea: this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : this.props.abrir.filaSeleccionada.IdTarea.ID,
             campos: [],
             usuarios: [],
             ejecutado:false,
@@ -69,6 +71,7 @@ class Ventana extends Component{
     }
 
     async onEnviar (datos){
+        const {idTarea} = this.state
         switch(this.props.abrir.filaSeleccionada.Tarea.ID){
             case 24:
                 const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : ( this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
@@ -146,7 +149,7 @@ class Ventana extends Component{
                             }else{
                                 //Sino pasa por RFS (Ninguno), crea el resto de la EG
                                 //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                                this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: true})
+                                this.props.evento({tarea: idTarea, dato: true})
                             }
                         }).catch(error => {
                             console.warn('Error al guardar: ' + error)
@@ -161,7 +164,7 @@ class Ventana extends Component{
             case 30:
             case 35:
                 //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: datos})
+                this.props.evento({tarea: idTarea, dato: datos})
                 this.props.cerrar();
                 break;
             default:
@@ -225,11 +228,11 @@ class Ventana extends Component{
     }
     //#endregion
 
-    seleccionarItems = items=>{
+    onSeleccionarItems = items=>{
         this.setState({usuarioAsignados : items})
     }
 
-    handleChange = e => {
+    onSeleccionar = e => {
         const {id} = e.target;
         this.setState({ radioChecked: id});
     };
@@ -277,12 +280,13 @@ class Ventana extends Component{
     render(){
         var boton = '';
         var ID = 0;
+        const {idTarea} = this.state
         const Formulario = ()=>{
-            const formulario = this.state.campos.map((campo)=>{
+            const formulario = this.state.campos.map((campo, index)=>{
                 boton = campo.Boton;
                 ID = campo.ID;
                 return(
-                    <div>
+                    <div key={index}>
                         {(() => {
                             switch(campo.TipoDeCampo) {
                                 case 'CheckBox':
@@ -292,7 +296,7 @@ class Ventana extends Component{
                                             </div>
                                 case 'Radio':
                                     return <div key={campo.ID}>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo } onChange={this.handleChange} />
+                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo } onChange={this.onSeleccionar} />
                                                 <label>{campo.Title}</label>
                                             </div>
                                 case 'File':
@@ -303,7 +307,7 @@ class Ventana extends Component{
                                 case 'PeoplePicker':
                                     return  <div key={campo.ID}>
                                                 <label>{campo.Title}</label>
-                                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados = {this.state.usuarioAsignados} seleccionarItems = {this.seleccionarItems} />
+                                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados = {this.state.usuarioAsignados} seleccionarItems = {this.onSeleccionarItems} />
                                             </div>
                                 default:
                                     break;
@@ -353,20 +357,16 @@ class Ventana extends Component{
                         <ModalBody>
                             <fieldset>
                                 {
-                                    this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
-                                    this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
-                                    this.props.abrir.filaSeleccionada.Tarea.ID === 35 ?
+                                    idTarea === 25 || idTarea === 30 || idTarea === 35 ?
                                     <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno = {this.onEnviar} cerrar = {this.onCerrar} />
-                                    : (this.props.abrir.filaSeleccionada.Tarea.ID === 271 ? <ActividadFicticia datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} /> : <Formulario />)
+                                    : (idTarea === 271 ? <ActividadFicticia datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} />
+                                        :(idTarea === 272 ? <Detalle datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} /> : <Formulario />))
                                 }
                             </fieldset>
                         </ModalBody>
                         <ModalFooter>
                             {
-                                this.props.abrir.filaSeleccionada.Tarea.ID === 25 ||
-                                this.props.abrir.filaSeleccionada.Tarea.ID === 30 ||
-                                this.props.abrir.filaSeleccionada.Tarea.ID === 35 ||
-                                this.props.abrir.filaSeleccionada.Tarea.ID === 271 ?
+                                idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 ?
                                 null :<Botones />
                             }
                         </ModalFooter>
