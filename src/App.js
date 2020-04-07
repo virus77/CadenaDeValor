@@ -12,14 +12,14 @@ import Generico from './componentes/Generico';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 class App extends Component {
-  state ={
+  state = {
     itemsT: [],
     itemsPI: [],
     isActive: false,
     isInActive: true,
     idProyecto: 0,
     idTerreno: 0,
-    Maco: '',
+    Maco: "",
     RFS: false,
     TerrenoId: "",
     IdProyInv: "",
@@ -28,19 +28,53 @@ class App extends Component {
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
-  onSeleccionTerreno = async (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, Header) => {
+  onSeleccionTerreno = async (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv) => {
 
-    if (window.confirm('¿Está seguro que desea abrir el detalle del terreno ' + TxtTerreno + "?")){
+    if (window.confirm('¿Está seguro que desea abrir el detalle del terreno ' + TxtTerreno + "?")) {
+      //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
+      /*var actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
+      .filter('(IdProyectoInversionId eq ' + IdProyecto + ') or (IdTerrenoId eq ' + IdTerreno + ')')
+      .select('IdTarea/TxtVentana')
+      .expand('IdTarea').getAll();
+
+      var RFSEnviado = false;
+      var datosEG = [{
+        columnas: [{ titulo: '', estilo: 'col-sm' }, { titulo: 'Responsable', estilo: 'col-sm' }, { titulo: 'Asignado a', estilo: 'col-sm' }],
+        datos: []
+      }];
+
+      var ventanas = [actividades.reduce((a,c) => (a[c.IdTarea.TxtVentana]=(a[c.IdTarea.TxtVentana]||[]).concat(c),a) ,{})];
+
+      if (!RFSEnviado) {
+        datosEG[0].datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
+        .filter('ProyectoInversionId eq ' + IdProyecto)
+        .select('ID','ProyectoInversion/ID','Terreno/ID','Tarea/ID','Tarea/Title','Tarea/TxtCluster','Tarea/TxtVentana','Tarea/OrdenEG','Tarea/Checkable','GrupoResponsable/ID','GrupoResponsable/NombreCortoGantt','Seleccionado', 'IdFlujoTareasId')
+        .expand('ProyectoInversion', 'Terreno', 'Tarea','GrupoResponsable').orderBy('Tarea/OrdenEG',true).get();
+
+        var result = [];
+        result = Array.from(new Set(datosEG[0].datos.map(s=> s.Tarea.TxtCluster)))
+        .map(currentCluster=>{
+            return{
+              cluster: datosEG[0].datos.find(s=> s.Tarea.TxtCluster === currentCluster).Tarea
+            };
+        });
+
+        result = result.filter(x=> x.cluster !== undefined);
+      }*/
       this.setState({
-        isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno, Maco: maco, RFS: rfs
+        isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
+        Maco: maco, RFS: rfs, TerrenoId, IdProyInv
       });
     }
-    else{
-      this.setState({ isActive: false, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: '', Maco: maco, RFS: rfs })
+    else {
+      this.setState({
+        isActive: false, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: '', Maco: maco,
+        RFS: rfs, TerrenoId, IdProyInv
+      })
     }
   }
 
-  onOpenModal = (id, esTarea) => {  
+  onOpenModal = (id, esTarea) => {
     this.setState({ modal: [{ showModal: true, id: id, esTarea: esTarea, terreno: this.state.nombreTerreno }] });
   };
 
@@ -48,20 +82,21 @@ class App extends Component {
     this.setState({ modal: [{ showModal: false, id: 0, encabezado: '', terreno: '' }] });
   };
 
-  async componentDidMount(){
+  async componentDidMount() {
     var listItemsT = await sp.web.lists.getByTitle("Terrenos").items
-    .select("ID", "Title", "Modified", "NombredelTerreno2", "IdProyectoInversion/ID", "IdProyectoInversion/NombreProyectoInversion", "MACO")
-    .expand("IdProyectoInversion")
-    .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
-    .orderBy("NombredelTerreno2", true)
-    .top(1000)
-    .get();
+      .select("ID", "Title", "Modified", "NombredelTerreno2", "IdProyectoInversion/ID",
+        "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
+      .expand("IdProyectoInversion")
+      .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
+      .orderBy("NombredelTerreno2", true)
+      .top(1000)
+      .get();
 
     var listItemsPI = await sp.web.lists.getByTitle("Proyecto Inversion").items
-    .select("ID", "NombreProyectoInversion")
-    .orderBy("NombreProyectoInversion", true)
-    .top(1000)
-    .get();
+      .select("ID", "NombreProyectoInversion")
+      .orderBy("NombreProyectoInversion", true)
+      .top(1000)
+      .get();
 
     this.setState({ itemsT: listItemsT, itemsPI: listItemsPI });
   }

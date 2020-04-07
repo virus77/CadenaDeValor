@@ -1,63 +1,91 @@
-.tabla{
-    width: 98%;
+.tabla {
+    width: 100%;
     text-align: left;
 }
 
-.nombreTerreno{
-    width: 35%;
-    padding-left: 5px;
+.colorBlueMenu {
+    background-color: #3C8891!important;
+    width: 145px!important;
+    cursor: pointer!important;
+    color: white!important;
 }
 
-.columna{
+.colorNoMenu {
+    width: 145px!important;
+    cursor: pointer!important;
+}
+
+.colorWhite {
+    color: white!important;
+    font-size: 10pt;
+    text-align: center;
+}
+
+.nombreTerreno {
+    width: 35%;
+    padding-top: 7px;
+    font-size: 15pt;
+    font-weight: 0px;
+    color: #3C8891;
+}
+
+.columna {
     width: 5%;
 }
 
-.menu{
+.menu {
     width: 40%;
 }
 
-.boton{
+.boton {
     width: 25%;
 }
 
-.egupload{
+.egupload {
     text-align: right;
 }
 
-img{
+img {
     cursor: pointer;
     vertical-align: bottom;
 }
-img:hover{
+
+img:hover {
     transform: scale(1.1);
 }
 
-.cluster{
+.cluster {
     background-color: lightseagreen;
     text-align: left;
 }
-.filaTerreno{
+
+.filaTerreno {
     background-color: lightskyblue;
     text-align: left;
     padding-left: 20px;
 }
-.contenedor{
+
+.contenedor {
     width: 100%;
 }
-.columnaActividad{
+
+.columnaActividad {
     text-align: left;
     padding-left: 25px;
 }
-.filaActividad{
+
+.filaActividad {
     border-style: solid;
     border-width: 1px;
     border-color: lightslategrey;
     background-color: lightcyan;
 }
-p{
+
+p {
     margin: 5px;
 }
-.hr{
+
+.hr {
     margin-top: 0.3rem;
     margin-bottom: 0.5rem;
 }

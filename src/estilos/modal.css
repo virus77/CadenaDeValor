@@ -1,36 +1,93 @@
-.encabezado{
+.modals.dimmer .ui.scrolling.modal {
+    margin-left: 10% !important;
+}
+
+.encabezado {
     background-color: #40B9C7;
     color: white;
-    font-size: 25px;
     padding: 5px;
+}
+
+h5 {
+    font-size: 16pt!important;
 }
 
 .datoTerreno{
     background-color: #8ED6DE;
     color: #6A7172;
-    font-size: 15px;
+    font-size: 14pt;
     text-align: right;
+    padding: 10px;
+}
+
+
+.cuerpo {
     padding: 5px;
 }
 
-.cuerpo{
-    padding: 5px;
-}
-.pie{
+.pie {
     padding-top: 5px;
     text-align: right;
 }
 
-.control{
+.control {
     width: 40%!important;
     text-align: right;
 }
 
-.select{
+.select {
     width: 20%!important;
     text-align: right;
 }
 
-.display{
+.display {
     display: flex!important;
+}
+
+/*Radio button */
+
+.form-radio {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    background-color: #f1f1f1;
+    color: #666;
+    top: 10px;
+    height: 30px;
+    width: 30px;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-right: 7px;
+    outline: none;
+}
+
+.form-radio:checked::before {
+    position: absolute;
+    font: 17px/1 'Open Sans', sans-serif;
+    left: 10px;
+    top: 6px;
+    content: '\02143';
+    transform: rotate(40deg);
+    font-weight: bold;
+    color: #40B9C7;
+}
+
+.form-radio:hover {
+    background-color: #40B9C7;
+}
+
+.form-radio:checked {
+    background-color: #D1F7E9;
+}
+
+label {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #40B9C7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: pointer;
 }

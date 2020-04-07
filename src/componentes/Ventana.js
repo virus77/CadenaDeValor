@@ -1,10 +1,11 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import SeleccionRFS from './SeleccionRFS'
 import ActividadFicticia from './ActividadFicticia'
-import Detalle from './Detalle'
+import Detalle from './Detalle.js'
 import PeoplePicker from './UserPicker'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
+
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -14,14 +15,14 @@ import "@pnp/sp/files";
 import "@pnp/sp/folders";
 import '../estilos/modal.css';
 
-class Ventana extends Component{
-    constructor(props){
+class Ventana extends Component {
+    constructor(props) {
         super(props)
         this.initialState = {
             idTarea: this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : this.props.abrir.filaSeleccionada.IdTarea.ID,
             campos: [],
             usuarios: [],
-            ejecutado:false,
+            ejecutado: false,
             usuarioAsignados: props.abrir.id === 270 ? props.datos.valor : [],
             radioChecked: props.datos.valor
         }
@@ -32,27 +33,27 @@ class Ventana extends Component{
 
     //#region Eventos de botones
     async onGuardar() {
-        switch(this.props.abrir.id){
+        switch (this.props.abrir.id) {
             //Establece el MACO para el/los terrenos
             case 268:
-                if(!this.props.rfs){
+                if (!this.props.rfs) {
                     const items = await sp.web.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.idPITerr + ' and Empadronamiento eq null').get();
-                    
+
                     if (items.length > 0) {
-                        for(var i=0; i<items.length; i++){
+                        for (var i = 0; i < items.length; i++) {
                             await sp.web.lists.getByTitle("Terrenos").items.getById(items[i].ID).update({
                                 MACO: this.state.radioChecked
-                              });
+                            });
                         }
                     }
-                    this.props.evento({tarea: 0, dato: this.state.radioChecked})
-                }else{
+                    this.props.evento({ tarea: 0, dato: this.state.radioChecked })
+                } else {
                     const items = await sp.web.lists.getByTitle("Terrenos").items.filter('ID eq ' + this.props.idPITerr).get();
-                    
+
                     if (items.length > 0) {
                         await sp.web.lists.getByTitle("Terrenos").items.getById(items[0].ID).update({
                             MACO: this.state.radioChecked
-                          });
+                        });
                     }
                     this.props.evento(this.state.radioChecked)
                     this.onCerrar()
@@ -60,7 +61,9 @@ class Ventana extends Component{
                 break;
             case 270:
                 //Establece los usuarios asignados del modal de Asignado a
-                this.props.evento({tarea:0, dato: this.state.usuarioAsignados})
+                this.props.evento({ tarea: 0, dato: this.state.usuarioAsignados })
+                break;
+            case 271:
                 break;
             case 271:
                 break;
@@ -70,57 +73,57 @@ class Ventana extends Component{
         this.onCerrar()
     }
 
-    async onEnviar (datos){
-        const {idTarea} = this.state
-        switch(this.props.abrir.filaSeleccionada.Tarea.ID){
+    async onEnviar(datos) {
+        const { idTarea } = this.state
+        switch (this.props.abrir.filaSeleccionada.Tarea.ID) {
             case 24:
-                const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : ( this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
+                const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : (this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
                 const totalTerrenos = await this.obtenerTotalTerrenosPI()
                 let guardar = true
                 let mensajeError = ''
                 //Valida si existe la cantidad suficiente de terrenos para generar una tarea
-                switch(idNuevaTarea){
+                switch (idNuevaTarea) {
                     case 0:
                         guardar = true
                         mensajeError = ''
                         break;
                     case 25:
-                        if(totalTerrenos <1){
+                        if (totalTerrenos < 1) {
                             guardar = false
                             mensajeError = 'El proyecto de inversión debe tener por lo menos 1 terreno para poder subdividir.'
-                        }else{
+                        } else {
                             guardar = true
                             mensajeError = ''
                         }
                         break;
                     case 30:
                     case 35:
-                        if(totalTerrenos <=1){
+                        if (totalTerrenos <= 1) {
                             guardar = false
-                            mensajeError ='El proyecto de inversión debe tener por lo menos 2 terrenos para poder ' + (idNuevaTarea === 30 ? 'fusionar.' : 'relotificar.')
-                        }else{
+                            mensajeError = 'El proyecto de inversión debe tener por lo menos 2 terrenos para poder ' + (idNuevaTarea === 30 ? 'fusionar.' : 'relotificar.')
+                        } else {
                             guardar = true
                             mensajeError = ''
                         }
                         break;
                     default:
                         guardar = false
-                        mensajeError ='Debe seleccionar una opción'
+                        mensajeError = 'Debe seleccionar una opción'
                         break;
                 }
-                if(guardar){
+                if (guardar) {
                     //Guarda el tipo de RFSN seleccionado
                     await sp.web.lists.getByTitle(this.state.campos[0].ListaDeGuardado).items.add({
-                        IdProyectoInversionId:this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
-                        IdFlujoId:this.props.abrir.id,
-                        FRSN:this.state.radioChecked
-                    }).then(async ()=>{
+                        IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
+                        IdFlujoId: this.props.abrir.id,
+                        FRSN: this.state.radioChecked
+                    }).then(async () => {
                         //Establece la tarea como Enviada
                         await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.abrir.id).update({
                             EstatusId: 3
-                        }).then(async ()=>{
+                        }).then(async () => {
                             //Verifica si se creará una nueva tarea, dependiento del valor de RFNS seleccionado
-                            if(idNuevaTarea!== 0){
+                            if (idNuevaTarea !== 0) {
                                 const datosNuevaTarea = await sp.web.lists.getByTitle('Tareas').items.getById(idNuevaTarea).get();
                                 //Crea la nueva tarea en Flujo Tareas
                                 await sp.web.lists.getByTitle("Flujo Tareas").items.add({
@@ -128,10 +131,10 @@ class Ventana extends Component{
                                     IdTareaId: idNuevaTarea,
                                     NivelId: datosNuevaTarea.NivelId,
                                     GrupoResponsableId: datosNuevaTarea.GrupoId,
-                                    AsignadoA: {results: []},
+                                    AsignadoA: { results: [] },
                                     EstatusId: 1,
                                     Visible: true
-                                }).then(async result=>{
+                                }).then(async result => {
                                     //Crea el elemento en la estrategia de gestión
                                     await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
                                         ProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
@@ -142,21 +145,21 @@ class Ventana extends Component{
                                     })
                                     //Establecer estado para nueva tarea creada
                                     //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                                    this.props.evento({tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: false})
+                                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: false })
                                 }).catch(error => {
                                     console.warn('Error al generar la estrategia de gestión: ' + error)
                                 })
-                            }else{
+                            } else {
                                 //Sino pasa por RFS (Ninguno), crea el resto de la EG
                                 //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                                this.props.evento({tarea: idTarea, dato: true})
+                                this.props.evento({ tarea: idTarea, dato: true })
                             }
                         }).catch(error => {
                             console.warn('Error al guardar: ' + error)
                         })
                     })
                     this.props.cerrar();
-                }else{
+                } else {
                     alert(mensajeError)
                 }
                 break;
@@ -164,92 +167,92 @@ class Ventana extends Component{
             case 30:
             case 35:
                 //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                this.props.evento({tarea: idTarea, dato: datos})
+                this.props.evento({ tarea: idTarea, dato: datos })
                 this.props.cerrar();
                 break;
             default:
                 break;
         }
+
+        this.onCerrar()
     }
 
-    onCerrar = ()=>{
+    onCerrar = () => {
         this.setState(this.initialState)
         this.props.cerrar()
     }
     //#endregion
-    
-    obtenerTotalTerrenosPI = async ()=>{
+
+    obtenerTotalTerrenosPI = async () => {
         const terrenos = await sp.web.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.abrir.filaSeleccionada.ProyectoInversion.ID + ' and Empadronamiento eq null').get();
         return terrenos.length
     }
-    
-    obtenerCampos = async id =>{
-        if(!this.props.abrir.esTarea){
-            if(id>0){
+
+    obtenerCampos = async id => {
+        if (!this.props.abrir.esTarea) {
+            if (id > 0) {
                 //Obtiene los campos a pintar en el formulario
                 let campos = await sp.web.lists.getByTitle('Relación campos documentos trámites tareas').items
-                .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado',
-                    'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
-                .filter('(TareaId eq ' + id + ') and (Activo eq 1)')
-                .expand('Tarea')
-                .orderBy('Ordenamiento', true).get();
-                this.setState({campos: campos})
+                    .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado',
+                        'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
+                    .filter('(TareaId eq ' + id + ') and (Activo eq 1)')
+                    .expand('Tarea')
+                    .orderBy('Ordenamiento', true).get();
+                this.setState({ campos: campos })
             }
-        }else{
+        } else {
             //Obtiene los campos a pintar en el formulario
             let campos = await sp.web.lists.getByTitle('Relación campos documentos trámites tareas').items
-            .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado',
-                'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
-            .filter('(TareaId eq ' + this.props.abrir.filaSeleccionada.Tarea.ID + ') and (Activo eq 1)')
-            .expand('Tarea')
-            .orderBy('Ordenamiento', true).get();
-            this.setState({campos: campos})
+                .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado',
+                    'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
+                .filter('(TareaId eq ' + this.props.abrir.filaSeleccionada.Tarea.ID + ') and (Activo eq 1)')
+                .expand('Tarea')
+                .orderBy('Ordenamiento', true).get();
+            this.setState({ campos: campos })
         }
     }
 
     //#region Métodos de ciclo de vida
-    async componentDidMount(){
-        if(this.props.abrir.abierto){
-            if(this.props.abrir.id === 270){
+    async componentDidMount() {
+        if (this.props.abrir.abierto) {
+            if (this.props.abrir.id === 270) {
                 const users = await sp.web.siteUsers();
                 this.obtenerPosiciones(users)
-                this.setState({usuarios: users})
+                this.setState({ usuarios: users })
             }
             this.obtenerCampos(this.props.abrir.id)
         }
     }
-    
-    shouldComponentUpdate(nextProps, nextState){
-        if(this.state.usuarioAsignados.length !== nextState.usuarioAsignados.length){
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.state.usuarioAsignados.length !== nextState.usuarioAsignados.length) {
             return false
-        }else{
+        } else {
             return true
         }
     }
     //#endregion
 
-    onSeleccionarItems = items=>{
-        this.setState({usuarioAsignados : items})
+    onSeleccionarItems = items => {
+        this.setState({ usuarioAsignados: items })
     }
 
     onSeleccionar = e => {
-        const {id} = e.target;
-        this.setState({ radioChecked: id});
+        const { id } = e.target;
+        this.setState({ radioChecked: id });
     };
 
-    obtenerPosiciones = usuarios =>{
-        var items = this.state.usuarioAsignados.map((usuario)=>{
-            if(usuario.Id !== undefined)
-            {return usuarios[usuarios.findIndex((obj => obj.Id === usuario.Id))]}
-            else if(usuario.ID !== undefined)
-            {return usuarios[usuarios.findIndex((obj => obj.Id === usuario.ID))]}
+    obtenerPosiciones = usuarios => {
+        var items = this.state.usuarioAsignados.map((usuario) => {
+            if (usuario.Id !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.Id))] }
+            else if (usuario.ID !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.ID))] }
         })
-        this.setState({usuarioAsignados: items})
+        this.setState({ usuarioAsignados: items })
     }
 
     //FALTA TERMINAR
-    async onCargarArchivo(e, nombreDocumento){
-        if (window.confirm('¿Está seguro que desea cargar el archivo "' + e.target.files[0].name + '"?')){
+    async onCargarArchivo(e, nombreDocumento) {
+        if (window.confirm('¿Está seguro que desea cargar el archivo "' + e.target.files[0].name + '"?')) {
             const archivo = e.target.files[0]
             var webCdV = await sp.web.getParentWeb();
             /*let reader = new FileReader()
@@ -270,45 +273,45 @@ class Ventana extends Component{
             const item = await file.file.getItem();
             await item.update({
                 Title: nombreDocumento
-            }).then(()=>{
+            }).then(() => {
                 alert('Se cargó el archivo correctamente')
-            }).catch((error)=>{
+            }).catch((error) => {
                 alert('Error: ' + error)
             })
         }
     }
-    render(){
+    render() {
         var boton = '';
         var ID = 0;
-        const {idTarea} = this.state
-        const Formulario = ()=>{
-            const formulario = this.state.campos.map((campo, index)=>{
+        const { idTarea } = this.state
+        const Formulario = () => {
+            const formulario = this.state.campos.map((campo, index) => {
                 boton = campo.Boton;
                 ID = campo.ID;
-                return(
+                return (
                     <div key={index}>
                         {(() => {
-                            switch(campo.TipoDeCampo) {
+                            switch (campo.TipoDeCampo) {
                                 case 'CheckBox':
                                     return <div key={campo.ID}>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} />
-                                                <label>{campo.Title}</label>
-                                            </div>
+                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} />
+                                        <label>{campo.Title}</label>
+                                    </div>
                                 case 'Radio':
                                     return <div key={campo.ID}>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo } onChange={this.onSeleccionar} />
-                                                <label>{campo.Title}</label>
-                                            </div>
+                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo} onChange={this.handleChange} />
+                                        <label for="radio-one">{campo.Title}</label>
+                                    </div>
                                 case 'File':
                                     return <div key={campo.ID}>
-                                                <label>{campo.Title}</label>
-                                                <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e)=>this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
-                                            </div>
+                                        <label>{campo.Title}</label>
+                                        <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
+                                    </div>
                                 case 'PeoplePicker':
-                                    return  <div key={campo.ID}>
-                                                <label>{campo.Title}</label>
-                                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados = {this.state.usuarioAsignados} seleccionarItems = {this.onSeleccionarItems} />
-                                            </div>
+                                    return <div key={campo.ID}>
+                                        <label>{campo.Title}</label>
+                                        <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={this.state.usuarioAsignados} seleccionarItems={this.onSeleccionarItems} />
+                                    </div>
                                 default:
                                     break;
                             }
@@ -325,7 +328,6 @@ class Ventana extends Component{
                     return (
                         <div key={ID} className="row">
                             <input type="button" className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar' />
-                            <input type="button" className="btn btn-danger btn-md"  onClick={this.onCerrar} value='Cerrar' />
                         </div>
                     )
                 case "GuardarEnviar":
@@ -333,45 +335,47 @@ class Ventana extends Component{
                         <div key={ID} className="row">
                             <input type='button' className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar ' />
                             <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
-                            <input type="button" className="btn btn-danger btn-md"  onClick={this.onCerrar} value='Cerrar ' />
                         </div>
                     )
                 case "Guardar":
                     return (
                         <div key={ID} className="row">
                             <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
-                            <input type="button" className="btn btn-danger btn-md" onClick={this.onCerrar} value='Cerrar ' />
                         </div>
                     )
                 default:
                     break;
             }
         }
-        return(
+        return (
             <div>
-                {this.state.campos.length>0 ?
-                <Modal isOpen={this.props.abrir.abierto} size='lg'>
-                    <form>
-                        <ModalHeader className='encabezado'>{this.state.campos[0].Tarea.Title}</ModalHeader>
-                        <div className='datoTerreno'>{this.props.abrir.terreno}</div>
-                        <ModalBody>
-                            <fieldset>
+                {this.state.campos.length > 0 ?
+                    <Modal isOpen={this.props.abrir.abierto} size='lg'>
+                        <form>
+
+                            <ModalHeader
+                                className='encabezado'>{this.state.campos[0].Tarea.Title}
+                                <span style={{ paddingLeft: "500px", cursor: "pointer" }} onClick={this.onCerrar} aria-hidden="true">X</span>
+                            </ModalHeader>
+                            <div className='datoTerreno'>{this.props.abrir.terreno}</div>
+                            <ModalBody>
+                                <fieldset>
+                                    {
+                                        idTarea === 25 || idTarea === 30 || idTarea === 35 ?
+                                            <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
+                                            : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
+                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />))
+                                    }
+                                </fieldset>
+                            </ModalBody>
+                            <ModalFooter>
                                 {
-                                    idTarea === 25 || idTarea === 30 || idTarea === 35 ?
-                                    <SeleccionRFS datos = {this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno = {this.onEnviar} cerrar = {this.onCerrar} />
-                                    : (idTarea === 271 ? <ActividadFicticia datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} />
-                                        :(idTarea === 272 ? <Detalle datos = {this.props.abrir.filaSeleccionada} datosRetorno = {this.onGuardar} cerrar = {this.onCerrar} /> : <Formulario />))
+                                    idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 ?
+                                        null : <Botones />
                                 }
-                            </fieldset>
-                        </ModalBody>
-                        <ModalFooter>
-                            {
-                                idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 ?
-                                null :<Botones />
-                            }
-                        </ModalFooter>
-                    </form>
-                </Modal>
+                            </ModalFooter>
+                        </form>
+                    </Modal>
                     : null
                 }
             </div>

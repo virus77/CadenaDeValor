@@ -13,15 +13,17 @@ import arrow_down_icon from '../imagenes/arrow_down_icon.png';
 import attach_icon from '../imagenes/attach_icon.png';
 import more_details_icon from '../imagenes/more_details_icon.png';
 import assignedTo_icon from '../imagenes/assignedTo_icon.png';
+import disk from '../imagenes/disk.png';
 import plus_icon from '../imagenes/plus_icon.png';
 import egupload_icon from '../imagenes/egupload_icon.png';
+import favoritos_icon from '../imagenes/favoritos_icon.png';
+
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import util from '../js/util'
 //import {onSave} from '../js/eg.js';
-import '../estilos/generico.css';
 import { es, ca } from 'date-fns/locale';
 import moment from 'moment'
 
@@ -30,6 +32,7 @@ import moment from 'moment'
         await callback(array[index], index, array);
     }
 }*/
+
 
 var checkedItems = [];
 var webUrl = ''
@@ -84,16 +87,16 @@ class Generico extends Component {
     //#region Métodos de modal
     onAbrirModal = (terreno, id, esTarea, campo, valor, fila, ventana) => {
         //Si el evento viene de la ventana de E.G.
-        if(ventana === 4){
-            if(fila.Tarea.ID === 24 && this.props.maco === null){
+        if (ventana === 4) {
+            if (fila.Tarea.ID === 24 && this.props.maco === null) {
                 alert('No puedes generar RFSN hasta definir el tipo de MACO. Hazlo en el botón superior, junto al nombre del proyecto.')
-            }else{
+            } else {
                 this.setState({
                     modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila },
                     datos: { campo: campo, valor: valor }
                 })
             }
-        }else{
+        } else {
             this.setState({
                 modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila },
                 datos: { campo: campo, valor: valor }
@@ -104,7 +107,7 @@ class Generico extends Component {
     onCerrarModal = () => {
         this.setState({ modal: this.inialState.modal })
     };
-    //#endregion
+    //#endregion				   
 
     onHandleChange = async (event) => {
 
@@ -133,9 +136,10 @@ class Generico extends Component {
 
             var datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
                 .filter(filter + '(ProyectoInversionId eq ' + this.props.idProyecto + ')')
-                .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
-                    'Tarea/Checkable', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'AsignadoA/ID',
-                    'AsignadoA/Title')
+                .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title',
+                    'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+                    'Tarea/Checkable', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId',
+                    'AsignadoA/ID', 'AsignadoA/Title')
                 .expand('ProyectoInversion', 'Terreno', 'Tarea', 'GrupoResponsable', 'AsignadoA')
                 .orderBy('Tarea/OrdenEG', true)
                 .get();
@@ -143,10 +147,10 @@ class Generico extends Component {
             var RFSEnviado = false;
             var datosEG = {
                 columnas: [
-                    { titulo: '', interN: '', Arreglo: datos, estilo: 'col-sm-6' },
+                    { titulo: '', interN: '', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-6' },
                     { titulo: 'Responsable', interN: 'GrupoResponsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
                     { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
-                    { titulo: 'E. de G. autorizada', Arreglo: datos, estilo: 'col-sm-2' }
+                    { titulo: 'E. de G. autorizada', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' }
                 ],
                 datos: []
             };
@@ -170,14 +174,15 @@ class Generico extends Component {
             });
         }
         else {
-            //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversiÃ³n
+            //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
             actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                 .filter('(IdProyectoInversionId eq ' + this.state.idProyecto + ') or (IdTerrenoId eq ' + this.state.idTerreno + ')')
                 .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
                     'IdTerreno/Title', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                     'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
-                    'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada')
-                .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA')
+                    'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
+                    'Favoritos/Name', 'UrlDocumentos', 'UrlTarea')
+                .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA', 'Favoritos')
                 .getAll();
 
             actividades.sort(function (a, b) {
@@ -209,14 +214,15 @@ class Generico extends Component {
             var ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
             var datosActs = {
                 columnas: [
-                    { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                    { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-4' },
                     { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: actividades, estilo: 'col-sm-1' },
                     { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                     { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                     { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
-                    { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: actividades, estilo: 'col-sm-1' },
-                    { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: actividades, estilo: 'col-sm-1' },
-                    { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: actividades, estilo: 'col-sm-1' }
+                    { titulo: 'Estatus', interN: 'Estatus', Tipo: "Act", value: 'Title', Tipo: "Estatus", Arreglo: actividades, estilo: 'col-sm-1' },
+                    { titulo: 'Adjunto', interN: 'Adjunto', Tipo: "Act", value: 'Adjunto', Arreglo: actividades, estilo: 'col-sm-1' },
+                    { titulo: 'Detalle', interN: 'Detalle', Tipo: "Act", value: 'Detalle', Arreglo: actividades, estilo: 'col-sm-1' },
+                    { titulo: 'Favoritos', interN: 'Favoritos', Tipo: "Act", value: 'Favoritos', Arreglo: actividades, estilo: 'col-sm-1' }
                 ],
                 datos: actividades
             }
@@ -243,43 +249,47 @@ class Generico extends Component {
         }
     }
 
-    onCambiarVentana = async (idVentanaSeleccionada, mensaje, tipoRFS) => {
+    onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS) => {
+
+        { this.styleLinkGen(name, style) }
+
         const { idProyecto, idTerreno } = this.state
 
         var result = [];
         var actividades = [];
 
-        if(tipoRFS === '' || tipoRFS === 'TF'){
+        if (tipoRFS === '' || tipoRFS === 'TF') {
             switch (idVentanaSeleccionada) {
                 case 4:
                     var datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
                         .filter('ProyectoInversionId eq ' + idProyecto)
-                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
-                            'Tarea/Checkable', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'AsignadoA/ID',
-                            'AsignadoA/Title')
+                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title',
+                            'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+                            'Tarea/Checkable', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId',
+                            'AsignadoA/ID', 'AsignadoA/Title')
                         .expand('ProyectoInversion', 'Terreno', 'Tarea', 'GrupoResponsable', 'AsignadoA')
                         .orderBy('Tarea/OrdenEG', true)
                         .get();
-    
+
                     var datosEG = {
                         columnas: [
-                            { titulo: '', interN: '', Arreglo: datos, estilo: 'col-sm-6' },
+                            { titulo: '', interN: '', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-6' },
                             { titulo: 'Responsable', interN: 'GrupoResponsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
                             { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
-                            { titulo: 'E. de G. autorizada', Arreglo: datos, estilo: 'col-sm-2' }
+                            { titulo: 'E. de G. autorizada', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' }
                         ],
                         datos: []
                     };
-    
+
                     datosEG.datos = datos;
-    
+
                     result = Array.from(new Set(datosEG.datos.map(s => s.Tarea.TxtCluster)))
                         .map(currentCluster => {
                             return {
                                 cluster: datosEG.datos.find(s => s.Tarea.TxtCluster === currentCluster).Tarea
                             };
                         });
-    
+
                     result = result.filter(x => x.cluster !== undefined);
                     this.setState({
                         backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentanaEG: datosEG, disabled: true,
@@ -289,17 +299,18 @@ class Generico extends Component {
                 case 1:
                 case 2:
                 case 3:
-                    //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversiÃ³n
+
+                    //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
                     actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                         .filter('(IdProyectoInversionId eq ' + idProyecto + ') or (IdTerrenoId eq ' + idTerreno + ')')
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
                             'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                             'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
-                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada',
-                            'UrlDocumentos', 'UrlTarea')
-                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA')
+                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
+                            'Favoritos/Name', 'UrlDocumentos', 'UrlTarea')
+                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA', 'Favoritos')
                         .getAll();
-    
+
                     actividades.sort(function (a, b) {
                         if (a.IdTarea.Orden > b.IdTarea.Orden)
                             return 1;
@@ -311,14 +322,15 @@ class Generico extends Component {
                     var ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
                     var datosActs = {
                         columnas: [
-                            { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                            { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-4' },
                             { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: actividades, estilo: 'col-sm-1' },
                             { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                             { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                             { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                             { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: actividades, estilo: 'col-sm-1' },
-                            { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: actividades, estilo: 'col-sm-1' },
-                            { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: actividades, estilo: 'col-sm-1' }
+                            { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
+                            { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
+                            { titulo: 'Favoritos', interN: 'Favoritos', value: 'Favoritos', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' }
                         ],
                         datos: actividades
                     }
@@ -338,7 +350,7 @@ class Generico extends Component {
                         ProyectosAnterior: ventanas[0].Proyectos.length, disabled: false, backdrop: { cargado: true, mensaje: '' }
                     });
                     break;
-    
+
                 //Filtro de favoritos
                 case 5:
                 case 6:
@@ -349,11 +361,13 @@ class Generico extends Component {
                         var selectGantt = "";
                         var filterStar = "";
                         var selectStar = "";
+                        var expandStart = "";
                         switch (idVentanaSeleccionada) {
                             case 5:
-                                filterStar = ' (Favoritos ne 0) and ';
-                                selectStar = ', ' + 'Favoritos';
-    
+                                filterStar = ' (Favoritos/ID ne 0) and ';
+                                selectStar = ', ' + 'Favoritos/ID, Favoritos/Name';
+                                expandStart = ', ' + 'Favoritos';
+
                                 if (this.state.Gantt === true && this.state.User === true) {
                                     filterGantt = " (IdLocalizacionActividades/ID ne null) and ";
                                     selectGantt = ', ' + 'IdLocalizacionActividades/ID';
@@ -366,36 +380,39 @@ class Generico extends Component {
                                 }
                                 else if (this.state.User === true) {
                                 }
-    
+
                                 this.state.Star = true;
                                 break;
-    
+
                             case 6:
                                 filterGantt = " (IdLocalizacionActividades/ID ne null) and ";
                                 selectGantt = ', ' + 'IdLocalizacionActividades/ID';
                                 expandGantt = ', ' + 'IdLocalizacionActividades';
-    
+
                                 if (this.state.Star === true && this.state.User === true) {
-                                    filterStar = '(Favoritos ne 0) and ';
-                                    selectStar = ', ' + 'Favoritos';
+                                    filterStar = ' (Favoritos/ID ne 0) and ';
+                                    selectStar = ', ' + 'Favoritos/ID, Favoritos/Name';
+                                    expandStart = ', ' + 'Favoritos';
                                 }
                                 else if (this.state.Star === true) {
-                                    filterStar = '(Favoritos ne 0) and ';
-                                    selectStar = ', ' + 'Favoritos';
+                                    filterStar = ' (Favoritos/ID ne 0) and ';
+                                    selectStar = ', ' + 'Favoritos/ID, Favoritos/Name';
+                                    expandStart = ', ' + 'Favoritos';
                                 }
                                 else if (this.state.User === true) {
                                 }
-    
+
                                 this.state.Gantt = true;
                                 break;
-    
+
                             case 7:
                                 if (this.state.Gantt === true && this.state.Star === true) {
                                     filterGantt = " (IdLocalizacionActividades/ID ne null) and ";
                                     selectGantt = ', ' + 'IdLocalizacionActividades/ID';
                                     expandGantt = ', ' + 'IdLocalizacionActividades';
-                                    filterStar = '(Favoritos ne 0) and ';
-                                    selectStar = ', ' + 'Favoritos';
+                                    filterStar = ' (Favoritos/ID ne 0) and ';
+                                    selectStar = ', ' + 'Favoritos/ID, Favoritos/Name';
+                                    expandStart = ', ' + 'Favoritos';
                                 }
                                 else if (this.state.Gantt === true) {
                                     filterGantt = " (IdLocalizacionActividades/ID ne null) and ";
@@ -403,29 +420,29 @@ class Generico extends Component {
                                     expandGantt = ', ' + 'IdLocalizacionActividades';
                                 }
                                 else if (this.state.Star === true) {
-                                    filterStar = '(Favoritos ne 0) and ';
-                                    selectStar = ', ' + 'Favoritos';
+                                    filterStar = ' (Favoritos/ID ne 0) and ';
+                                    selectStar = ', ' + 'Favoritos/ID, Favoritos/Name';
+                                    expandStart = ', ' + 'Favoritos';
                                 }
-    
+
                                 this.state.User = true;
                                 break;
                             default:
                                 break;
                         }
-    
+
                         actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                             .filter(filterStar + filterGantt + '(IdProyectoInversionId eq ' + idProyecto + ') or (IdTerrenoId eq ' + idTerreno + ')')
-                            .select('ID', 'Title' + selectStar, 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
+                            .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
                                 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                                 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
-                                'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase',
-                                'UrlDocumentos', 'UrlTarea','FechaEstimada' + selectGantt)
-                            .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA' + expandGantt)
+                                'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name', 'LineaBase', 'UrlDocumentos', 'UrlTarea', 'FechaEstimada' + selectGantt + selectStar)
+                            .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'GrupoResponsable', 'AsignadoA' + expandGantt + expandStart)
                             .getAll();
-    
-                        //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversiÃ³n
+
+                        //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
                         idVentanaSeleccionada = this.state.idVentanaAnterior;
-    
+
                         actividades.sort(function (a, b) {
                             if (a.IdTarea.Orden > b.IdTarea.Orden)
                                 return 1;
@@ -433,29 +450,30 @@ class Generico extends Component {
                                 return -1;
                             return 0;
                         });
-    
+
                         var ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
                         var datosActs = {
                             columnas: [
-                                { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                                { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-4' },
                                 { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: actividades, estilo: 'col-sm-1' },
                                 { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                                 { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                                 { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
                                 { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: actividades, estilo: 'col-sm-1' },
-                                { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: actividades, estilo: 'col-sm-1' },
-                                { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: actividades, estilo: 'col-sm-1' }
+                                { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
+                                { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' },
+                                { titulo: 'Favoritos', interN: 'Favoritos', value: 'Favoritos', Tipo: "Act", Arreglo: actividades, estilo: 'col-sm-1' }
                             ],
                             datos: actividades
                         }
-    
+
                         result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
                             .map(currentCluster => {
                                 return {
                                     cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.IdTarea.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.IdTarea.Orden) < parseFloat(idVentanaSeleccionada + 1)))
                                 };
                             });
-    
+
                         result = result.filter(x => x.cluster !== undefined);
                         if (result.length > 0) {
                             this.setState({
@@ -476,8 +494,9 @@ class Generico extends Component {
                 default:
                     break;
             }
-        }else{
-            this.setState({backdrop: { cargado: true, mensaje: '' }});
+        }
+        else {
+            this.setState({ backdrop: { cargado: true, mensaje: '' } });
             alert('Se crearon los terrenos nuevos y su estrategia de gestión. Vuelva al menú principal para consultarlos.')
         }
     }
@@ -546,12 +565,52 @@ class Generico extends Component {
         this.setState({ datosVentana: datosActualizados })
     }
 
+    //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
+    onSeleccionarFecha = async (fecha, fila, campo) => {
+        const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
+        let newData = this.state.datosVentana.datos[filaIndice]
+        switch (campo) {
+            case 'LineaBase':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    LineaBase: fecha,
+                }).then(() => {
+                    newData.LineaBase = fecha
+                })
+                break;
+            case 'FechaEstimada':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    FechaEstimada: fecha,
+                }).then(() => {
+                    newData.FechaEstimada = fecha
+                })
+                break;
+            default:
+                break;
+        }
+
+        let datosActualizados = {
+            columnas: [
+                { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-5' },
+                { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' }
+            ],
+            datos: []
+        };
+        datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+        this.setState({ datosVentana: datosActualizados })
+    }
+
+
     //Almacena temporalmente los items seleccionados o modificados en la E.G.
     onSeleccionarItem = (event, idElemento) => {
         const indice = checkedItems.findIndex((obj => obj.datos.ID === idElemento));
         if (indice !== -1) {
-            if(event!== null)
-            { checkedItems[indice].datos.Seleccionado = event.target.checked; }
+            if (event !== null) { checkedItems[indice].datos.Seleccionado = event.target.checked; }
             checkedItems[indice].cambio = true
         }
     }
@@ -574,25 +633,26 @@ class Generico extends Component {
                         IdProyectoInversionId: elemento.datos.ProyectoInversion.ID,
                         IdTareaId: elemento.datos.Tarea.ID,
                         IdTerrenoId: elemento.datos.Terreno.ID,
-                        NivelId: elemento.datos.Terreno.ID === undefined ? 1: 2,
+                        NivelId: elemento.datos.Terreno.ID === undefined ? 1 : 2,
                         GrupoResponsableId: elemento.datos.GrupoResponsable.ID,
                         AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
                         EstatusId: 1,
                         Visible: true
-                    }).then(async a=>{
+                    }).then(async a => {
+
                         //Actualiza la información de la actividad seleccionada en la lista de Estrategia de gestión
                         await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
                             Seleccionado: elemento.datos.Seleccionado,
                             IdFlujoTareasId: a.data.Id,
                             AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] }
-                        }).then(u=>{
+                        }).then(u => {
                             //Asigna el ID de elemento generado en flujo tareas al objeto en memoria del item seleccionado
                             //en la vetana de la EG
                             const indice = checkedItems.findIndex((obj => obj.datos.ID === elemento.datos.ID));
                             if (indice !== -1) {
                                 checkedItems[indice].datos.IdFlujoTareasId = a.data.Id
                             }
-                            this.setState({totalAdmin: this.state.totalAdmin + contadores.admin, totalNorm: this.state.totalNorm + contadores.norm, totalProy: this.state.totalProy + contadores.proy})
+                            this.setState({ totalAdmin: this.state.totalAdmin + contadores.admin, totalNorm: this.state.totalNorm + contadores.norm, totalProy: this.state.totalProy + contadores.proy })
                         });
                     });
                 } else {
@@ -613,58 +673,60 @@ class Generico extends Component {
             }
         });
     }
-    
+
+
     //#region Métodos de ciclo de vida
     async componentWillMount() {
+        { this.styleLinkGen("genericoEG.css", "../estilos/genericoEG.css") }
         let actividades = []
         let datos = []
-        let terrenos= []
+        let terrenos = []
         webUrl = await sp.web()
         webUrl = webUrl.Url.replace('/CompraDeTerreno', '')
         //Si es terreno(s) original(es)
-        if(!this.props.rfs){
+        if (!this.props.rfs) {
             actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
-            .filter('(IdProyectoInversionId eq ' + this.props.idProyecto + ')')
-            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
-            .expand('IdTarea', 'IdTerreno')
-            .get();
+                .filter('(IdProyectoInversionId eq ' + this.props.idProyecto + ')')
+                .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
+                .expand('IdTarea', 'IdTerreno')
+                .get();
 
-            terrenos = [...new Set(actividades.map(x=> (x.IdTerreno !== undefined ? x.IdTerreno.Title: '')))]
+            terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
             //terrenos = terrenos.filter(x => x !== '')
-            
+
             datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
-            .filter('(ProyectoInversionId eq ' + this.props.idProyecto + ')')
-            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2','Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+                .filter('(ProyectoInversionId eq ' + this.props.idProyecto + ')')
+                .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
                     'Tarea/Checkable', 'AsignadoA/ID', 'AsignadoA/Title', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId')
-            .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
-            .orderBy('Tarea/OrdenEG', true)
-            .get();
-        }else{
+                .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
+                .orderBy('Tarea/OrdenEG', true)
+                .get();
+        } else {
             //Si es terreno RFS
             actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
-            .filter("(IdProyectoInversionId eq " + this.props.idProyecto + ") and ((IdTerrenoId eq " + this.props.idTerreno + ") or (IdTerrenoId eq null) or (substringof('T-', IdTerreno/Title)))")
-            .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
-            .expand('IdTarea','IdTerreno')
-            .getAll();
+                .filter("(IdProyectoInversionId eq " + this.props.idProyecto + ") and ((IdTerrenoId eq " + this.props.idTerreno + ") or (IdTerrenoId eq null) or (substringof('T-', IdTerreno/Title)))")
+                .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
+                .expand('IdTarea', 'IdTerreno')
+                .getAll();
 
-            terrenos = [...new Set(actividades.map(x=> (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
+            terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
             //terrenos = terrenos.filter(x => x !== '')
 
             datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
-            .filter("(ProyectoInversionId eq " + this.props.idProyecto + ") and ((TerrenoId eq " + this.props.idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
-            .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
+                .filter("(ProyectoInversionId eq " + this.props.idProyecto + ") and ((TerrenoId eq " + this.props.idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
+                .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2', 'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/OrdenEG',
                     'Tarea/Checkable', 'AsignadoA/ID', 'AsignadoA/Title', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId')
-            .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
-            .orderBy('Tarea/OrdenEG', true)
-            .get();
+                .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable')
+                .orderBy('Tarea/OrdenEG', true)
+                .get();
         }
 
         let datosEG = {
             columnas: [
-                { titulo: '', interN: '', Arreglo: datos, estilo: 'col-sm-6' },
+                { titulo: '', interN: '', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-6' },
                 { titulo: 'Responsable', interN: 'GrupoResponsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
                 { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' },
-                { titulo: 'E. de G. autorizada', Arreglo: datos, estilo: 'col-sm-2' }
+                { titulo: 'E. de G. autorizada', Tipo: "EG", Arreglo: datos, estilo: 'col-sm-2' }
             ],
             datos: []
         };
@@ -690,6 +752,7 @@ class Generico extends Component {
     }
     //#endregion
 
+
     obtenerAsignados = campo => {
         var usuarios = campo.map((registro) => {
             return (registro.Title)
@@ -697,9 +760,10 @@ class Generico extends Component {
         return usuarios
     }
 
+
     obtenerIdAsignados = campo => {
         let val = { results: [] }
-        if(campo!== undefined){
+        if (campo !== undefined) {
             campo.map((registro) => {
                 val.results.push((registro.Id || registro.ID))
             })
@@ -708,14 +772,14 @@ class Generico extends Component {
     }
 
     onActualizarDatos = async arregloDatos => {
-        //Si la ventana donde sucede el evento es Estrategia de gstión
+
         if (this.state.idVentana === 4) {
             //Si el evento viene desde un modal que no es tarea
             if (arregloDatos.tarea === 0) {
                 const filaEGIndice = this.state.datosVentanaEG.datos.findIndex(datosEG => datosEG.ID === this.state.modal.filaSeleccionada.ID)
                 let newData = this.state.datosVentanaEG.datos[filaEGIndice]
-                if(newData.IdFlujoTareasId !== null){
-                    this.onSeleccionarItem(null,newData.ID)
+                if (newData.IdFlujoTareasId !== null) {
+                    this.onSeleccionarItem(null, newData.ID)
                 }
                 newData.AsignadoA = arregloDatos.dato
                 let datosActualizados = {
@@ -742,7 +806,7 @@ class Generico extends Component {
                             const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + this.state.MACO + "'))").get();
 
                             const generarEG = async () => {
-                                await util.asyncForEachasyncForEach(terrenosPI, async terrenoPI => {
+                                await util.asyncForEach(terrenosPI, async terrenoPI => {
                                     await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
                                         //Crea el elemento en la estrategia de gestión por cada terreno
                                         await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
@@ -758,56 +822,56 @@ class Generico extends Component {
                                     });
                                 });
                                 //Establece el spinner mientras se cargan los datos generados anteriormente
-                                this.onCambiarVentana(4, 'Cargando contenido generado...','')
+                                this.onCambiarVentana(4, 'Cargando contenido generado...', "", "", "")
                             }
                             generarEG();
                         } else {
                             //Establece el spinner mientras para cargar la nueva tarea generada a partir del RFS
-                            this.onCambiarVentana(4, 'Cargando contenido generado...', '')
+                            this.onCambiarVentana(4, 'Cargando contenido generado...', "", "", "")
                         }
                         break;
                     case 25:
                     case 30:
                     case 35:
-                        if(this.state.MACO !== null){
+                        if (this.state.MACO !== null) {
                             this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestión. Esto podrí­a tardar unos minutos...' } })
-                        }else{
+                        } else {
                             this.setState({ backdrop: { cargado: false, mensaje: 'Generando los nuevos terrenos. Esto podrí­a tardar unos minutos...' } })
                         }
-                        const unionMetrajes = arregloDatos.dato.metrajesTr.map((metraje) =>{
+                        const unionMetrajes = arregloDatos.dato.metrajesTr.map((metraje) => {
                             return metraje.valor
                         }).join(',')
-                        
+
                         const rootweb = await sp.web.getParentWeb()
                         let websCdV = await rootweb.web.webs()
                         let weBdTVersionado = websCdV[0]
                         weBdTVersionado = await sp.site.openWebById(weBdTVersionado.Id)
-                        
+
                         const terrenosVersionadoPI = await weBdTVersionado.web.lists.getByTitle("Terrenos").items
-                        .filter("IdPredio/IdPredio eq '" + arregloDatos.dato.tituloPI + "'")
-                        .select('ID','Title','Metraje','IdPredio/ID','IdPredio/Title','IdPredio/IdPredio','Calle','Colonia','CodigoPostal','NoExterior','Municipio')
-                        .expand('IdPredio').orderBy('ID',false).get()
-                        
+                            .filter("IdPredio/IdPredio eq '" + arregloDatos.dato.tituloPI + "'")
+                            .select('ID', 'Title', 'Metraje', 'IdPredio/ID', 'IdPredio/Title', 'IdPredio/IdPredio', 'Calle', 'Colonia', 'CodigoPostal', 'NoExterior', 'Municipio')
+                            .expand('IdPredio').orderBy('ID', false).get()
+
                         //Guarda la información de los terrenos seleccionados en la terea en la lista de RFS
                         await sp.web.lists.getByTitle('RFSN').items.add({
                             IdProyectoInversionId: this.props.idProyecto,
-                            FRSN: arregloDatos.dato.tipo === 'TS' ? 'Subdivisión' : (this.tipo === 'TR' ? 'Relotificación': 'Fusión'),
+                            FRSN: arregloDatos.dato.tipo === 'TS' ? 'Subdivisión' : (this.tipo === 'TR' ? 'Relotificación' : 'Fusión'),
                             IdFlujoId: arregloDatos.dato.idFlujoTareas,
                             IdTerrenoId: arregloDatos.dato.terrenos[0].ID,
                             CantidadTerrenos: arregloDatos.dato.cantidadTerrenos,
                             Metrajes: unionMetrajes
-                        }).then(async ()=>{
+                        }).then(async () => {
                             //Establece la tarea como Enviada
                             await sp.web.lists.getByTitle("Flujo Tareas").items.getById(arregloDatos.dato.idFlujoTareas).update({
                                 EstatusId: 3
-                            }).then(async ()=>{
+                            }).then(async () => {
                                 //Establece el empadronamiento a los terrenos seleccionados en la tarea
                                 await sp.web.lists.getByTitle("Terrenos").items.getById(arregloDatos.dato.terrenos[0].ID).update({
                                     Empadronamiento: 'Sí'
-                                }).then(async ()=>{
+                                }).then(async () => {
                                     //Crea los terrenos resultantes en la lista de terrenos de Búsqueda de terreno versionado
-                                    await util.asyncForEach(arregloDatos.dato.terrenosResultantes, async (terrenoResultante, index) =>{
-                                        const maxTerrenos = await weBdTVersionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID',false).get()
+                                    await util.asyncForEach(arregloDatos.dato.terrenosResultantes, async (terrenoResultante, index) => {
+                                        const maxTerrenos = await weBdTVersionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID', false).get()
                                         const nuevoTerrenoId = arregloDatos.dato.tipo + '-' + util.padLeft(maxTerrenos[0].Id + 1, 5)
                                         await weBdTVersionado.web.lists.getByTitle('Terrenos').items.add({
                                             IdPredioId: terrenosVersionadoPI[0].IdPredio.ID,
@@ -818,7 +882,7 @@ class Generico extends Component {
                                             NoExterior: terrenosVersionadoPI[0].NoExterior,
                                             Municipio: terrenosVersionadoPI[0].Municipio,
                                             Metraje: arregloDatos.dato.metrajesTr[index].valor
-                                        }).then(async ()=>{
+                                        }).then(async () => {
                                             //Crea los terrenos resultantes en la lista de terrenos de Compra de terreno
                                             await sp.web.lists.getByTitle('Terrenos').items.add({
                                                 IdProyectoInversionId: this.props.idProyecto,
@@ -832,17 +896,18 @@ class Generico extends Component {
                                                 NoExterior: terrenosVersionadoPI[0].NoExterior,
                                                 Delegacion: terrenosVersionadoPI[0].Municipio,
                                                 Metraje: arregloDatos.dato.metrajesTr[index].valor
-                                            }).then(async (terr)=>{
+
+                                            }).then(async (terr) => {
                                                 /*Si ya se cargó la MACO, generará la estrategia de gestión para cada uno de los
                                                 terrenos resultantes*/
-                                                if(this.state.MACO !== null){
+                                                if (this.state.MACO !== null) {
                                                     //const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + terrenoResultante.MACO + "' or MACO eq '" + arregloDatos.dato.tipo + "'))").get();
                                                     const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq '" + arregloDatos.dato.tipo + "'))").get();
-    
+
                                                     const generarEG = async () => {
                                                         await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
-                                                            let tareaEG=0
-                                                            if(nuevaTarea.MACO === arregloDatos.dato.tipo){
+                                                            let tareaEG = 0
+                                                            if (nuevaTarea.MACO === arregloDatos.dato.tipo) {
                                                                 //Crea el elemento en la lista de Flujo Tareas 
                                                                 tareaEG = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
                                                                     IdProyectoInversionId: this.props.idProyecto,
@@ -853,10 +918,10 @@ class Generico extends Component {
                                                                     EstatusId: 1,
                                                                     Visible: true
                                                                 })
-                                                                .then()
-                                                                .catch(error => {
-                                                                    console.warn('Error al generar la tarea de EG en flujo tareas: ' + error)
-                                                                })
+                                                                    .then()
+                                                                    .catch(error => {
+                                                                        console.warn('Error al generar la tarea de EG en flujo tareas: ' + error)
+                                                                    })
                                                             }
                                                             //Crea el elemento en la estrategia de gestión del terreno resultante actual
                                                             await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
@@ -867,15 +932,15 @@ class Generico extends Component {
                                                                 Seleccionado: false,
                                                                 IdFlujoTareasId: tareaEG.data.ID
                                                             })
-                                                            .then()
-                                                            .catch(error => {
-                                                                console.warn('Error al generar la EG: ' + error)
-                                                            })
+                                                                .then()
+                                                                .catch(error => {
+                                                                    console.warn('Error al generar la EG: ' + error)
+                                                                })
                                                         });
-                                                        this.onCambiarVentana(4, 'Cargando contenido generado...', arregloDatos.dato.tipo)
+                                                        this.onCambiarVentana(4, 'Cargando contenido generado...', "", "", arregloDatos.dato.tipo)
                                                     }
                                                     generarEG();
-                                                }                                            
+                                                }
                                             }).catch(error => {
                                                 console.warn('Error al crear el terreno resultante: ' + error)
                                             })
@@ -904,14 +969,15 @@ class Generico extends Component {
             newData.AsignadoA = arregloDatos.dato
             let datosActualizados = {
                 columnas: [
-                    { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                    { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-4' },
                     { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
                     { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
                     { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
                     { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
                     { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
-                    { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
-                    { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' }
+                    { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                    { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                    { titulo: 'Favoritos', interN: 'Favoritos', Tipo: "Act", value: 'Favoritos', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' }
                 ],
                 datos: []
             };
@@ -920,9 +986,44 @@ class Generico extends Component {
         }
     }
 
+    styleLinkGen = (fileName, url) => {
+
+        var css = ["genericoAdmin.css", "genericoNorm.css", "genericoProy.css", "genericoEG.css"];
+
+        for (let index = 0; index < css.length; index++) {
+            { this.removejscssfile(fileName, "css") }
+        }
+
+        var sheet = document.createElement('link');
+        sheet.rel = 'stylesheet';
+        sheet.href = url;
+        sheet.type = 'text/css';
+        document.head.appendChild(sheet);
+    }
+
+    removejscssfile = (filename, filetype) => {
+        var targetelement = (filetype == "js") ? "script" : (filetype == "css") ? "link" : "none" //determine element type to create nodelist from
+        var targetattr = (filetype == "js") ? "src" : (filetype == "css") ? "href" : "none" //determine corresponding attribute to test for
+        var allsuspects = document.getElementsByTagName(targetelement)
+        for (var i = allsuspects.length; i >= 0; i--) { //search backwards within nodelist for matching elements to remove
+            if (allsuspects[i] && allsuspects[i].getAttribute(targetattr) != null && allsuspects[i].getAttribute(targetattr).indexOf(filename) != -1)
+                allsuspects[i].parentNode.removeChild(allsuspects[i]) //remove element by calling parentNode.removeChild()
+        }
+    }
+
+    spDate = (value) => {
+        var date = value.slice(0, 10);
+        if (date.substring(4, 5) === '-') {
+            var separate = date.split('-');
+            var newDate = separate[2] + "/" + separate[1] + "/" + separate[0];
+        }
+        return newDate;
+    }
+
     render() {
         const Cluster = (props) => {
             if (props.titulos.length > 0) {
+
                 if (props.idVentana !== 4) {
                     //Otras ventanas
                     const filaCluster = props.titulos.map((fila) => {
@@ -934,10 +1035,10 @@ class Generico extends Component {
                                         {fila.cluster.IdTarea.TxtCluster}
                                     </p>
                                 </div>
-                                {this.state.terrenos.map((terr) =>{
-                                    return(
+                                {this.state.terrenos.map((terr) => {
+                                    return (
                                         <div key={terr} className='col-sm-12'>
-                                            <Body tituloTerreno = {terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
+                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
                                         </div>
                                     )
                                 })}
@@ -958,10 +1059,10 @@ class Generico extends Component {
                                         {fila.cluster.TxtCluster}
                                     </p>
                                 </div>
-                                {this.state.terrenos.map((terr) =>{
-                                    return(
+                                {this.state.terrenos.map((terr) => {
+                                    return (
                                         <div key={terr} className='col-sm-12'>
-                                            <Body tituloTerreno = {terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
+                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                         </div>
                                     )
                                 })}
@@ -969,6 +1070,7 @@ class Generico extends Component {
                             </div>
                         )
                     });
+
                     return <div key={0} className="row justify-content-end">{filaCluster}<input type='button' value='OK' className='btn btn-primary' onClick={() => this.onSave(checkedItems)} /></div>
                 }
             } else {
@@ -996,18 +1098,29 @@ class Generico extends Component {
                     case "":
                     case "Adjunto":
                     case "Detalle":
-                        return (
-                            <div key={index} className={fila.estilo} >
-                                <p style={{ marginTop: "30px", textAlign: "center" }}>
-                                    {fila.titulo}
-                                </p>
-                            </div>
-                        )
+                    case "Favoritos":
+                        if (fila.titulo === "Favoritos") {
+                            return (
+                                <div key={index} className={fila.estilo} >
+                                    <p style={{ marginTop: "30px", textAlign: "center" }}>
+                                    </p>
+                                </div>
+                            )
+                        }
+                        else {
+                            return (
+                                <div key={index} className={fila.estilo} >
+                                    <p style={{ marginTop: "30px", textAlign: "center" }}>
+                                        {fila.titulo}
+                                    </p>
+                                </div>
+                            )
+                        }
                     case 'E. de G. autorizada':
                         return (
                             <div key={index} className={fila.estilo} >
                                 <p style={{ marginTop: "30px", textAlign: "right" }}>
-                                    <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 269, false, null, null, {Tarea:{ID:269}}, 4) }}></img>
+                                    <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 269, false, null, null, { Tarea: { ID: 269 } }) }}></img>
                                     {fila.titulo}
                                 </p>
                             </div>
@@ -1068,7 +1181,7 @@ class Generico extends Component {
                                                 uniqueTagsAll.indexOf(element[fila.interN]) === -1 ?
                                                     <MenuItem key={element["ID"]} value={element[fila.interN]}>
                                                         <InputLabel style={{ display: "none" }} id="label">{uniqueTagsAll.push(element[fila.interN])}</InputLabel>
-                                                        <InputLabel id={"lbl" + fila.interN}>{element[fila.interN]}</InputLabel>
+                                                        <InputLabel id={"lbl" + fila.interN}>{this.spDate(element[fila.interN])}</InputLabel>
                                                     </MenuItem>
                                                     : null
                                                 : null
@@ -1080,7 +1193,22 @@ class Generico extends Component {
                 }
             });
 
-            return <div key={0} className="row"> {filaHeader} </div>
+            return (
+                <div key={0} className="row">
+                    <table className="myTable"  >
+                        <td style={{ paddingTop: "10px", backgroundColor: "white" }}>
+                            <tr>
+                                {<input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                            </tr>
+                        </td>
+                        <td style={{ width: "100%" }}>
+                            <div className="row">
+                                {filaHeader}
+                            </div>
+                        </td>
+                    </table>
+                </div >
+            )
         }
 
         const Body = (props) => {
@@ -1088,8 +1216,8 @@ class Generico extends Component {
                 //Estrategia de gestión
                 let nombreTerreno = ''
                 let filaBody = props.datos.map((fila) => {
-                    if(fila.Terreno !== undefined){
-                        if(fila.Terreno.Title === props.tituloTerreno){
+                    if (fila.Terreno !== undefined) {
+                        if (fila.Terreno.Title === props.tituloTerreno) {
                             nombreTerreno = fila.Terreno.NombredelTerreno2
                             if (fila.Tarea.OrdenEG === props.idCluster) {
                                 if (props.esCheckable) {
@@ -1101,7 +1229,7 @@ class Generico extends Component {
                                         {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
                                         <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
                                         <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
                                         <Columna estilo='col-sm-2' />
                                     </div>
                                 )
@@ -1109,8 +1237,8 @@ class Generico extends Component {
                                 return null
                             }
                         }
-                    }else{
-                        if(props.tituloTerreno === ''){
+                    } else {
+                        if (props.tituloTerreno === '') {
                             if (fila.Tarea.OrdenEG === props.idCluster) {
                                 if (props.esCheckable) {
                                     //Agrega al arreglo los datos de la fila que tiene un check
@@ -1121,7 +1249,7 @@ class Generico extends Component {
                                         {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
                                         <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
                                         <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
                                         <Columna estilo='col-sm-2' />
                                     </div>
                                 )
@@ -1132,10 +1260,10 @@ class Generico extends Component {
                     }
                 });
                 filaBody = filaBody.filter(x => x !== undefined && x !== null);
-                return filaBody.length>0 ?
+                return filaBody.length > 0 ?
                     (props.tituloTerreno !== '' ?
-                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
-                    :   <div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                        : <div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
                     ) : null
 
             } else {
@@ -1152,8 +1280,8 @@ class Generico extends Component {
                     const parseResult = new DOMParser().parseFromString(urlTarea, "text/html");
                     const parsedUrl = parseResult.documentElement.textContent;
 
-                    if(fila.IdTerreno !== undefined){
-                        if(fila.IdTerreno.Title === props.tituloTerreno){
+                    if (fila.IdTerreno !== undefined) {
+                        if (fila.IdTerreno.Title === props.tituloTerreno) {
                             nombreTerreno = fila.IdTerreno !== undefined ? fila.IdTerreno.NombredelTerreno2 : ''
 
                             if (fila.IdTarea.Orden === props.idCluster) {
@@ -1162,11 +1290,11 @@ class Generico extends Component {
                                         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                                             <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
                                             <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
-                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'LineaBase')} />} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={()=>window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
                                         </MuiPickersUtilsProvider>
                                     </div>
@@ -1175,21 +1303,22 @@ class Generico extends Component {
                                 return null
                             }
                         }
-                    }else{
-                        if(props.tituloTerreno === ''){
+                    } else {
+                        if (props.tituloTerreno === '') {
                             if (fila.IdTarea.Orden === props.idCluster) {
                                 return (
                                     <div key={fila.ID} className="row item">
                                         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                                             <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
                                             <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length>0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar') } src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length>0 ? assignedTo_icon : plus_icon) } alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
-                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'LineaBase')} />} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha =>this.onSeleccionarFecha(fecha, fila,'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={()=>window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
                                             <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, {Tarea:{ID:272}}, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
                                         </MuiPickersUtilsProvider>
+
                                     </div>
                                 )
                             } else {
@@ -1199,32 +1328,36 @@ class Generico extends Component {
                     }
                 });
                 filaBody = filaBody.filter(x => x !== undefined && x !== null);
-                return filaBody.length>0 ?
+                return filaBody.length > 0 ?
                     (props.tituloTerreno !== '' ?
-                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
-                    :   <div> { filaBody } <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, {Tarea:{ID:271}}, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                        : <div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
                     ) : null
             }
         }
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO } = this.state
+
         return (
             <div>
-                <Backdrop abierto={!this.state.backdrop.cargado} mensaje={this.state.backdrop.mensaje} />
-                <Encabezado rfs={this.props.rfs} idPITerr={!this.props.rfs ? this.props.idProyecto : this.props.idTerreno} terreno={this.props.terreno}
-                    maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
-                    totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} />
+                <div className='col-sm-12'>
+                    <Backdrop abierto={!this.state.backdrop.cargado} mensaje={this.state.backdrop.mensaje} />
+                    <Encabezado rfs={this.props.rfs} idPITerr={!this.props.rfs ? this.props.idProyecto : this.props.idTerreno} terreno={this.props.terreno}
+                        maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
+                        totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} />
 
-                {this.state.cargado ?
-                    <div className='container-fluid'>
-                        <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
-                        <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
-                        {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} /> : null}
-                    </div>
-                    : null
-                }
+                    {this.state.cargado ?
+                        <div className='container-fluid'>
+                            <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
+                            <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
+                            {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} /> : null}
+                        </div>
+                        : null
+                    }
+                </div>
             </div>
         );
     }
 }
+
 
 export default Generico;
