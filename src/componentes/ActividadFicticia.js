@@ -1,13 +1,12 @@
 import React, {Component} from 'react';
-import { Button } from 'reactstrap';
 import PeoplePicker from './UserPicker'
-import '../estilos/actividadFicticia.css';
 import { sp } from "@pnp/sp";
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
+import '../estilos/actividadFicticia.css';
 
 class ActividadFicticia extends Component{
     constructor(props){

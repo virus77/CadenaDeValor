@@ -1,0 +1,36 @@
+.textoEncabezado{
+    color: #3D808C
+}
+
+.textoAgrupador{
+    color: #3D808C;
+    font-weight: bold;
+}
+.texto{
+    color: #3D808C
+}
+
+.informativo{
+    padding-left: 5px;
+    background-color: #40B9C7;
+}
+
+.informativoTexto{
+    color: white;
+}
+.izquierda{
+    text-align: left!important;
+}
+
+.derecha{
+    text-align: right!important;
+}
+
+.bordeL{
+    border-left-color: #40B9C7;
+    border-left-style: solid;
+}
+
+.anchoBoton{
+    width: 50%!important;
+}

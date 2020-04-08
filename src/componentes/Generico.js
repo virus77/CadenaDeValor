@@ -506,7 +506,6 @@ class Generico extends Component {
     }
 
     //Establece el contador de los cambios por clúster por cada una de las tareas modificadas en la E.G.
-
     establecerContador = (contadores, ventana, tipo) => {
         switch (ventana) {
             case "Administración":
@@ -524,6 +523,46 @@ class Generico extends Component {
             default:
                 break;
         }
+    }
+
+    //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
+    onSeleccionarFecha = async (fecha, fila, campo) => {
+        const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
+        let newData = this.state.datosVentana.datos[filaIndice]
+        switch (campo) {
+            case 'LineaBase':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    LineaBase: fecha,
+                }).then(() => {
+                    newData.LineaBase = fecha
+                })
+                break;
+            case 'FechaEstimada':
+                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(fila.ID).update({
+                    FechaEstimada: fecha,
+                }).then(() => {
+                    newData.FechaEstimada = fecha
+                })
+                break;
+            default:
+                break;
+        }
+
+        let datosActualizados = {
+            columnas: [
+                { titulo: '', interN: '', value: '', Arreglo: '', estilo: 'col-sm-5' },
+                { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' },
+                { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Arreglo: this.state.datosVentana.datos, estilo: 'col-sm-1' }
+            ],
+            datos: []
+        };
+        datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+        this.setState({ datosVentana: datosActualizados })
     }
 
     //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
@@ -711,9 +750,8 @@ class Generico extends Component {
             backdrop: { cargado: true, mensaje: '' }, terrenos: terrenos
         });
     }
+
     //#endregion
-
-
     obtenerAsignados = campo => {
         var usuarios = campo.map((registro) => {
             return (registro.Title)
@@ -973,66 +1011,94 @@ class Generico extends Component {
     }
 
     spDate = (value) => {
-        var date = value.slice(0, 10);
-        if (date.substring(4, 5) === '-') {
-            var separate = date.split('-');
-            var newDate = separate[2] + "/" + separate[1] + "/" + separate[0];
+        if (value != null) {
+            var date = value.substring(0, 10);
+            if (date.substring(4, 5) === '-') {
+                var separate = date.split('-');
+                var newDate = separate[2] + "/" + separate[1] + "/" + separate[0];
+                value = newDate;
+            }
         }
         return newDate;
     }
 
     render() {
         const Cluster = (props) => {
+            var average = 10;
             if (props.titulos.length > 0) {
-
                 if (props.idVentana !== 4) {
                     //Otras ventanas
                     const filaCluster = props.titulos.map((fila) => {
                         return (
-                            <div key={fila.cluster.IdTarea.Orden} className='col-sm-12'>
-                                <div className='titulo'>
-                                    <p>
-                                        <img id='expandir' src={arrow_down_icon} alt='arrow_down_icon'></img>
-                                        {fila.cluster.IdTarea.TxtCluster}
-                                    </p>
+                            <div key={fila.cluster.IdTarea.Orden} style={{ width: "98%" }}>
+                                <div className="row" >
+                                    {<input style={{ visibility: "hidden" }} type='checkbox' className='checkBox'></input>}
+                                    <div className='titulo'>
+                                        <div className="row" >
+                                            <div className="col-sm-10">
+                                                <p style={{ paddingLeft: "14px" }}>
+                                                    <img style={{ paddingRight: "1%" }} id='expandir' src={arrow_down_icon} alt='arrow_down_icon'></img>
+                                                    {fila.cluster.IdTarea.TxtCluster}
+                                                </p>
+                                            </div>
+                                            <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
+                                                <p className="numberCircle pad"><img src={attach_icon} alt='attach_icon'></img></p>
+                                            </div>
+                                            <div className="col-sm-1">
+                                                {average == 100 ? <p className="numberCircle pad100">{average}%</p> : <p className="numberCircle pad">{average}%</p>}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 {this.state.terrenos.map((terr) => {
                                     return (
-                                        <div key={terr} className='col-sm-12'>
+                                        <div style={{ paddingLeft: "3%", width: "97%" }}>
                                             <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
+                                            <div className='row empty-space' ></div>
                                         </div>
                                     )
                                 })}
-                                <div className='row empty-space'></div>
                             </div>
                         )
                     });
-                    return <div key={0} className="row">{filaCluster}</div>
+                    return <div key={0} className="row justify-content-end">{filaCluster}</div>
                 } else {
                     //Ventana de estrategia de gestión
                     const filaCluster = props.titulos.map((fila) => {
                         return (
-                            <div key={fila.cluster.OrdenEG} className='col-sm-12'>
-                                <div className='titulo'>
-                                    <p>
-                                        {fila.cluster.Checkable === '1' ? <input type='checkbox' className='checkBox' ></input> : null}
-                                        <img id='expandir' src={arrow_down_icon} alt='arrow_down_icon'></img>
-                                        {fila.cluster.TxtCluster}
-                                    </p>
+                            <div key={fila.cluster.OrdenEG} style={{ width: "98%" }}>
+                                <div className="row" >
+                                    {fila.cluster.Checkable === '1' ? <input type='checkbox' className='checkBox'></input> : <input style={{ visibility: "none" }} type='checkbox' className='checkBox'></input>}
+                                    <div className='titulo'>
+                                        <div className="row" >
+                                            <div className="col-sm-10">
+                                                <p style={{ paddingLeft: "14px" }}>
+                                                    <img style={{ paddingRight: "1%" }} id='expandir' src={arrow_down_icon} alt='arrow_down_icon'></img>
+                                                    {fila.cluster.TxtCluster}
+                                                </p>
+                                            </div>
+                                            <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
+                                                <p className="numberCircleEG pad"><img src={attach_icon} alt='attach_icon'></img></p>
+                                            </div>
+                                            <div className="col-sm-1">
+                                                {average == 100 ? <p className="numberCircleEG pad100">{average}%</p> : <p className="numberCircleEG pad">{average}%</p>}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 {this.state.terrenos.map((terr) => {
                                     return (
-                                        <div key={terr} className='col-sm-12'>
+                                        <div style={{ paddingLeft: "3%", width: "97%" }} >
                                             <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
+                                            <div className='row empty-space' ></div>
                                         </div>
                                     )
                                 })}
-                                <div className='row empty-space' ></div>
                             </div>
                         )
                     });
 
-                    return <div key={0} className="row justify-content-end">{filaCluster}<input type='button' value='OK' className='btn btn-primary' onClick={() => this.onSave(checkedItems)} /></div>
+                    return <div key={0} className="row justify-content-end">{filaCluster}<input style={{ borderRadius: "30%", width: "50px", color: "#75E7BC" }} type='button' value='OK' className='btn btn-info' onClick={() => this.onSave(checkedItems)} /></div>
                 }
             } else {
                 return null
@@ -1043,11 +1109,11 @@ class Generico extends Component {
             //Si abre el modal cuando se da doble clic
             if (props.editable) {
                 return (
-                    <div className={props.estilo} onDoubleClick={() => { this.onAbrirModal(props.terreno, props.idElemento, props.esTarea, null, null, props.datos, this.state.idVentana) }} >{props.titulo}</div>
+                    <div className={props.estilo} onClick={() => { this.onAbrirModal(props.terreno, props.idElemento, props.esTarea, null, null, props.datos, this.state.idVentana) }} >{props.titulo}</div>
                 );
             } else {
                 return (
-                    <div className={props.estilo} >{props.titulo}</div>
+                    <div className={props.estilo}>{props.titulo}</div>
                 );
             }
         }
@@ -1080,7 +1146,7 @@ class Generico extends Component {
                     case 'E. de G. autorizada':
                         return (
                             <div key={index} className={fila.estilo} >
-                                <p style={{ marginTop: "30px", textAlign: "right" }}>
+                                <p style={{ marginTop: "30px", textAlign: "center" }}>
                                     <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 269, false, null, null, { Tarea: { ID: 269 } }) }}></img>
                                     {fila.titulo}
                                 </p>
@@ -1091,7 +1157,7 @@ class Generico extends Component {
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
                         return (
                             <div key={index} className={fila.estilo}>
-                                {<FormControl className={classes.formControl}>
+                                <FormControl className={classes.formControl}>
                                     <InputLabel id={"lbl" + fila.interN}>{fila.titulo}</InputLabel>
                                     <Select key={index} labelId="lblAsignado" id={"cmb" + fila.interN} name={fila.titulo + "|" + fila.Tipo} onChange={this.onHandleChange}>
                                         {fila.Arreglo.sort().map((element, index) => (
@@ -1105,7 +1171,7 @@ class Generico extends Component {
                                                 : null
                                         ))}
                                     </Select>
-                                </FormControl>}
+                                </FormControl>
                             </div>
                         )
                     case 'Responsable':
@@ -1155,19 +1221,16 @@ class Generico extends Component {
             });
 
             return (
-                <div key={0} className="row">
-                    <table className="myTable">
-                        <tr style={{ paddingTop: "10px", backgroundColor: "white" }}>
-                            <td>
-                                {<input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
-                            </td>
-                            <td style={{ width: "100%" }}>
+                <div key={0} className="row justify-content-end">
+                    <div style={{ padding: "8px", width: "98%" }}>
+                        <div style={{ paddingLeft: "3%", width: "97%" }}>
+                            <div>
                                 <div className="row">
                                     {filaHeader}
                                 </div>
-                            </td>
-                        </tr>
-                    </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )
         }
@@ -1186,12 +1249,17 @@ class Generico extends Component {
                                     checkedItems = checkedItems.concat({ datos: fila, cambio: false })
                                 }
                                 return (
-                                    <div key={fila.ID} className="row item">
-                                        {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
-                                        <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
-                                        <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
-                                        <Columna estilo='col-sm-2' />
+
+                                    <div key={fila.ID} style={{ paddingLeft: "20px", width: "98%" }}>
+                                        <div className="row" >
+                                            {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input style={{ marginRight: "1%" }} type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                            <div className="item row" >
+                                                <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
+                                                <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                                <Columna estilo='col-sm-2' />
+                                            </div>
+                                        </div>
                                     </div>
                                 )
                             } else {
@@ -1206,12 +1274,16 @@ class Generico extends Component {
                                     checkedItems = checkedItems.concat({ datos: fila, cambio: false })
                                 }
                                 return (
-                                    <div key={fila.ID} className="row item">
-                                        {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
-                                        <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
-                                        <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                        <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
-                                        <Columna estilo='col-sm-2' />
+                                    <div key={fila.ID} style={{ paddingLeft: "20px", width: "98%" }}>
+                                        <div className="row" >
+                                            {props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? <input style={{ marginRight: "20px" }} type='checkbox' name={fila.Tarea.ID} className='checkBox-sm' defaultChecked={fila.Seleccionado} onChange={(e) => this.onSeleccionarItem(e, fila.ID)} ></input> : <input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                            <div className="item row" >
+                                                <Columna titulo={fila.Tarea.ID + ':' + fila.Tarea.Title} estilo='col-sm-6' editable={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} idElemento={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId} esTarea={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true} terreno={this.props.terreno} datos={props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila} />
+                                                <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4) }} /></p>} estilo='col-sm-3' editable={false} />
+                                                <Columna estilo='col-sm-2' />
+                                            </div>
+                                        </div>
                                     </div>
                                 )
                             } else {
@@ -1223,8 +1295,27 @@ class Generico extends Component {
                 filaBody = filaBody.filter(x => x !== undefined && x !== null);
                 return filaBody.length > 0 ?
                     (props.tituloTerreno !== '' ?
-                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
-                        : <div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}
+                        </div> {filaBody}
+                            <div key={0} style={{ paddingLeft: "20px", width: "98%" }} onClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>
+                                <div className="row" >
+                                    {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                    <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
+                                        +  Agregar nueva actividad personal
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        : <div> {filaBody}
+                            <div key={0} style={{ paddingLeft: "20px", width: "98%" }} onClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>
+                                <div className="row" >
+                                    {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                    <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
+                                        +  Agregar nueva actividad personal
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ) : null
 
             } else {
@@ -1247,19 +1338,23 @@ class Generico extends Component {
 
                             if (fila.IdTarea.Orden === props.idCluster) {
                                 return (
-                                    <div key={fila.ID} className="row item">
-                                        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
-                                            <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
-                                            <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
-                                            {/*<Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase !=} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />*/}
-                                            <Columna titulo={fila.LineaBase} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={fila.FechaEstimada} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
-                                        </MuiPickersUtilsProvider>
+                                    <div key={fila.ID} style={{ paddingLeft: "20px", width: "98%" }}>
+                                        <div className="row" >
+                                            {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                            <div className="item row" >
+                                                <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
+                                                    <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-4' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
+                                                    <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={this.spDate(fila.LineaBase)} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={this.spDate(fila.FechaEstimada)} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "10px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={favoritos_icon} alt='favoritos_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                </MuiPickersUtilsProvider>
+                                            </div>
+                                        </div>
                                     </div>
                                 )
                             } else {
@@ -1270,18 +1365,25 @@ class Generico extends Component {
                         if (props.tituloTerreno === '') {
                             if (fila.IdTarea.Orden === props.idCluster) {
                                 return (
-                                    <div key={fila.ID} className="row item">
-                                        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
-                                            <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-5' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
-                                            <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm' editable={false} />
-                                            <Columna titulo={fila.LineaBase} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={fila.FechaEstimada} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<span class={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                                            <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
-                                        </MuiPickersUtilsProvider>
-
+                                    <div key={fila.ID} style={{ paddingLeft: "20px", width: "98%" }}>
+                                        <div className="row" >
+                                            {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                            <div className="item row" >
+                                                <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
+                                                    <Columna titulo={fila.IdTarea.ID + ':' + fila.IdTarea.Title} estilo='col-sm-4' editable={true} idElemento={fila.ID} esTarea={true} terreno={this.props.terreno} datos={fila} />
+                                                    <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={this.spDate(fila.LineaBase)} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={this.spDate(fila.FechaEstimada)} estilo='col-sm-1' editable={false} />
+                                                    {/* <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
+                                                         <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />*/}
+                                                    <Columna titulo={<span className={fila.Estatus.Title.toLowerCase() + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + parsedUrlDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "10px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 272, false, null, null, { Tarea: { ID: 272 } }, this.state.idVentana) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={favoritos_icon} alt='favoritos_icon' onClick={() => { this.onAbrirModal(this.props.terreno, 270, false) }} /></p>} estilo='col-sm-1' editable={false} />
+                                                </MuiPickersUtilsProvider>
+                                            </div>
+                                        </div>
                                     </div>
                                 )
                             } else {
@@ -1292,9 +1394,27 @@ class Generico extends Component {
                 });
                 filaBody = filaBody.filter(x => x !== undefined && x !== null);
                 return filaBody.length > 0 ?
-                    (props.tituloTerreno !== '' ?
-                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
-                        : <div> {filaBody} <div className='row item-personal col-sm-12' onDoubleClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>Agregar nueva actividad personal</div></div>
+                    (props.tituloTerreno !== '' ? <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}
+                    </div> {filaBody}
+                        <div key={0} style={{ paddingLeft: "20px", width: "98%" }} onClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>
+                            <div className="row" >
+                                {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
+                                    +  Agregar nueva actividad personal
+                                    </div>
+                            </div>
+                        </div>
+                    </div> :
+                        <div> {filaBody}
+                            <div key={0} style={{ paddingLeft: "20px", width: "98%" }} onClick={() => { this.onAbrirModal(this.props.terreno, 271, false, null, null, { Tarea: { ID: 271 } }, this.state.idVentana) }}>
+                                <div className="row" >
+                                    {<input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>}
+                                    <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
+                                        +  Agregar nueva actividad personal
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ) : null
             }
         }

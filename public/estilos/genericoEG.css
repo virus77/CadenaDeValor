@@ -1,8 +1,8 @@
 .titulo{
   font-size: 16pt !important;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  width: 100%;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  width: 95%;
   color: black!important;
   border: 1px;
   border-radius:11px;
@@ -16,7 +16,7 @@
   border-width: 8pt;
   font-weight: normal!important;
   color: black;
-  font-size: 12pt;
+  font-size: 10pt;
   padding-left: 25px!important;
   border-bottom: #D1F7E9;
   border-bottom-width: 2px;
@@ -24,7 +24,10 @@
   border-left: #D1F7E9;
   border-left-style: solid;
   border-left-width: 8px;
-  cursor:text !important;
+  cursor:pointer !important;
+  width: 99%;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .table td, .table th
@@ -45,9 +48,9 @@
   border-width: 1pt;
   font-weight: normal!important;
   color: black;
-  font-size: 9pt;
+  font-size: 8pt;
   font-style: italic;
-  padding-left: 3%!important;
+  padding-left: 4%!important;
   border-left: gray;
   border-left-style: solid;
   border-left-width: 7px;
@@ -61,14 +64,16 @@
 }
 
 .checkBox{
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   background-image: url(gray_Icon.png);
+  background-repeat: no-repeat;
   border-radius: 50%;
   vertical-align: middle;
   -webkit-appearance: none;
   outline: none;
   cursor: pointer;
+  padding-left: 20px;
 }
 
 .checkBox:hover{
@@ -76,15 +81,17 @@
 }
 
 .checkBox:checked {
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   background-image: url(green_Icon.png);
+  background-repeat: no-repeat;
 }
 
 .checkBox-sm{
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   background-image: url(gray_Icon.png);
+  background-repeat: no-repeat;
   border-radius: 50%;
   vertical-align: middle;
   -webkit-appearance: none;
@@ -97,9 +104,10 @@
 }
 
 .checkBox-sm:checked {
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   background-image: url(green_Icon.png);
+  background-repeat: no-repeat;
 }
 
 .ok{
@@ -145,4 +153,69 @@
   padding-top: 7px;
   padding-bottom: 5px;
   padding-right: 2px;
+}
+
+.fecha{
+  width: 100%!important;
+}
+
+.concluido
+{
+  background-color: #1EE8A8;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.pendiente{
+  background-color: #FFF17E;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.guardado{
+  background-color:blue;
+  box-shadow: 1px 1px #888888;
+  color: white;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.vencido
+{
+  background-color: #FFB061;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.rechazado
+{
+  background-color: #FF6F61;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.detenido
+{
+  background-color: #ADB0B6;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 100%!important;
+  width: 100%;
+}
+
+.cancelado
+{
+  background-color: #5B5C5E;
+  box-shadow: 1px 1px #888888;
+  color: white;
+  font-size: 100%!important;
+  width: 100%;
 }

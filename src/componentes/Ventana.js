@@ -294,13 +294,13 @@ class Ventana extends Component {
                             switch (campo.TipoDeCampo) {
                                 case 'CheckBox':
                                     return <div key={campo.ID}>
-                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} />
+                                        <input className="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} />
                                         <label>{campo.Title}</label>
                                     </div>
                                 case 'Radio':
                                     return <div key={campo.ID}>
-                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo} onChange={this.handleChange} />
-                                        <label for="radio-one">{campo.Title}</label>
+                                        <input className="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo} onChange={this.onSeleccionar} />
+                                        <label htmlFor="radio-one">{campo.Title}</label>
                                     </div>
                                 case 'File':
                                     return <div key={campo.ID}>
@@ -327,20 +327,20 @@ class Ventana extends Component {
                 case "Enviar":
                     return (
                         <div key={ID} className="row">
-                            <input type="button" className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar' />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar' />
                         </div>
                     )
                 case "GuardarEnviar":
                     return (
                         <div key={ID} className="row">
-                            <input type='button' className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar ' />
-                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type='button' className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar ' />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onGuardar} value='Guardar' />
                         </div>
                     )
                 case "Guardar":
                     return (
                         <div key={ID} className="row">
-                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onGuardar} value='Guardar' />
                         </div>
                     )
                 default:
@@ -352,7 +352,6 @@ class Ventana extends Component {
                 {this.state.campos.length > 0 ?
                     <Modal isOpen={this.props.abrir.abierto} size='lg'>
                         <form>
-
                             <ModalHeader
                                 className='encabezado'>{this.state.campos[0].Tarea.Title}
                                 <span style={{ paddingLeft: "500px", cursor: "pointer" }} onClick={this.onCerrar} aria-hidden="true">X</span>

@@ -33,7 +33,7 @@ class Principal extends Component {
 
         return (
             itemsPI.map((item, index) => (
-                <div>
+                <div key={index}>
                     <Accordion styled>
                         <Accordion.Title
                             active={activeIndex === index}
