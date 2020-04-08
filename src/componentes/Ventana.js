@@ -74,93 +74,97 @@ class Ventana extends Component {
     }
 
     async onEnviar(datos) {
-        const { idTarea } = this.state
+        const { idTarea, radioChecked } = this.state
         switch (this.props.abrir.filaSeleccionada.Tarea.ID) {
             case 24:
-                const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : (this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
-                const totalTerrenos = await this.obtenerTotalTerrenosPI()
-                let guardar = true
-                let mensajeError = ''
-                //Valida si existe la cantidad suficiente de terrenos para generar una tarea
-                switch (idNuevaTarea) {
-                    case 0:
-                        guardar = true
-                        mensajeError = ''
-                        break;
-                    case 25:
-                        if (totalTerrenos < 1) {
-                            guardar = false
-                            mensajeError = 'El proyecto de inversión debe tener por lo menos 1 terreno para poder subdividir.'
-                        } else {
+                if(radioChecked!== null){
+                    const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : (this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
+                    const totalTerrenos = await this.obtenerTotalTerrenosPI()
+                    let guardar = true
+                    let mensajeError = ''
+                    //Valida si existe la cantidad suficiente de terrenos para generar una tarea
+                    switch (idNuevaTarea) {
+                        case 0:
                             guardar = true
                             mensajeError = ''
-                        }
-                        break;
-                    case 30:
-                    case 35:
-                        if (totalTerrenos <= 1) {
-                            guardar = false
-                            mensajeError = 'El proyecto de inversión debe tener por lo menos 2 terrenos para poder ' + (idNuevaTarea === 30 ? 'fusionar.' : 'relotificar.')
-                        } else {
-                            guardar = true
-                            mensajeError = ''
-                        }
-                        break;
-                    default:
-                        guardar = false
-                        mensajeError = 'Debe seleccionar una opción'
-                        break;
-                }
-                if (guardar) {
-                    //Guarda el tipo de RFSN seleccionado
-                    await sp.web.lists.getByTitle(this.state.campos[0].ListaDeGuardado).items.add({
-                        IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
-                        IdFlujoId: this.props.abrir.id,
-                        FRSN: this.state.radioChecked
-                    }).then(async () => {
-                        //Establece la tarea como Enviada
-                        await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.abrir.id).update({
-                            EstatusId: 3
-                        }).then(async () => {
-                            //Verifica si se creará una nueva tarea, dependiento del valor de RFNS seleccionado
-                            if (idNuevaTarea !== 0) {
-                                const datosNuevaTarea = await sp.web.lists.getByTitle('Tareas').items.getById(idNuevaTarea).get();
-                                //Crea la nueva tarea en Flujo Tareas
-                                await sp.web.lists.getByTitle("Flujo Tareas").items.add({
-                                    IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
-                                    IdTareaId: idNuevaTarea,
-                                    NivelId: datosNuevaTarea.NivelId,
-                                    GrupoResponsableId: datosNuevaTarea.GrupoId,
-                                    AsignadoA: { results: [] },
-                                    EstatusId: 1,
-                                    Visible: true
-                                }).then(async result => {
-                                    //Crea el elemento en la estrategia de gestión
-                                    await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
-                                        ProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
-                                        TareaId: idNuevaTarea,
-                                        GrupoResponsableId: datosNuevaTarea.GrupoId,
-                                        Seleccionado: false,
-                                        IdFlujoTareasId: result.data.Id
-                                    })
-                                    //Establecer estado para nueva tarea creada
-                                    //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: false })
-                                }).catch(error => {
-                                    console.warn('Error al generar la estrategia de gestión: ' + error)
-                                })
+                            break;
+                        case 25:
+                            if (totalTerrenos < 1) {
+                                guardar = false
+                                mensajeError = 'El proyecto de inversión debe tener por lo menos 1 terreno para poder subdividir.'
                             } else {
-                                //Sino pasa por RFS (Ninguno), crea el resto de la EG
-                                //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
-                                this.props.evento({ tarea: idTarea, dato: true })
+                                guardar = true
+                                mensajeError = ''
                             }
-                        }).catch(error => {
-                            console.warn('Error al guardar: ' + error)
+                            break;
+                        case 30:
+                        case 35:
+                            if (totalTerrenos <= 1) {
+                                guardar = false
+                                mensajeError = 'El proyecto de inversión debe tener por lo menos 2 terrenos para poder ' + (idNuevaTarea === 30 ? 'fusionar.' : 'relotificar.')
+                            } else {
+                                guardar = true
+                                mensajeError = ''
+                            }
+                            break;
+                        default:
+                            guardar = false
+                            mensajeError = 'Debe seleccionar una opción'
+                            break;
+                    }
+                    if (guardar) {
+                        //Guarda el tipo de RFSN seleccionado
+                        await sp.web.lists.getByTitle(this.state.campos[0].ListaDeGuardado).items.add({
+                            IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
+                            IdFlujoId: this.props.abrir.id,
+                            FRSN: this.state.radioChecked
+                        }).then(async () => {
+                            //Establece la tarea como Enviada
+                            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.abrir.id).update({
+                                EstatusId: 3
+                            }).then(async () => {
+                                //Verifica si se creará una nueva tarea, dependiento del valor de RFNS seleccionado
+                                if (idNuevaTarea !== 0) {
+                                    const datosNuevaTarea = await sp.web.lists.getByTitle('Tareas').items.getById(idNuevaTarea).get();
+                                    //Crea la nueva tarea en Flujo Tareas
+                                    await sp.web.lists.getByTitle("Flujo Tareas").items.add({
+                                        IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
+                                        IdTareaId: idNuevaTarea,
+                                        NivelId: datosNuevaTarea.NivelId,
+                                        GrupoResponsableId: datosNuevaTarea.GrupoId,
+                                        AsignadoA: { results: [] },
+                                        EstatusId: 1,
+                                        Visible: true
+                                    }).then(async result => {
+                                        //Crea el elemento en la estrategia de gestión
+                                        await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                            ProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
+                                            TareaId: idNuevaTarea,
+                                            GrupoResponsableId: datosNuevaTarea.GrupoId,
+                                            Seleccionado: false,
+                                            IdFlujoTareasId: result.data.Id
+                                        })
+                                        //Establecer estado para nueva tarea creada
+                                        //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
+                                        this.props.evento({ tarea: this.props.abrir.filaSeleccionada.Tarea.ID, dato: false })
+                                    }).catch(error => {
+                                        console.warn('Error al generar la estrategia de gestión: ' + error)
+                                    })
+                                } else {
+                                    //Sino pasa por RFS (Ninguno), crea el resto de la EG
+                                    //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
+                                    this.props.evento({ tarea: idTarea, dato: true })
+                                }
+                            }).catch(error => {
+                                console.warn('Error al guardar: ' + error)
+                            })
                         })
-                    })
-                    this.props.cerrar();
-                } else {
-                    alert(mensajeError)
+                        this.props.cerrar();
+                    } else {
+                        alert(mensajeError)
+                    }
+                }else{
+                    alert('Seleccione un valor')
                 }
                 break;
             case 25:
@@ -173,8 +177,6 @@ class Ventana extends Component {
             default:
                 break;
         }
-
-        this.onCerrar()
     }
 
     onCerrar = () => {
@@ -219,6 +221,10 @@ class Ventana extends Component {
                 const users = await sp.web.siteUsers();
                 this.obtenerPosiciones(users)
                 this.setState({ usuarios: users })
+            }else if(this.props.abrir.filaSeleccionada.Tarea.ID === 24){
+                if(this.props.abrir.filaSeleccionada.EstatusId === 3){
+                    this.obtenerDatosGuardados(this.props.abrir.id)
+                }
             }
             this.obtenerCampos(this.props.abrir.id)
         }
@@ -248,6 +254,15 @@ class Ventana extends Component {
             else if (usuario.ID !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.ID))] }
         })
         this.setState({ usuarioAsignados: items })
+    }
+
+    obtenerDatosGuardados = async (id) =>{
+        const item = await sp.web.lists.getByTitle("RFSN").items
+        .filter('IdFlujoId eq ' + id + 'and IdTerrenoId eq null')
+        .get()
+        if(item.length>0){
+            this.setState({ radioChecked: item[0].FRSN })
+        }
     }
 
     //FALTA TERMINAR
@@ -280,10 +295,13 @@ class Ventana extends Component {
             })
         }
     }
+    
     render() {
         var boton = '';
         var ID = 0;
         const { idTarea } = this.state
+        const estatus = this.props.abrir.filaSeleccionada.EstatusId
+
         const Formulario = () => {
             const formulario = this.state.campos.map((campo, index) => {
                 boton = campo.Boton;
@@ -294,18 +312,18 @@ class Ventana extends Component {
                             switch (campo.TipoDeCampo) {
                                 case 'CheckBox':
                                     return <div key={campo.ID}>
-                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} />
+                                        <input className="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} disabled = {estatus === 3 ? true : false} />
                                         <label>{campo.Title}</label>
                                     </div>
                                 case 'Radio':
                                     return <div key={campo.ID}>
-                                        <input class="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} checked={this.state.radioChecked === campo.TituloInternoDelCampo} onChange={this.handleChange} />
-                                        <label for="radio-one">{campo.Title}</label>
+                                        <input className="form-radio" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} disabled = {estatus === 3 ? true : false} checked={this.state.radioChecked === campo.TituloInternoDelCampo} onChange={this.onSeleccionar} />
+                                        <label htmlFor="radio-one">{campo.Title}</label>
                                     </div>
                                 case 'File':
                                     return <div key={campo.ID}>
                                         <label>{campo.Title}</label>
-                                        <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
+                                        <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} disabled = {estatus === 3 ? true : false} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
                                     </div>
                                 case 'PeoplePicker':
                                     return <div key={campo.ID}>
@@ -327,20 +345,20 @@ class Ventana extends Component {
                 case "Enviar":
                     return (
                         <div key={ID} className="row">
-                            <input type="button" className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar' />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar' disabled = {estatus === 3 ? true : false} />
                         </div>
                     )
                 case "GuardarEnviar":
                     return (
                         <div key={ID} className="row">
-                            <input type='button' className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar ' />
-                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type='button' className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar ' disabled = {estatus === 3 ? true : false} />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onGuardar} value='Guardar' disabled = {estatus === 3 ? true : false} />
                         </div>
                     )
                 case "Guardar":
                     return (
                         <div key={ID} className="row">
-                            <input type="button" className="btn btn-primary btn-md" onClick={this.onGuardar} value='Guardar' />
+                            <input type="button" className="btn btn-info btn-md" onClick={this.onGuardar} value='Guardar' disabled = {estatus === 3 ? true : false} />
                         </div>
                     )
                 default:
@@ -352,7 +370,6 @@ class Ventana extends Component {
                 {this.state.campos.length > 0 ?
                     <Modal isOpen={this.props.abrir.abierto} size='lg'>
                         <form>
-
                             <ModalHeader
                                 className='encabezado'>{this.state.campos[0].Tarea.Title}
                                 <span style={{ paddingLeft: "500px", cursor: "pointer" }} onClick={this.onCerrar} aria-hidden="true">X</span>

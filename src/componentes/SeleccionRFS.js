@@ -165,8 +165,8 @@ class SeleccionRFS extends Component{
                         <div className="row pie">
                             <div className="col-sm">
                                 <br/>
-                                <input type="button" className="btn btn-success btn-md" onClick={this.onEnviar} value='Enviar' />
-                                <input type="button" className="btn btn-danger btn-md"  onClick={this.onCerrar} value='Cerrar' />
+                                <input type="button" className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar' />
+                                <input type="button" className="btn btn-info btn-md"  onClick={this.onCerrar} value='Cerrar' />
                             </div>
                         </div>
                     </div>
