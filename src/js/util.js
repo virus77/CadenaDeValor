@@ -88,12 +88,13 @@ const util = {
     },
 
     //Función utilizada para obtener el % de respuestas con base a la ponderación de cada cluster
-    average: function (props, fila) {
+    average: function (props, orden) {
         var average = 0;
-        var rowsNum = props.datos.filter(x => x.IdTarea.Orden === fila.cluster.IdTarea.Orden);
+        var rowsNum = props.datos.filter(x => x.IdTarea.Orden === orden && x.IdTarea.ID !== 271);
         var Res = rowsNum.filter(x => x.Estatus.ID === 3);
+        
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
-        return average;
+        return average.toFixed(0);
     },
 
     //Función utilizada para colocar la flecha del cluster dependiendo del clic

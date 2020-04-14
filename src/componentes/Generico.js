@@ -345,7 +345,7 @@ class Generico extends Component {
             switch (idVentanaSeleccionada) {
                 case 4:
                     //#region
-                    {util.styleLinkGen(name, style)}
+                    { util.styleLinkGen(name, style) }
                     let datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
                         .filter('(ProyectoInversionId eq ' + idProyecto + ') or (TerrenoId eq ' + (nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno) + ')')
                         .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title',
@@ -380,7 +380,7 @@ class Generico extends Component {
                 case 2:
                 case 3:
                     //#region
-                    {util.styleLinkGen(name, style)}
+                    { util.styleLinkGen(name, style) }
                     //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
                     const complemento = !terrenoTitulo.startsWith('T-') ? ' and (IdTarea/Desactivable eq 0)' : ''
                     //.filter("(IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (substringof('T-', IdTerreno/Title)))")
@@ -679,7 +679,7 @@ class Generico extends Component {
 
     //#region Métodos de ciclo de vida
     async componentWillMount() {
-        {util.styleLinkGen("genericoEG.css", "../estilos/genericoEG.css")}
+        { util.styleLinkGen("genericoEG.css", "../estilos/genericoEG.css") }
 
         webUrl = await sp.web()
         webCdT = webUrl.Url
@@ -766,11 +766,11 @@ class Generico extends Component {
                                                 EstatusId: 1,
                                                 Visible: true
                                             })
-                                            .catch(error => {
-                                                alert('Error al generar la tarea de EG en flujo tareas: ' + error)
-                                            })
+                                                .catch(error => {
+                                                    alert('Error al generar la tarea de EG en flujo tareas: ' + error)
+                                                })
                                         }
-                                        if(nuevaTarea.EnEG){
+                                        if (nuevaTarea.EnEG) {
                                             //Crea el elemento en la estrategia de gestión del terreno resultante actual
                                             await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
                                                 ProyectoInversionId: terrenoPI.IdProyectoInversionId,
@@ -778,12 +778,12 @@ class Generico extends Component {
                                                 TareaId: nuevaTarea.ID,
                                                 GrupoResponsableId: nuevaTarea.GrupoId,
                                                 Seleccionado: false,
-                                                IdFlujoTareasId: tareaEG.data!==undefined ? tareaEG.data.ID: tareaEG,
-                                                EstatusId:1
+                                                IdFlujoTareasId: tareaEG.data !== undefined ? tareaEG.data.ID : tareaEG,
+                                                EstatusId: 1
                                             })
-                                            .catch(error => {
-                                                alert('Error al generar la EG: ' + error)
-                                            })
+                                                .catch(error => {
+                                                    alert('Error al generar la EG: ' + error)
+                                                })
                                         }
                                     });
                                 });
@@ -806,28 +806,28 @@ class Generico extends Component {
 
                         //Deshabilita las tareas a nivel PI que ya no son necesarias después de hacer un RFS
                         const tareasDeshabilitar = await sp.web.lists.getByTitle("Tareas").items
-                        .filter('Desactivable eq 1')
-                        .select('ID')
-                        .get()
+                            .filter('Desactivable eq 1')
+                            .select('ID')
+                            .get()
 
                         await util.asyncForEach(tareasDeshabilitar, async (tareaDeshabilitar) => {
                             await sp.web.lists.getByTitle("Flujo Tareas").items
-                            .filter('IdProyectoInversionId eq ' + idProyecto + ' and IdTareaId eq ' + tareaDeshabilitar.ID)
-                            .get()
-                            .then(async(ft) =>{
-                                if(ft.length>0){
-                                    await sp.web.lists.getByTitle("Flujo Tareas").items.getById(ft[0].Id).update({
-                                        EstatusId: 3
-                                    })
-                                    .catch(error => {
-                                        alert('Error al deshabilitar la tarea: ' + error)
-                                    })
-                                }
-                            })
-                            .catch(error => {
-                                alert('Error al obtener la tareas a deshabilitar: ' + error)
-                            })
-                        }).then(async ()=>{
+                                .filter('IdProyectoInversionId eq ' + idProyecto + ' and IdTareaId eq ' + tareaDeshabilitar.ID)
+                                .get()
+                                .then(async (ft) => {
+                                    if (ft.length > 0) {
+                                        await sp.web.lists.getByTitle("Flujo Tareas").items.getById(ft[0].Id).update({
+                                            EstatusId: 3
+                                        })
+                                            .catch(error => {
+                                                alert('Error al deshabilitar la tarea: ' + error)
+                                            })
+                                    }
+                                })
+                                .catch(error => {
+                                    alert('Error al obtener la tareas a deshabilitar: ' + error)
+                                })
+                        }).then(async () => {
                             const rootweb = await sp.web.getParentWeb()
                             let websCdV = await rootweb.web.webs()
                             let weBdTVersionado = websCdV[0]
@@ -848,9 +848,9 @@ class Generico extends Component {
                                     CantidadTerrenos: arregloDatos.dato.cantidadTerrenos,
                                     Metrajes: unionMetrajes
                                 })
-                                .catch(error => {
-                                    alert('Error al agregar datos en RFS: ' + error)
-                                })
+                                    .catch(error => {
+                                        alert('Error al agregar datos en RFS: ' + error)
+                                    })
                             }).then(async () => {
                                 //Establece la tarea como Enviada
                                 await sp.web.lists.getByTitle("Flujo Tareas").items.getById(arregloDatos.dato.idFlujoTareas).update({
@@ -910,11 +910,11 @@ class Generico extends Component {
                                                                 EstatusId: 1,
                                                                 Visible: true
                                                             })
-                                                            .catch(error => {
-                                                                alert('Error al generar la tarea de EG en flujo tareas: ' + error)
-                                                            })
+                                                                .catch(error => {
+                                                                    alert('Error al generar la tarea de EG en flujo tareas: ' + error)
+                                                                })
                                                         }
-                                                        if(nuevaTarea.EnEG){
+                                                        if (nuevaTarea.EnEG) {
                                                             //Crea el elemento en la estrategia de gestión del terreno resultante actual
                                                             await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
                                                                 ProyectoInversionId: idProyecto,
@@ -1014,14 +1014,14 @@ class Generico extends Component {
     render() {
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno } = this.state
         const Cluster = (props) => {
-            var average = 10;
+            var average = 0;
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
                     //Otras ventanas
                     const filaCluster = props.titulos.map((fila) => {
                         var id = "body" + fila.cluster.ID;
                         var arrow = "expandir" + fila.cluster.ID
-                        var average = util.average(props, fila);
+                        var average = util.average(props, fila.cluster.IdTarea.Orden);
                         return (
                             <div key={fila.cluster.IdTarea.Orden} style={{ width: "98%" }}>
                                 <div className="row" >
@@ -1055,7 +1055,6 @@ class Generico extends Component {
                                             <div style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
                                                 <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
                                             </div>
-                                            <div className='row empty-space' ></div>
                                         </div>
 
                                 })}
@@ -1103,7 +1102,6 @@ class Generico extends Component {
                                             <div key={fila.cluster.ID + 1} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
                                                 <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                             </div>
-                                            <div className='row empty-space' ></div>
                                         </div>
                                     )
                                 })}
@@ -1479,8 +1477,8 @@ class Generico extends Component {
                     {this.state.cargado ?
                         <div className='container-fluid'>
                             <Encabezado rfs={this.props.rfs} idPITerr={!this.props.rfs ? idProyecto : idTerreno} terreno={nombreTerreno}
-                            maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
-                            totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} />
+                                maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
+                                totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} />
                             <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
                             <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
                             {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} /> : null}
