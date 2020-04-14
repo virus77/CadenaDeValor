@@ -93,7 +93,7 @@ const util = {
         var rowsNum = props.datos.filter(x => x.IdTarea.Orden === fila.cluster.IdTarea.Orden);
         var Res = rowsNum.filter(x => x.Estatus.ID === 3);
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
-        return average;
+        return average.toFixed(0);
     },
 
     //Función utilizada para colocar la flecha del cluster dependiendo del clic
