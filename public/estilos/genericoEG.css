@@ -1,12 +1,13 @@
 .titulo{
   font-size: 16pt !important;
   padding-top: 7px;
-  padding-bottom: 7px;
+  padding-bottom: 9px;
   width: 95%;
   color: black!important;
   border: 1px;
   border-radius:11px;
   background: #75E7BC;
+  cursor:pointer !important;
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#30be8f', endColorstr='#41a382', GradientType=1 );
 }
 
@@ -218,4 +219,36 @@
   color: white;
   font-size: 90%!important;
   width: 100%;
+}
+
+.terreno
+{
+  background: #D1F7E9;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  font-weight: bold;
+}
+
+#FiltroFavoritos
+{
+  content: url("../estilos/favDis_icon.png")!important;
+}
+
+#FiltroVerTodo
+{
+  content: url("../estilos/viewAllDis.png")!important;
+}
+
+#FiltroGantt
+{
+  content: url("../estilos/gantt.png")!important;
+}
+
+.nombreTerreno {
+  width: 35%;
+  padding-top: 7px;
+  font-size: 15pt;
+  font-weight: 0px;
+  color: #75E7BC!important;
 }

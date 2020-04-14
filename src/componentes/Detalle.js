@@ -11,7 +11,7 @@ class Detalle extends Component{
         super(props)
         this.initialState = {
             estatus: props.datos.info.Estatus,
-            //estatusAnterior: props.datos.info.EstatusAnterior
+            estatusAnterior: props.datos.info.EstatusAnterior
         }
         this.state = this.initialState
     }

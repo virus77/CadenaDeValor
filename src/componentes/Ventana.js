@@ -13,7 +13,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
-import '../estilos/modal.css';
+import '../estilos/modal.scss';
 
 class Ventana extends Component {
     constructor(props) {
@@ -75,7 +75,7 @@ class Ventana extends Component {
         const { idTarea, radioChecked } = this.state
         switch (this.props.abrir.filaSeleccionada.Tarea.ID) {
             case 24:
-                if(radioChecked!== null){
+                if (radioChecked !== null) {
                     const idNuevaTarea = this.state.radioChecked === 'Subdivisión' ? 25 : (this.state.radioChecked === 'Relotificación' ? 35 : (this.state.radioChecked === 'Fusión' ? 30 : 0))
                     const totalTerrenos = await this.obtenerTotalTerrenosPI()
                     let guardar = true
@@ -120,7 +120,7 @@ class Ventana extends Component {
                             //Actualiza el estatus del elemento de la EG
                             await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.props.abrir.filaSeleccionada.ID).update({
                                 EstatusId: 3
-                            }).then(async ()=>{
+                            }).then(async () => {
                                 //Establece la tarea como Enviada
                                 await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.abrir.id).update({
                                     EstatusId: 3
@@ -163,15 +163,18 @@ class Ventana extends Component {
                                 })
                             }).catch(error => {
                                 alert('Error al guardar: ' + error)
+
                             })
+
                         }).catch(error => {
                             alert('Error al guardar: ' + error)
                         })
                         this.props.cerrar();
+
                     } else {
                         alert(mensajeError)
                     }
-                }else{
+                } else {
                     alert('Seleccione un valor')
                 }
                 break;
@@ -181,7 +184,7 @@ class Ventana extends Component {
                 //Actualiza el estatus del elemento de la EG
                 await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.props.abrir.filaSeleccionada.ID).update({
                     EstatusId: 3
-                }).then(()=>{
+                }).then(() => {
                     //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
                     this.props.evento({ tarea: idTarea, dato: datos })
                     this.props.cerrar();
@@ -234,8 +237,8 @@ class Ventana extends Component {
                 const users = await sp.web.siteUsers();
                 this.obtenerPosiciones(users)
                 this.setState({ usuarios: users })
-            }else if(this.props.abrir.filaSeleccionada.Tarea.ID === 24){
-                if(this.props.abrir.filaSeleccionada.EstatusId === 3){
+            } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 24) {
+                if (this.props.abrir.filaSeleccionada.EstatusId === 3) {
                     this.obtenerDatosGuardados(this.props.abrir.id)
                 }
             }
@@ -250,8 +253,8 @@ class Ventana extends Component {
             return true
         }
     }
-    //#endregion
 
+    //#endregion
     onSeleccionarItems = items => {
         this.setState({ usuarioAsignados: items })
     }
@@ -269,11 +272,11 @@ class Ventana extends Component {
         this.setState({ usuarioAsignados: items })
     }
 
-    obtenerDatosGuardados = async (id) =>{
+    obtenerDatosGuardados = async (id) => {
         const item = await sp.web.lists.getByTitle("RFSN").items
-        .filter('IdFlujoId eq ' + id + 'and IdTerrenoId eq null')
-        .get()
-        if(item.length>0){
+            .filter('IdFlujoId eq ' + id + 'and IdTerrenoId eq null')
+            .get()
+        if (item.length > 0) {
             this.setState({ radioChecked: item[0].FRSN })
         }
     }
@@ -308,7 +311,6 @@ class Ventana extends Component {
             })
         }
     }
-    
     render() {
         var boton = '';
         var ID = 0;
@@ -334,8 +336,9 @@ class Ventana extends Component {
                                     </div>
                                 case 'File':
                                     return <div key={campo.ID}>
-                                        <label>{campo.Title}</label>
+                                        <label>{campo.Title + ":" + " "}</label>
                                         <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
+                                       {/*<label htmlFor="file" className="btn-3" ><span>Adjuntar</span></label>*/}
                                     </div>
                                 case 'PeoplePicker':
                                     return <div key={campo.ID}>
@@ -380,11 +383,11 @@ class Ventana extends Component {
         return (
             <div>
                 {this.state.campos.length > 0 ?
-                    <Modal isOpen={this.props.abrir.abierto} size='lg'>
+                    <Modal isOpen={this.props.abrir.abierto} size={this.props.abrir.size}>
                         <form>
                             <ModalHeader
                                 className='encabezado'>{this.state.campos[0].Tarea.Title}
-                                <span style={{ paddingLeft: "500px", cursor: "pointer" }} onClick={this.onCerrar} aria-hidden="true">X</span>
+                                <span style={{ paddingLeft: this.props.abrir.padding, cursor: "pointer" }} onClick={this.onCerrar} aria-hidden="true">X</span>
                             </ModalHeader>
                             <div className='datoTerreno'>{this.props.abrir.terreno}</div>
                             <fieldset disabled = {this.props.abrir.filaSeleccionada.EstatusId === 3 ? true : false}>

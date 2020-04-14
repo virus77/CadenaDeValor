@@ -1,0 +1,149 @@
+.modals.dimmer .ui.scrolling.modal {
+    margin-left: 10% !important;
+}
+
+.encabezado {
+    background-color: #40b9c7;
+    color: white;
+    padding: 5px;
+}
+
+h5 {
+    font-size: 16pt !important;
+}
+
+.datoTerreno {
+    background-color: #8ed6de;
+    color: #6a7172;
+    font-size: 14pt;
+    text-align: right;
+    padding: 10px;
+}
+
+.cuerpo {
+    padding: 5px;
+}
+
+.pie {
+    padding-top: 5px;
+    text-align: right;
+}
+
+.control {
+    width: 40% !important;
+    text-align: right;
+}
+
+.select {
+    width: 20% !important;
+    text-align: right;
+}
+
+.display {
+    display: flex !important;
+}
+
+/*Radio button */
+
+.form-radio {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    background-color: #f1f1f1;
+    color: #666;
+    top: 10px;
+    height: 30px;
+    width: 30px;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-right: 7px;
+    outline: none;
+}
+
+.form-radio:checked::before {
+    position: absolute;
+    font: 17px/1 "Open Sans", sans-serif;
+    left: 10px;
+    top: 6px;
+    content: "\02143";
+    transform: rotate(40deg);
+    font-weight: bold;
+    color: #40b9c7;
+}
+
+.form-radio:hover {
+    background-color: #40b9c7;
+}
+
+.form-radio:checked {
+    background-color: #d1f7e9;
+}
+
+label {
+    font-size: 14pt;
+    font-weight: bold;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: pointer;
+}
+
+/*[type="file"] {
+    height: 0;
+    overflow: hidden;
+    width: 0;
+}
+
+[type="file"] + label {
+    background: #75e7bc;
+    border: none;
+    border-radius: 5% !important;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-size: inherit;
+    font-weight: 600;
+    outline: none;
+    padding: 1rem 47px;
+    position: relative;
+    transition: all 0.3s;
+    vertical-align: middle;
+
+    &.btn-3 {
+        background-color: #75e7bc;
+        border-radius: 0;
+        overflow: hidden;
+        span {
+            display: inline-block;
+            height: 100%;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        &::before {
+            color: #fff !important;
+            content: url("https://api.iconify.design/mdi-cloud-upload-outline.svg?height=32&color=white");
+            vertical-align: -0.125em;
+            font-size: 150%;
+            height: 100%;
+            left: 40%;
+            line-height: 2.6;
+            position: absolute;
+            top: -180%;
+            transition: all 0.3s;
+            width: 100%;
+            padding-top: 5px;
+            padding-right: 5px;
+        }
+        &:hover {
+            background-color: darken(#75e7bc, 22%);
+            span {
+                transform: translateY(300%);
+            }
+            &::before {
+                top: 0;
+            }
+        }
+    }
+}*/

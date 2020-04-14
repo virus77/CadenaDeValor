@@ -21,14 +21,6 @@
     text-align: center;
 }
 
-.nombreTerreno {
-    width: 35%;
-    padding-top: 7px;
-    font-size: 15pt;
-    font-weight: 0px;
-    color: #3C8891;
-}
-
 .columna {
     width: 5%;
 }
@@ -88,4 +80,12 @@ p {
 .hr {
     margin-top: 0.3rem;
     margin-bottom: 0.5rem;
+}
+
+.nombreTerreno {
+  width: 35%;
+  padding-top: 7px;
+  font-size: 15pt;
+  font-weight: 0px;
+  color: #75E7BC!important;
 }
