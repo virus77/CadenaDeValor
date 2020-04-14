@@ -8,8 +8,17 @@
 }
 .texto{
     color: #3D808C;
-    font-size:medium;
+    font-size:small;
 }
+
+.textoU{
+    color: black;
+    float: right;
+    font-size:small;
+    padding-left: 5px;
+    text-decoration: underline;
+}
+
 
 .informativo{
     padding-left: 5px;
@@ -19,6 +28,7 @@
 
 .informativoTexto{
     color: white;
+    padding-left: 5px;
 }
 .izquierda{
     text-align: left!important;

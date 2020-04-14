@@ -4,12 +4,15 @@ import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+import util from '../js/util'
 import '../estilos/detalle.css';
 
 class Detalle extends Component{
     constructor(props){
         super(props)
         this.initialState = {
+            idElemento: props.datos.info.ID,
+            estatusActual: props.datos.info.Estatus,
             estatus: props.datos.info.Estatus,
             estatusAnterior: props.datos.info.EstatusAnterior
         }
@@ -17,8 +20,19 @@ class Detalle extends Component{
     }
 
     //#region Eventos de botones
-    async onGuardar() {
-        alert('Temporalmente sin funcionalidad')
+    onGuardar = async () =>{
+        const {idElemento, estatusActual, estatus, estatusAnterior} = this.state
+        if(estatusActual.ID !== estatus.ID){
+            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(idElemento).update({
+                EstatusId: estatus.ID
+              })
+              .then(()=>{
+                this.props.datosRetorno(this.state)
+                this.onCerrar()
+              })
+        }else{
+            this.onCerrar()
+        }
     }
 
     onCerrar = ()=>{
@@ -27,10 +41,13 @@ class Detalle extends Component{
     }
     //#endregion
 
+    //#region Eventos de controles
     onSeleccionarEstatus = e =>{
+        const {estatusAnterior} = this.state
         const {checked, name, value} = e.target
-        this.setState({estatus: {ID: checked ? value: 0, Title: checked ? name: ''}})
+        this.setState({estatus: {ID: checked ? parseInt(value): estatusAnterior.ID, Title: checked ? name: estatusAnterior.Title}})
     }
+    //#endregion
 
     render(){
         const {estatus} = this.state
@@ -54,13 +71,13 @@ class Detalle extends Component{
                             <label className='informativoTexto'><u>{ this.props.datos.info.IdTerreno !== undefined ? this.props.datos.info.IdTerreno.Title: ''}</u></label>
                         </div>
                         <label className='texto'>F. creación de actividad: </label>
-                        <label className='texto'></label><br/>
+                        <label className='textoU'>{util.spDate(this.props.datos.info.Created)}</label><br/>
                         <label className='texto'>F. últ. modificación de actividad: </label>
-                        <label className='texto'></label><br/>
+                        <label className='textoU'>{util.spDate(this.props.datos.info.Modified)}</label><br/>
                         <label className='texto'>Actividad modificada por: </label>
-                        <label className='texto'></label><br/>
+                        <label className='textoU'>{this.props.datos.info.Editor.Title}</label><br/>
                         <label className='texto'>Linea base modificada por: </label>
-                        <label className='texto'></label>
+                        <label className='textoU'>{this.props.datos.info.LineaBaseModifico !== undefined ? this.props.datos.info.LineaBaseModifico.Title : ''}</label>
                     </div>
                 </div>
                 <hr />

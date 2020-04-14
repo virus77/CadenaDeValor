@@ -32,7 +32,7 @@ class Ventana extends Component {
     }
 
     //#region Eventos de botones
-    async onGuardar() {
+    async onGuardar(datos) {
         switch (this.props.abrir.id) {
             //Establece el MACO para el/los terrenos
             case 268:
@@ -64,6 +64,11 @@ class Ventana extends Component {
                 this.props.evento({ tarea: 0, dato: this.state.usuarioAsignados })
                 break;
             case 271:
+                //Establece la actividad ficticia creada en el cluster correspondiente
+                break;
+            case 272:
+                //Establece el nuevo estatus en la actividad correspondiente
+                this.props.evento({ tarea: 272, dato: datos })
                 break;
             default:
                 break;
