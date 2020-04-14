@@ -1,12 +1,13 @@
 .titulo{
   font-size: 16pt !important;
   padding-top: 7px;
-  padding-bottom: 7px;
+  padding-bottom: 9px;
   width: 95%;
   color: black!important;
   border: 1px;
   border-radius:11px;
   background: #75E7BC;
+  cursor:pointer !important;
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#30be8f', endColorstr='#41a382', GradientType=1 );
 }
 
@@ -159,28 +160,28 @@
   width: 100%!important;
 }
 
-.concluido
+.concluido, .enviada
 {
   background-color: #1EE8A8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
-.pendiente{
+.pendiente, .por-capturar{
   background-color: #FFF17E;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
-.guardado{
+.guardado, .guardada{
   background-color:blue;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -189,7 +190,7 @@
   background-color: #FFB061;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -198,7 +199,7 @@
   background-color: #FF6F61;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -207,7 +208,7 @@
   background-color: #ADB0B6;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -216,6 +217,38 @@
   background-color: #5B5C5E;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
+}
+
+.terreno
+{
+  background: #D1F7E9;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  font-weight: bold;
+}
+
+#FiltroFavoritos
+{
+  content: url("../estilos/favDis_icon.png")!important;
+}
+
+#FiltroVerTodo
+{
+  content: url("../estilos/viewAllDis.png")!important;
+}
+
+#FiltroGantt
+{
+  content: url("../estilos/gantt.png")!important;
+}
+
+.nombreTerreno {
+  width: 35%;
+  padding-top: 7px;
+  font-size: 15pt;
+  font-weight: 0px;
+  color: #75E7BC!important;
 }
