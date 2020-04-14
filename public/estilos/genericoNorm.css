@@ -1,8 +1,8 @@
 .titulo{
   font-size: 16pt !important;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  width: 100%;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  width: 95%;
   color: black!important;
   border: 1px;
   border-radius:11px;
@@ -16,15 +16,18 @@
   border-width: 8pt;
   font-weight: normal!important;
   color: black;
-  font-size: 12pt;
-  padding-left: 25px!important;
+  font-size: 10pt;
+  padding-left: 20px!important;
   border-bottom: #40B9C7;
   border-bottom-width: 2px;
   border-bottom-style: solid;
   border-left: #40B9C7;
   border-left-style: solid;
   border-left-width: 8px;
-  cursor:text !important;
+  cursor:pointer !important;
+  width: 99%;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .table td, .table th
@@ -45,9 +48,9 @@
   border-width: 1pt;
   font-weight: normal!important;
   color: black;
-  font-size: 9pt;
+  font-size: 8pt;
   font-style: italic;
-  padding-left: 3%!important;
+  padding-left: 4%!important;
   border-left: gray;
   border-left-style: solid;
   border-left-width: 7px;
@@ -64,11 +67,13 @@
   width: 25px;
   height: 25px;
   background-image: url(gray_Icon.png);
+  background-repeat: no-repeat;
   border-radius: 50%;
   vertical-align: middle;
   -webkit-appearance: none;
   outline: none;
   cursor: pointer;
+  padding-left: 20px;
 }
 
 .checkBox:hover{
@@ -151,28 +156,28 @@
   width: 100%!important;
 }
 
-.concluido
+.concluido, .enviada
 {
   background-color: #1EE8A8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
-.pendiente{
+.pendiente, .por-capturar{
   background-color: #FFF17E;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
-.guardado{
+.guardado, .guardada{
   background-color:blue;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -181,7 +186,7 @@
   background-color: #FFB061;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -190,7 +195,7 @@
   background-color: #FF6F61;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -199,7 +204,7 @@
   background-color: #ADB0B6;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }
 
@@ -208,6 +213,6 @@
   background-color: #5B5C5E;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 100%!important;
+  font-size: 90%!important;
   width: 100%;
 }

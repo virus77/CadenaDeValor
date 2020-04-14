@@ -10,13 +10,15 @@ class Detalle extends Component{
     constructor(props){
         super(props)
         this.initialState = {
-            campos: []
+            estatus: props.datos.info.Estatus,
+            //estatusAnterior: props.datos.info.EstatusAnterior
         }
         this.state = this.initialState
     }
 
     //#region Eventos de botones
     async onGuardar() {
+        alert('Temporalmente sin funcionalidad')
     }
 
     onCerrar = ()=>{
@@ -25,25 +27,31 @@ class Detalle extends Component{
     }
     //#endregion
 
+    onSeleccionarEstatus = e =>{
+        const {checked, name, value} = e.target
+        this.setState({estatus: {ID: checked ? value: 0, Title: checked ? name: ''}})
+    }
+
     render(){
+        const {estatus} = this.state
         return(
             <div>
                 <div className='form-row align-items-center'>
                     <div className='col-sm-6'>
                         <h5 className='textoEncabezado'>Sobre la tarea</h5>
                         <h6 className='textoAgrupador'>Estatus manual</h6>
-                        <input type="radio" id='detenido' name='estatus' value={6} />
+                        <input type="checkbox" id='detenido' name='detenido' value={6} checked={estatus.Title.toLowerCase() === 'detenido' ? true :false} onChange={this.onSeleccionarEstatus} />
                         <label htmlFor='detenido' className='texto'>Actividad detenida</label><br/>
-                        <input type="radio" id='cancelado' name='estatus' value={7} />
+                        <input type="checkbox" id='cancelado' name='cancelado' value={7} checked={estatus.Title.toLowerCase() === 'cancelado' ? true :false} onChange={this.onSeleccionarEstatus} />
                         <label htmlFor='cancelado' className='texto'>Actividad cancelada</label>
                     </div>
                     <div className='col-sm-6 bordeL'>
                         <h5 className='textoEncabezado'>Informativo</h5>
                         <div className='informativo'>
                             <label className='informativoTexto'>Id PI: </label>
-                            <label className='informativoTexto'></label><br/>
+                            <label className='informativoTexto'><u>{this.props.datos.info.IdProyectoInversion.Title}</u></label><br/>
                             <label className='informativoTexto'>Id T: </label>
-                            <label className='informativoTexto'></label>
+                            <label className='informativoTexto'><u>{ this.props.datos.info.IdTerreno !== undefined ? this.props.datos.info.IdTerreno.Title: ''}</u></label>
                         </div>
                         <label className='texto'>F. creación de actividad: </label>
                         <label className='texto'></label><br/>
@@ -59,7 +67,6 @@ class Detalle extends Component{
                 <div className='row'>
                     <div className='col-sm-12 derecha'>
                         <input type="button" className="btn btn-primary btn-md" value='Guardar' onClick={this.onGuardar} />
-                        <input type="button" className="btn btn-danger btn-md" value='Cerrar' onClick={this.onCerrar} />
                     </div>
                 </div>
             </div>

@@ -7,12 +7,14 @@
     font-weight: bold;
 }
 .texto{
-    color: #3D808C
+    color: #3D808C;
+    font-size:medium;
 }
 
 .informativo{
     padding-left: 5px;
     background-color: #40B9C7;
+    margin-bottom: 15px;
 }
 
 .informativoTexto{

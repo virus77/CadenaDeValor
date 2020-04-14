@@ -15,12 +15,12 @@ class SeleccionRFS extends Component{
             idFlujoTareas: props.datos.IdFlujoTareasId,
             tipo: props.tipo,
             terrenos: [],
-            cantidadTerrenos: 0,
+            cantidadTerrenos: props.tipo !== 'TF' ? 0 : 1,
             sumaSeleccion: 0,
             sumatoriaNueva:0,
             metrajesTr: [],
-            terrenosResultantes: [],
-            terrenosSeleccionados: []
+            terrenosResultantes: props.tipo !== 'TF' ? []: [{ID:'M1', MACO: 'B', SId: 'S1'}],
+            totalTerrenosSeleccionados: 0
         }
         this.state = this.initialState
     }
@@ -52,20 +52,25 @@ class SeleccionRFS extends Component{
     }
 
     onGenerarCampos =() =>{
-        if(this.state.cantidadTerrenos>0){
-            let array =[]
-            for(let i = 0; i<this.state.cantidadTerrenos; i++){
-                array.push({ID: 'M' + (i + 1), SId: 'S'+ (i + 1), MACO: 'B'})
+        if(this.state.sumaSeleccion>0){
+            if(this.state.cantidadTerrenos>0){
+                let array =[]
+                for(let i = 0; i<this.state.cantidadTerrenos; i++){
+                    array.push({ID: 'M' + (i + 1), SId: 'S'+ (i + 1), MACO: 'B'})
+                }
+                this.setState({terrenosResultantes: array})
+            }else{
+                alert('El valor de los terrenos resultantes debe ser mayor a 0')
             }
-            this.setState({terrenosResultantes: array})
         }else{
-            alert('El valor de los terrenos resultantes debe ser mayor a 0')
+            alert('Debe seleccionar al menos un terreno para poder realizar esta acción')
         }
     }
 
     onSumarMetraje = e=>{
         const {value, checked} = e.target
-        this.setState({sumaSeleccion: checked? this.state.sumaSeleccion + parseFloat(value) : this.state.sumaSeleccion - parseFloat(value)})
+        this.setState({ sumaSeleccion: checked? this.state.sumaSeleccion + parseFloat(value) : this.state.sumaSeleccion - parseFloat(value),
+                        totalTerrenosSeleccionados: checked? this.state.totalTerrenosSeleccionados + 1 : this.state.totalTerrenosSeleccionados - 1})
     }
 
     onSumaTotal = e =>{
@@ -87,6 +92,30 @@ class SeleccionRFS extends Component{
 
     onEnviar = async ()=>{
         switch(this.props.tipo){
+            case 'TF':
+                if(this.state.totalTerrenosSeleccionados === this.state.terrenos.length){
+                    if(this.state.sumaSeleccion !== this.state.sumatoriaNueva){
+                        alert('No validación: Las sumatorias no coinciden')
+                    }else{
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
+                    }
+                }else{
+                    alert('Debe seleccionar todos los terrenos para realizar una fusión')
+                }
+                break;
+            case 'TR':
+                if(this.state.totalTerrenosSeleccionados === this.state.terrenos.length){
+                    if(this.state.sumaSeleccion !== this.state.sumatoriaNueva){
+                        alert('No validación: Las sumatorias no coinciden')
+                    }else{
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
+                    }
+                }else{
+                    alert('Debe seleccionar todos los terrenos para realizar una relotificación')
+                }
+                break;
             case 'TS':
                 if(this.state.terrenos.length === 1 && this.state.terrenosResultantes.length>0){
                     if(this.state.sumaSeleccion !== this.state.sumatoriaNueva){
@@ -135,11 +164,11 @@ class SeleccionRFS extends Component{
                                 <h6>Sumatoria de superficies originales seleccionadas:</h6>
                                 <input type='number' className='form-control form-control-sm control' id='sumaSeleccion' name='sumaSeleccion' value= {this.state.sumaSeleccion} readOnly />
                                 <br/>
-                                <input type='button' className='btn btn-light' id='btnGenerar' name='btnGenerar' value='Generar' onClick={this.onGenerarCampos} />
+                                <input type='button' className='btn btn-light' id='btnGenerar' name='btnGenerar' disabled= {this.props.tipo === 'TF'? true: false} value='Generar' onClick={this.onGenerarCampos} />
                             </div>
                             <div className="col-sm">
                                 <h6>N° de terrenos resultantes:</h6>
-                                <input type='number' className='form-control form-control-sm control' id='cantidadTerrenos' min='1' name='cantidadTerrenos' value= {this.state.cantidadTerrenos} onChange={this.onCambiarCantidad} />
+                                <input type='number' className='form-control form-control-sm control' id='cantidadTerrenos' min='1' name='cantidadTerrenos' disabled= {this.props.tipo === 'TF'? true: false} value= {this.state.cantidadTerrenos} onChange={this.onCambiarCantidad} />
                             </div>
                             {this.state.terrenosResultantes.length>0 ?
                             <div className="col-sm">
@@ -166,7 +195,6 @@ class SeleccionRFS extends Component{
                             <div className="col-sm">
                                 <br/>
                                 <input type="button" className="btn btn-info btn-md" onClick={this.onEnviar} value='Enviar' />
-                                <input type="button" className="btn btn-info btn-md"  onClick={this.onCerrar} value='Cerrar' />
                             </div>
                         </div>
                     </div>

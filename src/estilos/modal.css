@@ -1,3 +1,6 @@
+input[type=button]{
+    margin-left: 3px;
+}
 .modals.dimmer .ui.scrolling.modal {
     margin-left: 10% !important;
 }
@@ -19,7 +22,6 @@ h5 {
     text-align: right;
     padding: 10px;
 }
-
 
 .cuerpo {
     padding: 5px;
@@ -45,7 +47,6 @@ h5 {
 }
 
 /*Radio button */
-
 .form-radio {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -79,8 +80,16 @@ h5 {
     background-color: #40B9C7;
 }
 
+.form-radio:hover:disabled {
+    background-color: #f1f1f1;
+}
+
 .form-radio:checked {
     background-color: #D1F7E9;
+}
+
+.form-radio:checked:disabled {
+    background-color: #f1f1f1;
 }
 
 label {

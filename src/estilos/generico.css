@@ -107,7 +107,7 @@
   width: 100%!important;
 }
 
-.concluido
+.concluido, .enviada
 {
   background-color: #1EE8A8;
   box-shadow: 1px 1px #888888;
@@ -116,7 +116,7 @@
   width: 100%;
 }
 
-.pendiente{
+.pendiente, .por-capturar{
   background-color: #FFF17E;
   box-shadow: 1px 1px #888888;
   color: black;
@@ -124,7 +124,7 @@
   width: 100%;
 }
 
-.guardado{
+.guardado, .guardada{
   background-color:blue;
   box-shadow: 1px 1px #888888;
   color: white;
