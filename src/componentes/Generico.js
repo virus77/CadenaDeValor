@@ -382,15 +382,17 @@ class Generico extends Component {
                     //#region
                     { util.styleLinkGen(name, style) }
                     //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
+                    const complemento = !terrenoTitulo.startsWith('T-') ? ' and (IdTarea/Desactivable eq 0)' : ''
                     actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
-                        .filter('(IdProyectoInversionId eq ' + idProyecto + ') or (IdTerrenoId eq ' + idTerreno + ')')
+                    .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (substringof('T-', IdTerreno/Title)))" + complemento + ")")
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID',
                             'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
                             'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable', 'IdTarea/ExisteEnGantt', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
                             'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
                             'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
-                        )
-                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable', 'AsignadoA', 'Favoritos')
+                            'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title')
+                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
+                            'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico')
                         .getAll();
 
                     actividades.sort(function (a, b) {
@@ -990,14 +992,14 @@ class Generico extends Component {
     render() {
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno } = this.state
         const Cluster = (props) => {
-            var average = 10;
+            var average = 0;
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
                     //Otras ventanas
                     const filaCluster = props.titulos.map((fila) => {
                         var id = "body" + fila.cluster.ID;
                         var arrow = "expandir" + fila.cluster.ID
-                        var average = util.average(props, fila);
+                        var average = util.average(props, fila.cluster.IdTarea.Orden);
                         return (
                             <div key={fila.cluster.IdTarea.Orden} style={{ width: "98%" }}>
                                 <div className="row" >
@@ -1031,7 +1033,6 @@ class Generico extends Component {
                                             <div style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
                                                 <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.IdTarea.Orden} />
                                             </div>
-                                            <div className='row empty-space' ></div>
                                         </div>
 
                                 })}
@@ -1079,7 +1080,6 @@ class Generico extends Component {
                                             <div key={fila.cluster.ID + 1} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
                                                 <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                             </div>
-                                            <div className='row empty-space' ></div>
                                         </div>
                                     )
                                 })}
