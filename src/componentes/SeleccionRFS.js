@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
 import { sp } from "@pnp/sp";
+import { Web } from "@pnp/sp/webs";
 import update from 'immutability-helper';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/sites";
 import '../estilos/modal.css';
+
+const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class SeleccionRFS extends Component{
     constructor(props){

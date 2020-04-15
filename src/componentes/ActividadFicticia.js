@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import PeoplePicker from './UserPicker'
 import { sp } from "@pnp/sp";
+import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import '../estilos/actividadFicticia.css';
+
+const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class ActividadFicticia extends Component {
     constructor(props) {

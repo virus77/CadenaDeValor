@@ -5,7 +5,7 @@ import Detalle from './Detalle.js'
 import PeoplePicker from './UserPicker'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
-
+import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -14,6 +14,8 @@ import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
 import '../estilos/modal.scss';
+
+const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class Ventana extends Component {
     constructor(props) {

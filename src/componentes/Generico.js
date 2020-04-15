@@ -20,7 +20,7 @@ import clear_icon from '../imagenes/clear.png';
 import disk from '../imagenes/disk.png';
 
 import { sp } from "@pnp/sp";
-
+import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
@@ -42,6 +42,8 @@ const useStyles = makeStyles(theme => ({
         textAlign: "left",
     },
 }));
+
+const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
 
 class Generico extends Component {
     constructor(props) {
