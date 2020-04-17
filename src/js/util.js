@@ -7,10 +7,11 @@ const util = {
     inicializarArregloDatos: function (idVentana, arreglo) {
         return idVentana === 4 ? {
             columnas: [
-                { titulo: '', interN: '', Arreglo: "", estilo: 'col-sm-6' },
+                { titulo: '', interN: '', Arreglo: "", estilo: 'col-sm-5' },
                 { titulo: 'Responsable', interN: 'GrupoResponsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: arreglo, estilo: 'col-sm-2' },
                 { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "EG", Arreglo: arreglo, estilo: 'col-sm-2' },
-                { titulo: 'E. de G. autorizada', Arreglo: "", estilo: 'col-sm-2' }
+                { titulo: 'E. de G. autorizada', Arreglo: "", estilo: 'col-sm-2' },
+                { titulo: 'Favoritos', interN: 'Favoritos', Tipo: "EG", value: 'Favoritos', Arreglo: arreglo, estilo: 'col-sm-1' }
             ],
             datos: []
         } : {
@@ -92,23 +93,71 @@ const util = {
         var average = 0;
         var rowsNum = props.datos.filter(x => x.IdTarea.Orden === orden && x.IdTarea.ID !== 271);
         var Res = rowsNum.filter(x => x.Estatus.ID === 3);
-        
+
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
         return average.toFixed(0);
     },
 
     //Función utilizada para colocar la flecha del cluster dependiendo del clic
-    toggle: function (id, arrow) {
-        if (document.getElementById(id) !== null) {
-            var state = document.getElementById(id).style.display;
-            if (state == 'block') {
-                document.getElementById(id).style.display = 'none';
+    toggle: function (id, arrow, substring) {
+
+        var state = document.getElementById(id);
+        if (state !== null) {
+            if (state.style.display == 'block') {
+                state.style.display = 'none';
                 document.getElementById(arrow).src = "../estilos/arrow_down_icon.png";
             } else {
-                document.getElementById(id).style.display = 'block';
+                state.style.display = 'block';
                 document.getElementById(arrow).src = "../estilos/arrow_up_icon.png";
             }
         }
+
+        if (document.getElementsByClassName(id) !== null) {
+            var stateCss = document.getElementsByClassName(id);
+            if (stateCss.length > 0) {
+                var state = document.getElementById(id + "*");
+                if (state.style.display == 'block') {
+                    state.style.display = 'none';
+                } else {
+                    state.style.display = 'block';
+                }
+            }
+        }
+
+        var arreglo = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        for (let index = 1; index < arreglo.length; index++) {
+
+            var getNewId = parseFloat(id.match(/[\d\.]+/)) + index;
+            getNewId = id.substring(0, substring) + getNewId;
+            var state = document.getElementById(getNewId);
+
+            if (state !== null) {
+                if (state.style.display == 'block') {
+                    state.style.display = 'none';
+                } else {
+                    state.style.display = 'block';
+                }
+            }
+        }
+    },
+
+    //Función utilizada para colocar check o un check 
+    toggleCheck: function (id, datos) {
+        datos.map((fila) => {
+            var state = document.getElementById(id + fila.ID);
+            var ckeck = document.getElementById(id);
+            if (state !== null) {
+                if (ckeck.checked === true)
+                {
+                    //state.checked = fila.seleccionado;
+                    state.disabled = false;
+                }
+                else {
+                    //state.checked = fila.seleccionado;
+                    state.disabled = true;
+                }
+            }
+        })
     },
 
     //Función que se utiliza para mostrar y ocultar los cluster de EG dependiendo el clic con base a los elementos
