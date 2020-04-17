@@ -33,36 +33,6 @@ class App extends Component {
   onSeleccionTerreno = async (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv) => {
 
     if (window.confirm('¿Está seguro que desea abrir el detalle del terreno ' + TxtTerreno + "?")) {
-      //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
-      /*var actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
-      .filter('(IdProyectoInversionId eq ' + IdProyecto + ') or (IdTerrenoId eq ' + IdTerreno + ')')
-      .select('IdTarea/TxtVentana')
-      .expand('IdTarea').getAll();
-
-      var RFSEnviado = false;
-      var datosEG = [{
-        columnas: [{ titulo: '', estilo: 'col-sm' }, { titulo: 'Responsable', estilo: 'col-sm' }, { titulo: 'Asignado a', estilo: 'col-sm' }],
-        datos: []
-      }];
-
-      var ventanas = [actividades.reduce((a,c) => (a[c.IdTarea.TxtVentana]=(a[c.IdTarea.TxtVentana]||[]).concat(c),a) ,{})];
-
-      if (!RFSEnviado) {
-        datosEG[0].datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
-        .filter('ProyectoInversionId eq ' + IdProyecto)
-        .select('ID','ProyectoInversion/ID','Terreno/ID','Tarea/ID','Tarea/Title','Tarea/TxtCluster','Tarea/TxtVentana','Tarea/OrdenEG','Tarea/Checkable','GrupoResponsable/ID','GrupoResponsable/NombreCortoGantt','Seleccionado', 'IdFlujoTareasId')
-        .expand('ProyectoInversion', 'Terreno', 'Tarea','GrupoResponsable').orderBy('Tarea/OrdenEG',true).get();
-
-        var result = [];
-        result = Array.from(new Set(datosEG[0].datos.map(s=> s.Tarea.TxtCluster)))
-        .map(currentCluster=>{
-            return{
-              cluster: datosEG[0].datos.find(s=> s.Tarea.TxtCluster === currentCluster).Tarea
-            };
-        });
-
-        result = result.filter(x=> x.cluster !== undefined);
-      }*/
       this.setState({
         isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
         Maco: maco, RFS: rfs, TerrenoId, IdProyInv

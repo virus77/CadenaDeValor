@@ -12,7 +12,9 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/files";
+import "@pnp/sp/files/web";
 import "@pnp/sp/folders";
+import "@pnp/sp/security";
 import '../estilos/modal.scss';
 
 const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
@@ -26,7 +28,8 @@ class Ventana extends Component {
             usuarios: [],
             ejecutado: false,
             usuarioAsignados: props.abrir.id === 270 ? props.datos.valor : [],
-            radioChecked: props.datos.valor
+            radioChecked: props.datos.valor,
+            archivosCargados:[]
         }
         this.onGuardar = this.onGuardar.bind(this);
         this.onEnviar = this.onEnviar.bind(this);
@@ -67,6 +70,7 @@ class Ventana extends Component {
                 break;
             case 271:
                 //Establece la actividad ficticia creada en el cluster correspondiente
+                this.props.evento({ tarea: 271, dato: datos })
                 break;
             case 272:
                 //Establece el nuevo estatus en la actividad correspondiente
@@ -222,7 +226,7 @@ class Ventana extends Component {
                         'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
                     .filter('(TareaId eq ' + id + ') and (Activo eq 1)')
                     .expand('Tarea')
-                    .orderBy('Ordenamiento', true).get();
+                    .orderBy('Ordenamiento', true).get()
                 this.setState({ campos: campos })
             }
         } else {
@@ -230,23 +234,32 @@ class Ventana extends Component {
             let campos = await sp.web.lists.getByTitle('Relación campos documentos trámites tareas').items
                 .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado',
                     'ListaDeGuardadoSecundario', 'Catalogos', 'Ordenamiento', 'Requerido', 'Tramite', 'Activo', 'Boton')
-                .filter('(TareaId eq ' + this.props.abrir.filaSeleccionada.Tarea.ID + ') and (Activo eq 1)')
+                .filter('(TareaId eq ' + (this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : this.props.abrir.filaSeleccionada.IdTarea.ID) + ') and (Activo eq 1)')
                 .expand('Tarea')
-                .orderBy('Ordenamiento', true).get();
+                .orderBy('Ordenamiento', true).get()
             this.setState({ campos: campos })
         }
     }
 
     //#region Métodos de ciclo de vida
     async componentDidMount() {
+        const {archivosCargados} = this.state
         if (this.props.abrir.abierto) {
             if (this.props.abrir.id === 270) {
                 const users = await sp.web.siteUsers();
                 this.obtenerPosiciones(users)
                 this.setState({ usuarios: users })
-            } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 24) {
-                if (this.props.abrir.filaSeleccionada.EstatusId === 3) {
-                    this.obtenerDatosGuardados(this.props.abrir.id)
+            } else if (this.props.abrir.filaSeleccionada.Tarea !== undefined){
+                //Cuando la tarea viene de estrategia de gestión
+                if (this.props.abrir.filaSeleccionada.Tarea.ID === 24) {
+                    if (this.props.abrir.filaSeleccionada.EstatusId === 3) {
+                        this.obtenerDatosGuardados(this.props.abrir.id)
+                    }
+                } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 269){
+                    const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
+                    const result = await this.obtenerDocumentosCargados(urlDoctos, archivosCargados)
+                    archivosCargados.push({nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL +  '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl })
+                    console.log(result)
                 }
             }
             this.obtenerCampos(this.props.abrir.id)
@@ -288,40 +301,51 @@ class Ventana extends Component {
         }
     }
 
+    obtenerDocumentosCargados = async (url) =>{
+        let result
+        const rootweb = await sp.web.getParentWeb()
+        let webCdV = Web(rootweb.data.Url)
+        await webCdV.getFolderByServerRelativeUrl('/Documents/' + url).files.get().then(items=>{
+            result = items.find(x=> x.Name == 'EGAutorizada.pdf')
+            result.extension = result.Name.split('.').pop()
+            result.rootURL = rootweb.data.Url
+        })
+        return result
+    }
+
     //FALTA TERMINAR
     async onCargarArchivo(e, nombreDocumento) {
+        const {archivosCargados} = this.state
         if (window.confirm('¿Está seguro que desea cargar el archivo "' + e.target.files[0].name + '"?')) {
             const archivo = e.target.files[0]
-            var webCdV = await sp.web.getParentWeb();
-            /*let reader = new FileReader()
-            reader.readAsDataURL(archivo[0])
-
-            reader.onload = async (e) =>{
-                var webCdV = await sp.web.getParentWeb();
-                webCdV = new Web(webCdV.data.Url)
-                const formData = {file : e.target.result}
-
-                return post(webCdV.data.parentUrl + '/Documents/I-04124/', formData, { crossdomain: true })
-                .then(response =>{
-                    alert("result: " + response)
+            const extension = archivo.name.split('.').pop()
+            const rootweb = await sp.web.getParentWeb()
+            let webCdV = Web(rootweb.data.Url)
+            const urlCargar = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
+            const archivoCargado = await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
+            .then(async (docto)=>{
+                const item = await docto.file.getItem()
+                await item.update({
+                    Title: nombreDocumento
                 })
-                
-            }*/
-            const file = await webCdV.web.getFolderByServerRelativeUrl("/Documentos/I-04124/").files.add(archivo.name, archivo, true)
-            const item = await file.file.getItem();
-            await item.update({
-                Title: nombreDocumento
-            }).then(() => {
-                alert('Se cargó el archivo correctamente')
-            }).catch((error) => {
-                alert('Error: ' + error)
+                .then(async ()=>{
+                    let index = archivosCargados.findIndex(x=> x.nombreInterno === nombreDocumento)
+                    if(index === -1){
+                        archivosCargados.push({nombreInterno: nombreDocumento, archivo: docto.data.Name, icono: rootweb.data.Url +  '/CompraDeTerreno/images/iconos/' + extension + '.png', url: rootweb.data.Url + docto.data.ServerRelativeUrl })
+                    }
+                    alert('Su archivo se cargó correctamente')
+                    this.setState({archivosCargados: archivosCargados })
+                })
+            })
+            .catch(error =>{
+                alert('Error al cargar el archivo: ' + error)
             })
         }
     }
     render() {
         var boton = '';
         var ID = 0;
-        const { idTarea } = this.state
+        const { idTarea, archivosCargados } = this.state
 
         const Formulario = () => {
             const formulario = this.state.campos.map((campo, index) => {
@@ -345,7 +369,10 @@ class Ventana extends Component {
                                     return <div key={campo.ID}>
                                         <label>{campo.Title + ":" + " "}</label>
                                         <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
-                                       {/*<label htmlFor="file" className="btn-3" ><span>Adjuntar</span></label>*/}
+                                        {<p>
+                                            <img src={archivosCargados.length> 0 ? archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).icono : null} onClick={()=>window.open(archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")} ></img>
+                                            {archivosCargados.length >0 ? archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).archivo : null}
+                                        </p>}
                                     </div>
                                 case 'PeoplePicker':
                                     return <div key={campo.ID}>
@@ -399,12 +426,12 @@ class Ventana extends Component {
                             <div className='datoTerreno'>{this.props.abrir.terreno}</div>
                             <fieldset disabled = {this.props.abrir.filaSeleccionada.EstatusId === 3 ? true : false}>
                                 <ModalBody>
-                                        {
-                                            idTarea === 25 || idTarea === 30 || idTarea === 35 ?
-                                                <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
-                                                : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
-                                                    : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />))
-                                        }
+                                    {
+                                        idTarea === 25 || idTarea === 30 || idTarea === 35 ?
+                                            <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
+                                            : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} esTarea={this.props.abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
+                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />))
+                                    }
                                 </ModalBody>
                                 <ModalFooter>
                                     {
