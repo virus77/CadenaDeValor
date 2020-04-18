@@ -752,8 +752,7 @@ class Generico extends Component {
                             this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestión. Esto podrí­a tardar unos minutos...' } })
                             const terrenosPI = await sp.web.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + idProyecto + ' and Empadronamiento eq null').get()
 
-                            //const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((OrdenEG ge 4 and OrdenEG le 5) and (DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "'))").get();
-                            const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "'))").get();
+                            const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "') and (CrearConRFS eq 0))").get();
                             const generarEG = async () => {
                                 await util.asyncForEach(terrenosPI, async terrenoPI => {
                                     await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
@@ -1400,11 +1399,11 @@ class Generico extends Component {
                 //Otras ventanas
                 let nombreTerreno = ''
                 let filaBody = props.datos.map((fila) => {
-                    let urlLink = fila.UrlDocumentos !== null ? fila.UrlDocumentos.substring(fila.UrlDocumentos.indexOf('<a')) : ''
+                    let urlLink = fila.UrlDocumentos !== null && fila.UrlDocumentos !== undefined ? fila.UrlDocumentos.substring(fila.UrlDocumentos.indexOf('<a')) : ''
                     urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
                     const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html")
                     var urlDescargarDocto = parseResultDocto.documentElement.textContent
-                    let urlTarea = fila.UrlTarea !== null ? fila.UrlTarea.substring(fila.UrlTarea.indexOf('<a')) : ''
+                    let urlTarea = fila.UrlTarea !== null && fila.UrlTarea !== undefined ? fila.UrlTarea.substring(fila.UrlTarea.indexOf('<a')) : ''
                     urlTarea = urlTarea.replace('<a href="', '').replace(' target="_blank">Ver Tarea</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
                     const parseResult = new DOMParser().parseFromString(urlTarea, "text/html")
                     const urlAbrirTarea = parseResult.documentElement.textContent
