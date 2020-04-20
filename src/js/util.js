@@ -262,6 +262,16 @@ const util = {
                         return true;
                 }
         }
+    },
+
+    obtenerIdAsignados: function (campo) {
+        let val = { results: [] }
+        if (campo !== undefined) {
+            campo.map((registro) => {
+                val.results.push((registro.Id || registro.ID))
+            })
+        }
+        return val
     }
 
 }

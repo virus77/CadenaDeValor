@@ -1,5 +1,6 @@
 .texto{
-    color: #3D808C
+    color: #3D808C!important;
+    font-weight: bold;
 }
 
 .izquierda{
@@ -11,9 +12,9 @@
 }
 
 .borde{
-    border-right-color: #40B9C7;
-    border-right-style: solid;
-    box-shadow: 2px 0px #888888;
+    border-right-color: #40B9C7!important;
+    border-right-style: solid!important;
+    box-shadow: 2px 0px #888888!important;
 }
 
 .anchoBoton{
@@ -24,26 +25,30 @@
     color: red!important;
 }
 
+.centro{
+    text-align: center;
+}
+
 .concluido{
-    background-color: #1EE8A8;
+    background-color: #1EE8A8!important;
 }
 
 .pendiente{
-    background-color: #FFF17E;
+    background-color: #FFF17E!important;
 }
 
 .vencido{
-    background-color: #FFB061;
+    background-color: #FFB061!important;
 }
 
 .rechazado{
-    background-color:#FF6F61;
+    background-color:#FF6F61!important;
 }
 
 .detenido{
-    background-color:#ADB0B6;
+    background-color:#ADB0B6!important;
 }
 
 .cancelado{
-    background-color:#5B5C5E;
+    background-color:#5B5C5E!important;
 }
