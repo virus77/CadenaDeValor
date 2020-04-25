@@ -1,5 +1,9 @@
+import React, { Component } from 'react';
 import favoritos_icon from '../imagenes/favoritos_icon.png';
 import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 
 const util = {
@@ -147,8 +151,7 @@ const util = {
             var state = document.getElementById(id + fila.ID);
             var ckeck = document.getElementById(id);
             if (state !== null) {
-                if (ckeck.checked === true)
-                {
+                if (ckeck.checked === true) {
                     //state.checked = fila.seleccionado;
                     state.disabled = false;
                 }
@@ -272,7 +275,6 @@ const util = {
             })
         }
         return val
-    }
-
+    },
 }
 export default util;
