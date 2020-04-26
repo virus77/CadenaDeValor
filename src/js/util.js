@@ -1,6 +1,14 @@
 import favoritos_icon from '../imagenes/favoritos_icon.png';
 import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
+import { sp } from "@pnp/sp";
+import { Web } from "@pnp/sp/webs";
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
+import _ from 'lodash';
+
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
 
 const util = {
     //Inicializa el arreglo de datos de actividades
@@ -50,7 +58,6 @@ const util = {
             estatus: ''
         }
     },
-
     //Función utilizada para colocar la hoja de esctilo perteneciente a cada área
     styleLinkGen: function (fileName, url) {
         var css = ["genericoAdmin.css", "genericoNorm.css", "genericoProy.css", "genericoEG.css"];
@@ -63,18 +70,16 @@ const util = {
         sheet.type = 'text/css';
         document.head.appendChild(sheet);
     },
-
     //Función utilizada para remover las hojas de estilo que no se utilizan al momento de dar clic en cada botón
     removejscssfile: function (filename, filetype) {
-        var targetelement = (filetype == "js") ? "script" : (filetype == "css") ? "link" : "none" //determine element type to create nodelist from
-        var targetattr = (filetype == "js") ? "src" : (filetype == "css") ? "href" : "none" //determine corresponding attribute to test for
+        var targetelement = (filetype === "js") ? "script" : (filetype === "css") ? "link" : "none" //determine element type to create nodelist from
+        var targetattr = (filetype === "js") ? "src" : (filetype === "css") ? "href" : "none" //determine corresponding attribute to test for
         var allsuspects = document.getElementsByTagName(targetelement)
         for (var i = allsuspects.length; i >= 0; i--) { //search backwards within nodelist for matching elements to remove
-            if (allsuspects[i] && allsuspects[i].getAttribute(targetattr) != null && allsuspects[i].getAttribute(targetattr).indexOf(filename) != -1)
+            if (allsuspects[i] && allsuspects[i].getAttribute(targetattr) !== null && allsuspects[i].getAttribute(targetattr).indexOf(filename) !== -1)
                 allsuspects[i].parentNode.removeChild(allsuspects[i]) //remove element by calling parentNode.removeChild()
         }
     },
-
     //Función utilizada para parsear la fecha en formato dd/MM/aaaa
     spDate: function (value) {
         if (value != null) {
@@ -87,7 +92,6 @@ const util = {
         }
         return newDate;
     },
-
     //Función utilizada para obtener el % de respuestas con base a la ponderación de cada cluster
     average: function (props, orden) {
         var average = 0;
@@ -97,13 +101,12 @@ const util = {
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
         return average.toFixed(0);
     },
-
     //Función utilizada para colocar la flecha del cluster dependiendo del clic
     toggle: function (id, arrow, substring) {
 
         var state = document.getElementById(id);
         if (state !== null) {
-            if (state.style.display == 'block') {
+            if (state.style.display === 'block') {
                 state.style.display = 'none';
                 document.getElementById(arrow).src = "../estilos/arrow_down_icon.png";
             } else {
@@ -116,7 +119,7 @@ const util = {
             var stateCss = document.getElementsByClassName(id);
             if (stateCss.length > 0) {
                 var state = document.getElementById(id + "*");
-                if (state.style.display == 'block') {
+                if (state.style.display === 'block') {
                     state.style.display = 'none';
                 } else {
                     state.style.display = 'block';
@@ -140,7 +143,6 @@ const util = {
             }
         }
     },
-
     //Función utilizada para colocar check o un check 
     toggleCheck: function (id, datos) {
         datos.map((fila) => {
@@ -159,7 +161,6 @@ const util = {
             }
         })
     },
-
     //Función que se utiliza para mostrar y ocultar los cluster de EG dependiendo el clic con base a los elementos
     bodyFunEG: function (terr, props, fila) {
         var nombreTerreno = '';
@@ -180,7 +181,6 @@ const util = {
 
         return filaBody.filter(x => x !== undefined && x !== null);
     },
-
     //Función que se utiliza para mostrar y ocultar los cluster de pantallas menos RG dependiendo el clic con base a los elementos
     bodyFunAll: function (terr, props, fila) {
         var nombreTerreno = '';
@@ -202,7 +202,6 @@ const util = {
 
         return filaBody.filter(x => x !== undefined && x !== null);
     },
-
     //Función utilizada para colocar el icono correspondiente
     imgChange: function (id, imgname) {
 
@@ -211,7 +210,6 @@ const util = {
         image.style.content = "";
         image.src = "../estilos/" + imgname;
     },
-
     //Valida si una cadena contiene algun dato de otra cadena
     contains: function (value, searchFor) {
         if (Object.prototype.toString.call(value) === '[object Array]') {
@@ -226,7 +224,6 @@ const util = {
             return v.indexOf(v2) > -1;
         }
     },
-
     //Función utiilizada para colocar la estrella de favoritos cuando el usuario le dio clic
     onShowStar: function (fila, usuarioActual) {
         const user = usuarioActual;
@@ -243,7 +240,7 @@ const util = {
 
         return regresaImf;
     },
-
+    //Determina si el valor especificado es nulo o vacío
     IsNullOrEmpty: function (e) {
         switch (e) {
             case "":
@@ -263,7 +260,7 @@ const util = {
                 }
         }
     },
-
+    //Obtiene el ID de los usuarios del campo especificado
     obtenerIdAsignados: function (campo) {
         let val = { results: [] }
         if (campo !== undefined) {
@@ -272,7 +269,112 @@ const util = {
             })
         }
         return val
+    },
+    //Obtiene la información de los trámites asociados a los IDs de tareas clúster dentro de las actividades proporcionadas
+    generarConsultaFPT: async function(actividades){
+        let datosFPT = [];
+        let idsFPT = actividades.map((x)=> { return x.IdTarea.EsCluster === '1' && x.IdTarea.EsBitacora === '0' ? x.ID : 0})
+        
+        if(idsFPT.length>0){
+            idsFPT = idsFPT.filter(x => x>0)
+            let filtroFPT = ''
+            idsFPT.forEach(idFPT =>{
+                filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ')' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ')'
+            })
+            
+            datosFPT = await sp.web.lists.getByTitle('Fechas paquete de trámites').items
+                    .filter(filtroFPT)
+                    .select('ID','IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
+                            'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
+                            'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada',
+                            'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified')
+                    .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos')
+                    .get()
+        }
+        return datosFPT
+    },
+    establacerDatoLista: function(lista, datos, proyectoInversion){
+        return datos.map((dato)=>{
+            dato.Lista = lista
+            dato.PI = proyectoInversion
+            return dato
+        })
+    },
+    generarArregloEG: function(clusters, datos){
+        let arregloClusters = []
+        clusters.forEach((clusterActual, cIndex) =>{
+            const datosCluster = datos.filter(x=> x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster);
+            const datosTerrenos = [...new Set(datosCluster.map(x => (x.Terreno !== undefined ? x.Terreno.Title : '')))];
+            const subClusters = [...new Set(datosCluster.map(x => (x.Tarea.EsSubcluster === '1' ? x.Tarea.Title : '')))];
+            //arregloClusters.push({[clusterActual.cluster.TxtCluster]: []})
+            datosCluster.forEach((datoCluster, dIndex)=>{
+                arregloClusters[cIndex] =   {  Cluster: clusterActual.cluster.TxtCluster,
+                                        Subcluster: datoCluster.Tarea.EsSubcluster === '1' ? datoCluster.Tarea.Title : '',
+                                        Tipo: 'EstrategiaGestion',
+                                        PI: datoCluster.ProyectoInversion,
+                                        Terr: datoCluster.Terreno,
+                                        Tarea: datoCluster.Tarea,
+                                        NombreActividad: datoCluster.NombreActividad,
+                                        AsignadoA: datoCluster.AsignadoA,
+                                        GrupoResponsable: datoCluster.GrupoResponsable,
+                                        Seleccionado: datoCluster.Seleccionado,
+                                        IdFlujoTareas: datoCluster.IdFlujoTareasId,
+                                        Estatus: datoCluster.EstatusId,
+                                        OrdenEG: datoCluster.OrdenEG,
+                                        IdRCDTT: datoCluster.IdRCDTT,
+                                        IdFPT: datoCluster.IdFPTId
+                                    }
+                /*arreglo.push({  Cluster: clusterActual.cluster.TxtCluster,
+                                Subcluster: dato.Tarea.EsSubcluster === '1' ? dato.Tarea.Title : '',
+                                Tipo: 'EstrategiaGestion',
+                                PI: dato.ProyectoInversion,
+                                Terr: dato.Terreno,
+                                Tarea: dato.Tarea,
+                                NombreActividad: dato.NombreActividad,
+                                AsignadoA: dato.AsignadoA,
+                                GrupoResponsable: dato.GrupoResponsable,
+                                Seleccionado: dato.Seleccionado,
+                                IdFlujoTareas: dato.IdFlujoTareasId,
+                                Estatus: dato.EstatusId,
+                                OrdenEG: dato.OrdenEG,
+                                IdRCDTT: dato.IdRCDTT,
+                                IdFPT: dato.IdFPTId
+                            })*/
+                return
+            })
+        })
+                
+        return arregloClusters
+    },
+    generarArregloActs: function(tipo, clusters, datos){
+        let arreglo = []
+        clusters.forEach((clusterActual) =>{
+            const datosCluster = datos.filter(x=> x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster)
+            datosCluster.forEach((dato)=>{
+                arreglo.push({  Cluster: clusterActual.cluster.TxtCluster,
+                                Subcluster: dato.Tarea.EsSubcluster === '1' ? dato.Tarea.Title : '',
+                                Tipo: tipo,
+                                PI: dato.IdProyectoInversion,
+                                Terr: dato.IdTerreno,
+                                Tarea: dato.IdTarea,
+                                NombreActividad: dato.NombreActividad,
+                                AsignadoA: dato.AsignadoA,
+                                Nivel: dato.Nivel,
+                                Estatus: dato.EstatusId,
+                                EstatusAnterior: dato.EstatusAnteriorId,
+                                UrlTarea: dato.UrlTarea,
+                                UrlDocumentos: dato.UrlDocumentos,
+                                Favoritos: dato.Favoritos,
+                                LineaBase: datos.LineaBase,
+                                LineaBaseModifico: datos.LineaBaseModifico,
+                                FechaEstimada: datos.FechaEstimada,
+                                Orden: datos.Orden
+                            })
+                return
+            })
+        })
+                
+        return arreglo
     }
-
 }
 export default util;

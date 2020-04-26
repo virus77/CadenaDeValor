@@ -11,7 +11,7 @@ import Generico from './componentes/Generico';
 //import Modal from './componentes/Ventana';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class App extends Component {
   state = {

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import SeleccionRFS from './SeleccionRFS'
 import ActividadFicticia from './ActividadFicticia'
 import Detalle from './Detalle.js'
+import EditarCluster from './EditarCluster.js'
 import PeoplePicker from './UserPicker'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
@@ -17,19 +18,20 @@ import "@pnp/sp/folders";
 import "@pnp/sp/security";
 import '../estilos/modal.scss';
 
-const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class Ventana extends Component {
     constructor(props) {
         super(props)
         this.initialState = {
-            idTarea: this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : this.props.abrir.filaSeleccionada.IdTarea.ID,
+            idTarea: this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : (this.props.abrir.filaSeleccionada.IdTarea !== undefined ? this.props.abrir.filaSeleccionada.IdTarea.ID: this.props.abrir.filaSeleccionada.ID),
             campos: [],
             usuarios: [],
             ejecutado: false,
             usuarioAsignados: props.abrir.id === 270 ? props.datos.valor : [],
             radioChecked: props.datos.valor,
-            archivosCargados:[]
+            archivosCargados:[],
+            lista: this.props.abrir.filaSeleccionada.Lista
         }
         this.onGuardar = this.onGuardar.bind(this);
         this.onEnviar = this.onEnviar.bind(this);
@@ -66,7 +68,8 @@ class Ventana extends Component {
                 break;
             case 270:
                 //Establece los usuarios asignados del modal de Asignado a
-                this.props.evento({ tarea: 0, dato: this.state.usuarioAsignados })
+                //this.props.evento({ tarea: 0, dato: this.state.usuarioAsignados })
+                this.props.evento({ tarea: 0, dato: this.state })
                 break;
             case 271:
                 //Establece la actividad ficticia creada en el cluster correspondiente
@@ -75,6 +78,10 @@ class Ventana extends Component {
             case 272:
                 //Establece el nuevo estatus en la actividad correspondiente
                 this.props.evento({ tarea: 272, dato: datos })
+                break;
+            case 289:
+                //Establece las actividades que puede ver el usuario en el clúster de marketing
+                this.props.evento({ tarea: 289, dato: datos })
                 break;
             default:
                 break;
@@ -134,7 +141,8 @@ class Ventana extends Component {
                             }).then(async () => {
                                 //Establece la tarea como Enviada
                                 await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.props.abrir.id).update({
-                                    EstatusId: 3
+                                    EstatusId: 3,
+                                    EstatusAnteriorId: 3
                                 }).then(async () => {
                                     //Verifica si se creará una nueva tarea, dependiento del valor de RFNS seleccionado
                                     if (idNuevaTarea !== 0) {
@@ -147,7 +155,8 @@ class Ventana extends Component {
                                             GrupoResponsableId: datosNuevaTarea.GrupoId,
                                             AsignadoA: { results: [] },
                                             EstatusId: 1,
-                                            Visible: true
+                                            EstatusAnteriorId: 1,
+                                            Visible: true,
                                         }).then(async result => {
                                             //Crea el elemento en la estrategia de gestión
                                             await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
@@ -156,7 +165,8 @@ class Ventana extends Component {
                                                 GrupoResponsableId: datosNuevaTarea.GrupoId,
                                                 Seleccionado: false,
                                                 IdFlujoTareasId: result.data.Id,
-                                                EstatusId: 1
+                                                EstatusId: 1,
+                                                OrdenEG: datosNuevaTarea.OrdenEG
                                             })
                                             //Establecer estado para nueva tarea creada
                                             //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
@@ -259,7 +269,6 @@ class Ventana extends Component {
                     const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
                     const result = await this.obtenerDocumentosCargados(urlDoctos, archivosCargados)
                     archivosCargados.push({nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL +  '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl })
-                    console.log(result)
                 }
             }
             this.obtenerCampos(this.props.abrir.id)
@@ -306,7 +315,7 @@ class Ventana extends Component {
         const rootweb = await sp.web.getParentWeb()
         let webCdV = Web(rootweb.data.Url)
         await webCdV.getFolderByServerRelativeUrl('/Documents/' + url).files.get().then(items=>{
-            result = items.find(x=> x.Name == 'EGAutorizada.pdf')
+            result = items.find(x=> x.Name === 'EGAutorizada.pdf')
             result.extension = result.Name.split('.').pop()
             result.rootURL = rootweb.data.Url
         })
@@ -322,7 +331,7 @@ class Ventana extends Component {
             const rootweb = await sp.web.getParentWeb()
             let webCdV = Web(rootweb.data.Url)
             const urlCargar = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
-            const archivoCargado = await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
+            await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
             .then(async (docto)=>{
                 const item = await docto.file.getItem()
                 await item.update({
@@ -367,10 +376,10 @@ class Ventana extends Component {
                                     </div>
                                 case 'File':
                                     return <div key={campo.ID}>
-                                        <label>{campo.Title + ":" + " "}</label>
+                                        <label>{campo.Title + ": "}</label>
                                         <input type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} />
                                         {<p>
-                                            <img src={archivosCargados.length> 0 ? archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).icono : null} onClick={()=>window.open(archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")} ></img>
+                                            <img alt='' src={archivosCargados.length> 0 ? archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).icono : null} onClick={()=>window.open(archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")} ></img>
                                             {archivosCargados.length >0 ? archivosCargados.find(x=> x.nombreInterno === campo.TituloInternoDelCampo).archivo : null}
                                         </p>}
                                     </div>
@@ -430,12 +439,13 @@ class Ventana extends Component {
                                         idTarea === 25 || idTarea === 30 || idTarea === 35 ?
                                             <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
                                             : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} esTarea={this.props.abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
-                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />))
+                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
+                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />)))
                                     }
                                 </ModalBody>
                                 <ModalFooter>
                                     {
-                                        idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 ?
+                                        idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 || idTarea === 289 ?
                                             null : <Botones />
                                     }
                                 </ModalFooter>

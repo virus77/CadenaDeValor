@@ -12,7 +12,7 @@ import util from '../js/util'
 import moment from 'moment'
 import '../estilos/actividadFicticia.css';
 
-const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 var usuarioActual
 
 class ActividadFicticia extends Component {
@@ -40,9 +40,8 @@ class ActividadFicticia extends Component {
         //Obtiene los datos del usuario actual
         usuarioActual = await sp.web.currentUser.get();
         const listaUsuarios = await sp.web.siteUsers()
-        let resultados = []
         if(this.props.datos.info === undefined){
-            resultados = await sp.web.lists.getByTitle('Flujo Tareas').items
+            await sp.web.lists.getByTitle('Flujo Tareas').items
                 .select('ID', 'NombreActividad', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name',
                     'LineaBase', 'FechaEstimada', 'Estatus/ID', 'Estatus/Title')
                 .filter('ID eq ' + (this.props.datos.IdFlujoTareasId !== undefined ? this.props.datos.IdFlujoTareasId : this.props.datos.Id))
@@ -55,7 +54,7 @@ class ActividadFicticia extends Component {
                     { idEG = await this.obtenerIdEG(fts[0].ID) }
                     this.setState({ usuarios: listaUsuarios,
                         ID: fts[0].ID,
-                        IDEG: !this.props.esTarea ? this.props.datos.ID : (idEG.length== 0 ? 0 : idEG[0].Id),
+                        IDEG: !this.props.esTarea ? this.props.datos.ID : (idEG.length === 0 ? 0 : idEG[0].Id),
                         NombreActividad: fts[0].NombreActividad,
                         GrupoResponsable: fts[0].GrupoResponsable,
                         usuarioAsignados: asignados,
@@ -147,7 +146,7 @@ class ActividadFicticia extends Component {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
-                IdTerrenoId: this.props.datos.info.idTerr == 0 ? null : this.props.datos.info.idTerr,
+                IdTerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -165,7 +164,7 @@ class ActividadFicticia extends Component {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
-                IdTerrenoId: this.props.datos.info.idTerr == 0 ? null : this.props.datos.info.idTerr,
+                IdTerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -182,7 +181,7 @@ class ActividadFicticia extends Component {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
-                IdTerrenoId: this.props.datos.info.idTerr == 0 ? null : this.props.datos.info.idTerr,
+                IdTerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -198,7 +197,7 @@ class ActividadFicticia extends Component {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
-                IdTerrenoId: this.props.datos.info.idTerr == 0 ? null : this.props.datos.info.idTerr,
+                IdTerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -266,7 +265,7 @@ class ActividadFicticia extends Component {
                     if(this.state.OrdenEG !== undefined){
                         await sp.web.lists.getByTitle('EstrategiaGestion').items.add({
                             ProyectoInversionId: this.props.datos.info.idPI,
-                            TerrenoId: this.props.datos.info.idTerr == 0 ? null : this.props.datos.info.idTerr,
+                            TerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                             TareaId: this.props.datos.Tarea.ID,
                             NombreActividad: this.state.NombreActividad,
                             AsignadoAId: usuariosAsignados,

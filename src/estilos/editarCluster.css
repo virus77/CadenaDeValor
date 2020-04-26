@@ -1,0 +1,21 @@
+.texto{
+    color: #3D808C!important;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.textoActividad{
+    color: #3D808C!important;
+    font-size: small;
+    font-weight: normal;
+}
+
+.derecha{
+    text-align: right!important;
+}
+
+.borde{
+    border-right-color: #40B9C7!important;
+    border-right-style: solid!important;
+    box-shadow: 2px 0px #888888!important;
+}

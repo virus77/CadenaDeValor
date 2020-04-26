@@ -8,7 +8,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/sites";
 import '../estilos/modal.css';
 
-const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
 
 class SeleccionRFS extends Component{
     constructor(props){

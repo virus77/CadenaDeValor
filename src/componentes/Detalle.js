@@ -8,7 +8,7 @@ import "@pnp/sp/items";
 import util from '../js/util'
 import '../estilos/detalle.css';
 
-const web = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class Detalle extends Component{
     constructor(props){
@@ -17,16 +17,17 @@ class Detalle extends Component{
             idElemento: props.datos.info.ID,
             estatusActual: props.datos.info.Estatus,
             estatus: props.datos.info.Estatus,
-            estatusAnterior: props.datos.info.EstatusAnterior
+            estatusAnterior: props.datos.info.EstatusAnterior,
+            lista: props.datos.info.Lista
         }
         this.state = this.initialState
     }
 
     //#region Eventos de botones
     onGuardar = async () =>{
-        const {idElemento, estatusActual, estatus, estatusAnterior} = this.state
+        const {idElemento, estatusActual, estatus, lista} = this.state
         if(estatusActual.ID !== estatus.ID){
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(idElemento).update({
+            await sp.web.lists.getByTitle(lista).items.getById(idElemento).update({
                 EstatusId: estatus.ID
               })
               .then(()=>{
@@ -69,9 +70,9 @@ class Detalle extends Component{
                         <h5 className='textoEncabezado'>Informativo</h5>
                         <div className='informativo'>
                             <label className='informativoTexto'>Id PI: </label>
-                            <label className='informativoTexto'><u>{this.props.datos.info.IdProyectoInversion.Title}</u></label><br/>
+                            <label className='informativoTexto'><u>{this.props.datos.info.Lista === 'Flujo Tareas' ? this.props.datos.info.IdProyectoInversion.Title : this.props.datos.info.PI}</u></label><br/>
                             <label className='informativoTexto'>Id T: </label>
-                            <label className='informativoTexto'><u>{ this.props.datos.info.IdTerreno !== undefined ? this.props.datos.info.IdTerreno.Title: ''}</u></label>
+                            <label className='informativoTexto'><u>{this.props.datos.info.Lista === 'Flujo Tareas' ? (this.props.datos.info.IdTerreno !== undefined ? this.props.datos.info.IdTerreno.Title: '') :this.props.datos.info.Title}</u></label>
                         </div>
                         <label className='texto'>F. creación de actividad: </label>
                         <label className='textoU'>{util.spDate(this.props.datos.info.Created)}</label><br/>
