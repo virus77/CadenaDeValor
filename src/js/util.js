@@ -149,8 +149,7 @@ const util = {
             var state = document.getElementById(id + fila.ID);
             var ckeck = document.getElementById(id);
             if (state !== null) {
-                if (ckeck.checked === true)
-                {
+                if (ckeck.checked === true) {
                     //state.checked = fila.seleccionado;
                     state.disabled = false;
                 }
