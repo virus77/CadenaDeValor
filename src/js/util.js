@@ -2,6 +2,7 @@ import favoritos_icon from '../imagenes/favoritos_icon.png';
 import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
 import { sp } from "@pnp/sp";
 import { Web } from "@pnp/sp/webs";
+import $ from "jquery";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
@@ -296,6 +297,20 @@ const util = {
         return datos.map((dato)=>{
             dato.Lista = lista
             dato.PI = proyectoInversion
+
+            let urlLink = dato.UrlDocumentos !== null && dato.UrlDocumentos !== undefined ? dato.UrlDocumentos.substring(dato.UrlDocumentos.indexOf('<a')) : ''
+            urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
+            const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html")
+            var urlDescargarDocto = parseResultDocto.documentElement.textContent
+            dato.UrlDocumentos = urlDescargarDocto
+
+            let urlTarea = dato.UrlTarea !== null && dato.UrlTarea !== undefined ? dato.UrlTarea.substring(dato.UrlTarea.indexOf('<a')) : ''
+            urlTarea = urlTarea.replace('<a href="', '').replace(' target="_blank">Ver Tarea</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Tarea', '').replace('"', '')
+            const parseResult = new DOMParser().parseFromString(urlTarea, "text/html")
+            const urlAbrirTarea = parseResult.documentElement.textContent
+
+            dato.UrlTarea = urlAbrirTarea
+            
             return dato
         })
     },
@@ -374,6 +389,75 @@ const util = {
         })
                 
         return arreglo
+    },
+    //Agrupa el contenido del arreglo proporcionado por la columna especificada
+    groupBy: function(arreglo, propiedad) {
+        return arreglo.reduce((acc, obj) => {
+           const key = obj[propiedad];
+           if (!acc[key]) {
+              acc[key] = [];
+           }
+           acc[key].push(obj);
+           return acc;
+        }, {});
+    },
+    returnDataByFieldType: function(valor, tipo){
+        switch(tipo){
+            case 'Text':
+            case 'TextArea':
+                return valor.toString()
+            case 'Select':
+                return parseInt(valor.toString())
+            case 'Date':
+                return valor
+            default:
+                break;
+        }
+    },
+    obtenerIdActualizarPorLista: function(arreglo, lista){
+        switch(lista){
+            case 'ProyectoInversion':
+                return arreglo.IdProyectoInversion.ID
+            case 'Terrenos':
+                return arreglo.IdTerreno.ID
+        }
+    },
+    /// Actualiza un elemento sobre el sitio y lista especificados
+    /// site: el sitio donde se actualizaría el elemento
+    /// list: la lista de sharepoint donde se actualizaría el elemento
+    /// id: el ID del elemento a actualizar
+    /// json: el JSON para enviar en el request con los datos a actualizar
+    UpdateItem: function(site, list, id, json) {
+        var dfd = $.Deferred();
+        // Formacion de URL de consulta
+        var url = site + "/_api/web/lists/getbytitle('" + list + "')/items(" + id + ")";
+        // Envío de información por API Rest de SharePoint
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: JSON.stringify(json),
+            dataType: 'json',
+            async: false,
+            crossDomain: true,
+            headers: {
+                "Accept": "application/json;odata=verbose",
+                "content-type": "application/json;odata=verbose",
+                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                "X-HTTP-Method": "MERGE",
+                "If-Match": "*",
+            },
+            success: function (data) {
+                // Se resuelve el objeto deferred 
+                return dfd.resolve(data);
+            },
+            error: function (error) {
+                console.log(error.responseText);
+                // Se rechaza el objeto deferred 
+                return dfd.reject();
+            }
+        });
+        // Retorno de promesa sobre el objeto deferred  
+        return dfd.promise();
     }
 }
 export default util;

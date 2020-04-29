@@ -93,10 +93,13 @@ h5 {
 }
 
 label {
-    font-size: 14pt;
     font-weight: bold;
     color: #40B9C7;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    cursor: pointer;
+}
+
+.close{
+    color: white!important;
+    opacity: 1!important;
 }

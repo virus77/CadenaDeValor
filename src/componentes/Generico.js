@@ -19,6 +19,7 @@ import plus_icon from '../imagenes/plus_icon.png';
 import egupload_icon from '../imagenes/egupload_icon.png';
 import clear_icon from '../imagenes/clear.png';
 import disk from '../imagenes/disk.png';
+import hyperlink_icon from '../imagenes/hyperlink_icon.png';
 
 import { sp } from "@pnp/sp";
 import { Web } from "@pnp/sp/webs";
@@ -441,14 +442,14 @@ class Generico extends Component {
 
                     actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                         .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title)))" + complemento + ")")
-                        .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID', 'IdTerreno/Title',
-                            'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/TxtCluster',
-                            'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
+                        .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
+                                'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
+                                'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
                             'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
                             'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
                             'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title', 'Orden', 'NombreActividad', 
                             'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
-                            'IdTarea/Subcluster')
+                            'IdTarea/Subcluster', 'IdTarea/AbrirLink')
                         .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
                                 'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico')
                         .orderBy('Orden', true)
@@ -1330,7 +1331,7 @@ class Generico extends Component {
                     terreno={nombreTerreno}
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={<p style={{ paddingLeft: "27px" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
-                <Columna titulo={<p style={{ textAlign: "center", paddingRight: "27px" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "lg", "550px") }} /></p>} estilo='col-sm-2' editable={false} />
+                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "lg", "550px") }} /></p>} estilo='col-sm-2' editable={false} />
                 <Columna estilo='col-sm-2' />
             </div>
         )
@@ -1346,7 +1347,7 @@ class Generico extends Component {
                     terreno={nombreTerreno}
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-2' editable={false} />
-                <Columna titulo={<p style={{ textAlign: "center", paddingRight: "27px" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "lg", "550px") }} /></p>} estilo='col-sm-2' editable={false} />
+                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "lg", "550px") }} /></p>} estilo='col-sm-2' editable={false} />
                 <Columna estilo='col-sm-2' />
             </div>
         )
@@ -1361,10 +1362,10 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "right", paddingRight: "7px" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center", paddingLeft: "22px" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingRight: "15px" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "22px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "9px" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
         )
@@ -1379,8 +1380,8 @@ class Generico extends Component {
                     <Columna titulo={<p><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? this.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={date} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center", paddingLeft: "22px" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(urlIncident, "_blank")} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
@@ -1398,9 +1399,9 @@ class Generico extends Component {
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title}</span>} style={{ textAlign: "right", paddingLeft: "30px" }} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "20px" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "10px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "5px" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
         )
@@ -1877,18 +1878,9 @@ class Generico extends Component {
                 let datosPITerr = {idPI: 0, idTerr: 0, tipo: '', idCluster: props.idCluster, usuario: usuarioActual, grupo: gruposUsuarioActual.length>0 ? gruposUsuarioActual[0] : '', tarea: 0}
                 let nombreTerreno = ''
                 let filaBody = props.datos.map((fila) => {
-                    let urlLink = fila.UrlDocumentos !== null && fila.UrlDocumentos !== undefined ? fila.UrlDocumentos.substring(fila.UrlDocumentos.indexOf('<a')) : ''
-                    urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
-                    const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html")
-                    var urlDescargarDocto = parseResultDocto.documentElement.textContent
-                    let urlTarea = fila.UrlTarea !== null && fila.UrlTarea !== undefined ? fila.UrlTarea.substring(fila.UrlTarea.indexOf('<a')) : ''
-                    urlTarea = urlTarea.replace('<a href="', '').replace(' target="_blank">Ver Tarea</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
-                    const parseResult = new DOMParser().parseFromString(urlTarea, "text/html")
-                    const urlAbrirTarea = parseResult.documentElement.textContent
-
                     if (fila.IdTerreno !== undefined && fila.IdTerreno !== null) {
                         if (fila.IdTerreno.Title === props.tituloTerreno) {
-                            nombreTerreno = fila.IdTerreno !== undefined ? fila.IdTerreno.NombredelTerreno2 : ''
+                            nombreTerreno = fila.IdTerreno !== undefined ? fila.IdTerreno.NombredelTerreno2 : fila.IdProyectoInversion.NombreProyectoInversion
                             if (fila.Orden === props.idCluster) {
                                 if(datosPITerr.idPI === 0){
                                     datosPITerr.idPI = fila.IdProyectoInversion.ID
@@ -1902,7 +1894,7 @@ class Generico extends Component {
                                             <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                 <div className="row" >
                                                     <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                 </div>
                                             </div>
                                         :   (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
@@ -1911,11 +1903,11 @@ class Generico extends Component {
                                                     <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                         <div className="row">
                                                             <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                            {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                            {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                         </div>
                                                     </div> : null
                                                 })
-                                            : (fila.IdTarea.EsBitacora === '1' ?
+                                            : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
                                                 this.state.bitacorasInfo.map((num) => {
                                                     var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
                                                     var date = thisDate != null ? thisDate[0].FechaCompSol : null;
@@ -1926,7 +1918,7 @@ class Generico extends Component {
                                                                 <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                     <div className="row" >
                                                                         <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                     </div>
                                                                 </div> : null)
                                                         case 274:
@@ -1934,7 +1926,7 @@ class Generico extends Component {
                                                                 <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                     <div className="row" >
                                                                         <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                     </div>
                                                                 </div> : null)
                                                         default:
@@ -1942,7 +1934,7 @@ class Generico extends Component {
                                                     }
                                                 })
                                                 :
-                                                (fila.IdTarea.Subcluster === null ?
+                                                (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
                                                     this.state.Mkt.map((dato) => {
                                                         switch (fila.IdTarea.ID) {
                                                             case 287:
@@ -1950,7 +1942,7 @@ class Generico extends Component {
                                                                     <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
                                                                             <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                                         </div>
                                                                     </div> : null)
                                                             case 288:
@@ -1958,7 +1950,7 @@ class Generico extends Component {
                                                                     <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
                                                                             <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                                         </div>
                                                                     </div> : null)
                                                             default:
@@ -1979,6 +1971,7 @@ class Generico extends Component {
                         }
                     } else {
                         if (props.tituloTerreno === '') {
+                            nombreTerreno = fila.IdTerreno !== undefined ? fila.IdTerreno.NombredelTerreno2 : fila.IdProyectoInversion.NombreProyectoInversion
                             if (fila.Orden === props.idCluster) {
                                 if(datosPITerr.idPI === 0){
                                     datosPITerr.idPI = fila.IdProyectoInversion.ID
@@ -1992,7 +1985,7 @@ class Generico extends Component {
                                             <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                 <div className="row" >
                                                     <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                 </div>
                                             </div>
                                         :   (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
@@ -2001,7 +1994,7 @@ class Generico extends Component {
                                                     <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                         <div className="row">
                                                             <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                            {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                            {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                         </div>
                                                     </div> : null
                                                 })
@@ -2016,7 +2009,7 @@ class Generico extends Component {
                                                                 <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                     <div className="row" >
                                                                         <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                     </div>
                                                                 </div> : null)
                                                         case 274:
@@ -2024,7 +2017,7 @@ class Generico extends Component {
                                                                 <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                     <div className="row" >
                                                                         <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                     </div>
                                                                 </div> : null)
                                                         default:
@@ -2040,7 +2033,7 @@ class Generico extends Component {
                                                                     <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
                                                                             <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                                         </div>
                                                                     </div> : null)
                                                             case 288:
@@ -2048,7 +2041,7 @@ class Generico extends Component {
                                                                     <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
                                                                             <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                                         </div>
                                                                     </div> : null)
                                                             default:
