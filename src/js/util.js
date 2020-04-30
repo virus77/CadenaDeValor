@@ -271,30 +271,30 @@ const util = {
         return val
     },
     //Obtiene la información de los trámites asociados a los IDs de tareas clúster dentro de las actividades proporcionadas
-    generarConsultaFPT: async function(actividades){
+    generarConsultaFPT: async function (actividades) {
         let datosFPT = [];
-        let idsFPT = actividades.map((x)=> { return x.IdTarea.EsCluster === '1' && x.IdTarea.EsBitacora === '0' ? x.ID : 0})
-        
-        if(idsFPT.length>0){
-            idsFPT = idsFPT.filter(x => x>0)
+        let idsFPT = actividades.map((x) => { return x.IdTarea.EsCluster === '1' && x.IdTarea.EsBitacora === '0' ? x.ID : 0 })
+
+        if (idsFPT.length > 0) {
+            idsFPT = idsFPT.filter(x => x > 0)
             let filtroFPT = ''
-            idsFPT.forEach(idFPT =>{
+            idsFPT.forEach(idFPT => {
                 filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ')' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ')'
             })
-            
+
             datosFPT = await sp.web.lists.getByTitle('Fechas paquete de trámites').items
-                    .filter(filtroFPT)
-                    .select('ID','IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
-                            'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
-                            'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada',
-                            'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified')
-                    .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos')
-                    .get()
+                .filter(filtroFPT)
+                .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
+                    'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
+                    'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada',
+                    'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified')
+                .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos')
+                .get()
         }
         return datosFPT
     },
-    establacerDatoLista: function(lista, datos, proyectoInversion){
-        return datos.map((dato)=>{
+    establacerDatoLista: function (lista, datos, proyectoInversion) {
+        return datos.map((dato) => {
             dato.Lista = lista
             dato.PI = proyectoInversion
 
@@ -310,34 +310,35 @@ const util = {
             const urlAbrirTarea = parseResult.documentElement.textContent
 
             dato.UrlTarea = urlAbrirTarea
-            
+
             return dato
         })
     },
-    generarArregloEG: function(clusters, datos){
+    generarArregloEG: function (clusters, datos) {
         let arregloClusters = []
-        clusters.forEach((clusterActual, cIndex) =>{
-            const datosCluster = datos.filter(x=> x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster);
+        clusters.forEach((clusterActual, cIndex) => {
+            const datosCluster = datos.filter(x => x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster);
             const datosTerrenos = [...new Set(datosCluster.map(x => (x.Terreno !== undefined ? x.Terreno.Title : '')))];
             const subClusters = [...new Set(datosCluster.map(x => (x.Tarea.EsSubcluster === '1' ? x.Tarea.Title : '')))];
             //arregloClusters.push({[clusterActual.cluster.TxtCluster]: []})
-            datosCluster.forEach((datoCluster, dIndex)=>{
-                arregloClusters[cIndex] =   {  Cluster: clusterActual.cluster.TxtCluster,
-                                        Subcluster: datoCluster.Tarea.EsSubcluster === '1' ? datoCluster.Tarea.Title : '',
-                                        Tipo: 'EstrategiaGestion',
-                                        PI: datoCluster.ProyectoInversion,
-                                        Terr: datoCluster.Terreno,
-                                        Tarea: datoCluster.Tarea,
-                                        NombreActividad: datoCluster.NombreActividad,
-                                        AsignadoA: datoCluster.AsignadoA,
-                                        GrupoResponsable: datoCluster.GrupoResponsable,
-                                        Seleccionado: datoCluster.Seleccionado,
-                                        IdFlujoTareas: datoCluster.IdFlujoTareasId,
-                                        Estatus: datoCluster.EstatusId,
-                                        OrdenEG: datoCluster.OrdenEG,
-                                        IdRCDTT: datoCluster.IdRCDTT,
-                                        IdFPT: datoCluster.IdFPTId
-                                    }
+            datosCluster.forEach((datoCluster, dIndex) => {
+                arregloClusters[cIndex] = {
+                    Cluster: clusterActual.cluster.TxtCluster,
+                    Subcluster: datoCluster.Tarea.EsSubcluster === '1' ? datoCluster.Tarea.Title : '',
+                    Tipo: 'EstrategiaGestion',
+                    PI: datoCluster.ProyectoInversion,
+                    Terr: datoCluster.Terreno,
+                    Tarea: datoCluster.Tarea,
+                    NombreActividad: datoCluster.NombreActividad,
+                    AsignadoA: datoCluster.AsignadoA,
+                    GrupoResponsable: datoCluster.GrupoResponsable,
+                    Seleccionado: datoCluster.Seleccionado,
+                    IdFlujoTareas: datoCluster.IdFlujoTareasId,
+                    Estatus: datoCluster.EstatusId,
+                    OrdenEG: datoCluster.OrdenEG,
+                    IdRCDTT: datoCluster.IdRCDTT,
+                    IdFPT: datoCluster.IdFPTId
+                }
                 /*arreglo.push({  Cluster: clusterActual.cluster.TxtCluster,
                                 Subcluster: dato.Tarea.EsSubcluster === '1' ? dato.Tarea.Title : '',
                                 Tipo: 'EstrategiaGestion',
@@ -357,52 +358,53 @@ const util = {
                 return
             })
         })
-                
+
         return arregloClusters
     },
-    generarArregloActs: function(tipo, clusters, datos){
+    generarArregloActs: function (tipo, clusters, datos) {
         let arreglo = []
-        clusters.forEach((clusterActual) =>{
-            const datosCluster = datos.filter(x=> x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster)
-            datosCluster.forEach((dato)=>{
-                arreglo.push({  Cluster: clusterActual.cluster.TxtCluster,
-                                Subcluster: dato.Tarea.EsSubcluster === '1' ? dato.Tarea.Title : '',
-                                Tipo: tipo,
-                                PI: dato.IdProyectoInversion,
-                                Terr: dato.IdTerreno,
-                                Tarea: dato.IdTarea,
-                                NombreActividad: dato.NombreActividad,
-                                AsignadoA: dato.AsignadoA,
-                                Nivel: dato.Nivel,
-                                Estatus: dato.EstatusId,
-                                EstatusAnterior: dato.EstatusAnteriorId,
-                                UrlTarea: dato.UrlTarea,
-                                UrlDocumentos: dato.UrlDocumentos,
-                                Favoritos: dato.Favoritos,
-                                LineaBase: datos.LineaBase,
-                                LineaBaseModifico: datos.LineaBaseModifico,
-                                FechaEstimada: datos.FechaEstimada,
-                                Orden: datos.Orden
-                            })
+        clusters.forEach((clusterActual) => {
+            const datosCluster = datos.filter(x => x.Tarea.TxtCluster === clusterActual.cluster.TxtCluster)
+            datosCluster.forEach((dato) => {
+                arreglo.push({
+                    Cluster: clusterActual.cluster.TxtCluster,
+                    Subcluster: dato.Tarea.EsSubcluster === '1' ? dato.Tarea.Title : '',
+                    Tipo: tipo,
+                    PI: dato.IdProyectoInversion,
+                    Terr: dato.IdTerreno,
+                    Tarea: dato.IdTarea,
+                    NombreActividad: dato.NombreActividad,
+                    AsignadoA: dato.AsignadoA,
+                    Nivel: dato.Nivel,
+                    Estatus: dato.EstatusId,
+                    EstatusAnterior: dato.EstatusAnteriorId,
+                    UrlTarea: dato.UrlTarea,
+                    UrlDocumentos: dato.UrlDocumentos,
+                    Favoritos: dato.Favoritos,
+                    LineaBase: datos.LineaBase,
+                    LineaBaseModifico: datos.LineaBaseModifico,
+                    FechaEstimada: datos.FechaEstimada,
+                    Orden: datos.Orden
+                })
                 return
             })
         })
-                
+
         return arreglo
     },
     //Agrupa el contenido del arreglo proporcionado por la columna especificada
-    groupBy: function(arreglo, propiedad) {
+    groupBy: function (arreglo, propiedad) {
         return arreglo.reduce((acc, obj) => {
-           const key = obj[propiedad];
-           if (!acc[key]) {
-              acc[key] = [];
-           }
-           acc[key].push(obj);
-           return acc;
+            const key = obj[propiedad];
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+            acc[key].push(obj);
+            return acc;
         }, {});
     },
-    returnDataByFieldType: function(valor, tipo){
-        switch(tipo){
+    returnDataByFieldType: function (valor, tipo) {
+        switch (tipo) {
             case 'Text':
             case 'TextArea':
                 return valor.toString()
@@ -414,8 +416,8 @@ const util = {
                 break;
         }
     },
-    obtenerIdActualizarPorLista: function(arreglo, lista){
-        switch(lista){
+    obtenerIdActualizarPorLista: function (arreglo, lista) {
+        switch (lista) {
             case 'ProyectoInversion':
                 return arreglo.IdProyectoInversion.ID
             case 'Terrenos':
@@ -427,7 +429,7 @@ const util = {
     /// list: la lista de sharepoint donde se actualizaría el elemento
     /// id: el ID del elemento a actualizar
     /// json: el JSON para enviar en el request con los datos a actualizar
-    UpdateItem: function(site, list, id, json) {
+    UpdateItem: function (site, list, id, json) {
         var dfd = $.Deferred();
         // Formacion de URL de consulta
         var url = site + "/_api/web/lists/getbytitle('" + list + "')/items(" + id + ")";
@@ -458,6 +460,16 @@ const util = {
         });
         // Retorno de promesa sobre el objeto deferred  
         return dfd.promise();
+    },
+    action271: function (orden, datos) {
+        var variable = false;
+        for (let index = 0; index < datos.length; index++) {
+            if (datos[index].Orden === orden && datos[index].IdTarea.ID === 271 && datos[index].Estatus.ID !== 3)
+            {
+                variable = true;
+            }
+        }
+        return variable;
     }
 }
 export default util;
