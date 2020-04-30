@@ -97,6 +97,7 @@ class Ventana extends Component {
                 default:
                     break;
             }
+            this.onCerrar()
         }
         else{
             //Si los datos de la ventana  sí son de una tarea de Flujo tareas...
@@ -105,31 +106,24 @@ class Ventana extends Component {
             for(let prop in camposLista){
                 if(prop!== 'Documentos'){
                     let campos = camposLista[prop]
-                    let jsonu = {
-                        "__metadata": { "type": "SP.Data." + campos[0].listaPrincipalIN + "ListItem" }
-                    }
-                    //let jsonu = { }
+                    let jsonu = {}
                     let idActualizar = util.obtenerIdActualizarPorLista(this.props.abrir.filaSeleccionada, campos[0].listaPrincipalIN)
-                    campos = campos.map((campoActual)=>{
+                    campos.map((campoActual)=>{
                         const campoRef = this.state.refs[campoActual.campo]
                         campoActual.valor = campoRef.current.value
                         jsonu[campoActual.campo] = util.returnDataByFieldType(campoRef.current.value, campoActual.tipo)
                         return campoActual
                     })
-                    //jsonu = JSON.stringify(jsonu)
-                    console.log(jsonu)
-                    await sp.web.lists.getByTitle(campos[0].listaPrincipal).items.getById(idActualizar).update({
-                        jsonu
-                    });
-                    const send = util.UpdateItem('http://con.quierocasa.com.mx:21520/CompraDeTerreno',campos[0].listaPrincipal, idActualizar, jsonu)
-                    console.log(send)
+                    await sp.web.lists.getByTitle(campos[0].listaPrincipal).items.getById(idActualizar).update(jsonu)
+                    .then(()=>{
+                        this.onCerrar()
+                    })
+                    .error(error=>{
+                        alert(error)
+                    })
                 }
             }
-            //let refs = Object.entries(this.state.refs)
-            //refs = refs.filter(x=> x[1].current !== null)
-            //refs = refs.filter(x=> x[1].current.value !== '')
         }
-        this.onCerrar()
     }
 
     async onEnviar(datos) {

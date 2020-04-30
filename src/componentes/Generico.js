@@ -443,15 +443,15 @@ class Generico extends Component {
                     actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
                         .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title)))" + complemento + ")")
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
-                                'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
-                                'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
+                            'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
+                            'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
                             'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID',
                             'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
                             'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title', 'Orden', 'NombreActividad', 
                             'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
-                            'IdTarea/Subcluster', 'IdTarea/AbrirLink')
+                            'IdTarea/Subcluster', 'IdTarea/AbrirLink', 'OcultoA/ID', 'OcultoA/Title')
                         .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
-                                'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico')
+                                'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico', 'OcultoA')
                         .orderBy('Orden', true)
                         .top(1000)
                         .get()
@@ -467,14 +467,13 @@ class Generico extends Component {
                     result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
                         .map(currentCluster => {
                             return {
-                                //cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.IdTarea.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.IdTarea.Orden) < parseFloat(idVentanaSeleccionada + 1)))
                                 cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.Orden) < parseFloat(idVentanaSeleccionada + 1)))
                             };
                         });
 
                     Mkt = actividades
-                    .filter(x => x.IdTarea.Subcluster === "Material de ventas fabricado" || x.IdTarea.Subcluster === "Entrega para diseño de material de ventas")
-                    .sort(function (a, b) { return b.IdTarea.ID - a.IdTarea.ID });
+                    .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
+                    .sort(function (a, b) { return a.IdTarea.ID - b.IdTarea.ID })
 
                     result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster!=='Dummy')
 
@@ -1229,6 +1228,7 @@ class Generico extends Component {
         } else {
             //#region Otras ventanas
             if (arregloDatos.tarea === 0) {
+                //Asignado A
                 //Si la ventana donde sucede el evento es Normativo, Proyectos o Administración
                 const usuariosAsignados = util.obtenerIdAsignados(arregloDatos.dato.usuarioAsignados)
                 const filaSeleccionada = this.state.modal.filaSeleccionada
@@ -1274,6 +1274,7 @@ class Generico extends Component {
                     alert('Error al actualizar Flujo Tareas: ' +error)
                 })
             } else if(arregloDatos.tarea === 271){
+                //Actividad ficticia
                 this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '')
             } else if(arregloDatos.tarea === 272){
                 if(arregloDatos.dato.lista === 'Flujo Tareas'){
@@ -1299,23 +1300,32 @@ class Generico extends Component {
                     this.setState({ datosFPT: datosActualizados })
                 }
             } else if(arregloDatos.tarea === 289){
+                //Edición de clúster de Marketing
                 let datosActualizados
                 let datosActualizadosO
-                arregloDatos.dato.datos.forEach(dato=>{
+                let datosActualizadosMkt
+                const datosActualizar = arregloDatos.dato.datos.filter(x=>x.Cambio)
+
+                datosActualizar.forEach(dato=>{
                     const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === dato.ID)
                     const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === dato.ID)
+                    const filaIndiceMkt = this.state.Mkt.findIndex(datos => datos.ID === dato.ID)
+
                     let newData = this.state.datosVentana.datos[filaIndice]
                     let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+                    let newDataMkt = this.state.Mkt[filaIndiceMkt]
                     newData.OcultoA = dato.OcultoA
                     newDataO.OcultoA = dato.OcultoA
+                    newDataMkt.OcultoA = dato.OcultoA
 
                     datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
                     datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
 
                     datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                     datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                    datosActualizadosMkt = update(this.state.Mkt, { $splice: [[filaIndiceMkt, 1, newDataMkt]] })
                 })
-                this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
+                this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO, Mkt: datosActualizadosMkt })
             }
             //#endregion
         }
@@ -1340,13 +1350,13 @@ class Generico extends Component {
     muiInnEG = (fila, props, Columna, nombreTerreno, plus_icon, assignedTo_icon) => {
         return (
             <div className="itemIn row" >
-                <Columna titulo={fila.Tarea.ID + ': ' + (fila.Tarea.ID !== 271 ? fila.Tarea.Title : fila.NombreActividad)} estilo='col-sm-5'
+                <Columna titulo={fila.Tarea.ID + ': ' + (fila.Tarea.ID !== 271 ? fila.IdRCDTT.Title : fila.NombreActividad)} estilo='col-sm-5'
                     editable={fila.Tarea.ID === 271 ? true : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35 && fila.Tarea.ID !== 271) ? false : true)}
                     idElemento={fila.Tarea.ID === 271 ? fila.Tarea.ID : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? fila.Tarea.ID : fila.IdFlujoTareasId)}
                     esTarea={fila.Tarea.ID === 271 ? false : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? false : true)}
                     terreno={nombreTerreno}
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
-                <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-2' editable={false} />
+                <Columna titulo={<p style={{ paddingLeft: "27px" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
                 <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "lg", "550px") }} /></p>} estilo='col-sm-2' editable={false} />
                 <Columna estilo='col-sm-2' />
             </div>
@@ -1363,8 +1373,8 @@ class Generico extends Component {
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={more_details_icon !== null ?<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p> : null} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1381,7 +1391,7 @@ class Generico extends Component {
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={date} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
@@ -1399,7 +1409,7 @@ class Generico extends Component {
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title}</span>} style={{ textAlign: "right", paddingLeft: "30px" }} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
@@ -1417,7 +1427,7 @@ class Generico extends Component {
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "10px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(datoFPT, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(datoFPT) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
@@ -1438,7 +1448,6 @@ class Generico extends Component {
                             var id = "body" + idcluster;
                             var arrow = "expandir" + idcluster
                             var average = util.average(props, fila.cluster.IdTarea.Orden);
-                            var existeFila = "";
                                 return (
                                 <div key={fila.cluster.Orden} style={{ width: "98%" }}>
                                     <div className="row" >
@@ -1890,7 +1899,7 @@ class Generico extends Component {
                                 }
                                 return (
                                     <div key={fila.ID}>
-                                        {fila.IdTarea.EsCluster === '0' ?
+                                        {fila.IdTarea.EsCluster === '0' && fila.IdTarea.Orden !== 3.14 ?
                                             <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                 <div className="row" >
                                                     <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
@@ -1908,57 +1917,74 @@ class Generico extends Component {
                                                     </div> : null
                                                 })
                                             : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
-                                                this.state.bitacorasInfo.map((num) => {
-                                                    var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                    var date = thisDate != null ? thisDate[0].FechaCompSol : null;
-                                                    const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
-                                                    switch (fila.IdTarea.ID) {
-                                                        case 273:
-                                                            return (num.MotivoCausaInc.Title === "Arquitectura" ?
-                                                                <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                    <div className="row" >
-                                                                        <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                    </div>
-                                                                </div> : null)
-                                                        case 274:
-                                                            return (num.MotivoCausaInc.Title === "Ejecutivo" ?
-                                                                <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                    <div className="row" >
-                                                                        <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                    </div>
-                                                                </div> : null)
-                                                        default:
-                                                            break;
-                                                    }
-                                                })
-                                                :
-                                                (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
-                                                    this.state.Mkt.map((dato) => {
+                                                <>
+                                                    <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                        <div className="row" >
+                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                            {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                        </div>
+                                                    </div>
+                                                    {this.state.bitacorasInfo.map((num) => {
+                                                        var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
+                                                        var date = thisDate != null ? thisDate[0].FechaCompSol : null;
+                                                        const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
                                                         switch (fila.IdTarea.ID) {
-                                                            case 287:
-                                                                return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
-                                                                    <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                            case 273:
+                                                                return (num.MotivoCausaInc.Title === "Arquitectura" ?
+                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
-                                                                            <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                         </div>
                                                                     </div> : null)
-                                                            case 288:
-                                                                return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
-                                                                    <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                            case 274:
+                                                                return (num.MotivoCausaInc.Title === "Ejecutivo" ?
+                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
-                                                                            <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                         </div>
                                                                     </div> : null)
                                                             default:
                                                                 break;
                                                         }
-                                                    })
-                                                    :
-                                                    null
+                                                    })}
+                                                </>
+                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                    <>
+                                                        <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                            <div className="row" >
+                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                            </div>
+                                                        </div>
+                                                        {this.state.Mkt.map((dato) => {
+                                                            const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                                                            if(!ocultoA.results.includes(usuarioActual.Id)){
+                                                                switch (fila.IdTarea.ID) {
+                                                                    case 287:
+                                                                        return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
+                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                <div className="row" >
+                                                                                    <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                </div>
+                                                                            </div> : null)
+                                                                    case 288:
+                                                                        return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
+                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                <div className="row" >
+                                                                                    <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                </div>
+                                                                            </div> : null)
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                            }
+                                                        })}
+                                                    </>
+                                                    : null
                                                 )
                                             )
                                         )
@@ -1981,7 +2007,7 @@ class Generico extends Component {
                                 }
                                 return (
                                     <div key={fila.ID}>
-                                        {fila.IdTarea.EsCluster === '0' ?
+                                        {fila.IdTarea.EsCluster === '0' && fila.IdTarea.Orden !== 3.14 ?
                                             <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                 <div className="row" >
                                                     <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
@@ -1998,60 +2024,77 @@ class Generico extends Component {
                                                         </div>
                                                     </div> : null
                                                 })
-                                            : (fila.IdTarea.EsBitacora === '1' ?
-                                                this.state.bitacorasInfo.map((num) => {
-                                                    var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                    var date = thisDate != null ? thisDate[0].FechaCompSol : null;
-                                                    const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
-                                                    switch (fila.IdTarea.ID) {
-                                                        case 273:
-                                                            return (num.MotivoCausaInc.Title === "Arquitectura" ?
-                                                                <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                    <div className="row" >
-                                                                        <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                    </div>
-                                                                </div> : null)
-                                                        case 274:
-                                                            return (num.MotivoCausaInc.Title === "Ejecutivo" ?
-                                                                <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                    <div className="row" >
-                                                                        <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                        {this.mui273274(fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                    </div>
-                                                                </div> : null)
-                                                        default:
-                                                            break;
-                                                    }
-                                                })
-                                            :
-                                                (fila.IdTarea.Subcluster === null ?
-                                                    this.state.Mkt.map((dato) => {
+                                            : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
+                                                <>
+                                                    <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                        <div className="row" >
+                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                            {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                        </div>
+                                                    </div>
+                                                    {this.state.bitacorasInfo.map((num) => {
+                                                        var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
+                                                        var date = thisDate != null ? thisDate[0].FechaCompSol : null;
+                                                        const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
                                                         switch (fila.IdTarea.ID) {
-                                                            case 287:
-                                                                return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
-                                                                    <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                            case 273:
+                                                                return (num.MotivoCausaInc.Title === "Arquitectura" ?
+                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
-                                                                            <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                         </div>
                                                                     </div> : null)
-                                                            case 288:
-                                                                return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
-                                                                    <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                            case 274:
+                                                                return (num.MotivoCausaInc.Title === "Ejecutivo" ?
+                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
                                                                         <div className="row" >
-                                                                            <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
                                                                         </div>
                                                                     </div> : null)
                                                             default:
                                                                 break;
                                                         }
-                                                    })
-                                                    :
-                                                    null
+                                                    })}
+                                                </>
+                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                    <>
+                                                        <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                            <div className="row" >
+                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                            </div>
+                                                        </div>
+                                                        {this.state.Mkt.map((dato) => {
+                                                            const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                                                            if(!ocultoA.results.includes(usuarioActual.Id)){
+                                                                switch (fila.IdTarea.ID) {
+                                                                    case 287:
+                                                                        return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
+                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                <div className="row" >
+                                                                                    <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                </div>
+                                                                            </div> : null)
+                                                                    case 288:
+                                                                        return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
+                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                <div className="row" >
+                                                                                    <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                </div>
+                                                                            </div> : null)
+                                                                    default:
+                                                                        break;
+                                                                }
+                                                            }
+                                                        })}
+                                                    </>
+                                                    : null
                                                 )
-                                            )
+                                                )
                                             )
                                         }
                                     </div>

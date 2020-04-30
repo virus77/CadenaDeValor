@@ -421,43 +421,6 @@ const util = {
             case 'Terrenos':
                 return arreglo.IdTerreno.ID
         }
-    },
-    /// Actualiza un elemento sobre el sitio y lista especificados
-    /// site: el sitio donde se actualizaría el elemento
-    /// list: la lista de sharepoint donde se actualizaría el elemento
-    /// id: el ID del elemento a actualizar
-    /// json: el JSON para enviar en el request con los datos a actualizar
-    UpdateItem: function(site, list, id, json) {
-        var dfd = $.Deferred();
-        // Formacion de URL de consulta
-        var url = site + "/_api/web/lists/getbytitle('" + list + "')/items(" + id + ")";
-        // Envío de información por API Rest de SharePoint
-        $.ajax({
-            url: url,
-            type: "POST",
-            data: JSON.stringify(json),
-            dataType: 'json',
-            async: false,
-            crossDomain: true,
-            headers: {
-                "Accept": "application/json;odata=verbose",
-                "content-type": "application/json;odata=verbose",
-                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
-                "X-HTTP-Method": "MERGE",
-                "If-Match": "*",
-            },
-            success: function (data) {
-                // Se resuelve el objeto deferred 
-                return dfd.resolve(data);
-            },
-            error: function (error) {
-                console.log(error.responseText);
-                // Se rechaza el objeto deferred 
-                return dfd.reject();
-            }
-        });
-        // Retorno de promesa sobre el objeto deferred  
-        return dfd.promise();
     }
 }
 export default util;

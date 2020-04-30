@@ -40,15 +40,19 @@ class EditarCluster extends Component{
         if(!checked){
             if(newData.OcultoA === undefined){
                 newData.OcultoA = [{ID: usuarioActual.Id, Name: usuarioActual.LoginName }]
+                newData.Cambio = !newData.Cambio
             }else if(newData.OcultoA.length === 0){
                 newData.OcultoA = [{ID: usuarioActual.Id, Name: usuarioActual.LoginName }]
+                newData.Cambio = !newData.Cambio
             }
             else{
                 newData.OcultoA.push({ID: usuarioActual.Id, Name: usuarioActual.LoginName })
+                newData.Cambio = !newData.Cambio
             }
         }else{
             const indexUsuario = newData.OcultoA.findIndex(x=> x .ID === usuarioActual.Id)
             newData.OcultoA.splice(indexUsuario, 1)
+            newData.Cambio = !newData.Cambio
         }
         
         let datosActualizados = update(this.state.datos, { $splice: [[index, 1, newData]] })
@@ -57,7 +61,7 @@ class EditarCluster extends Component{
 
     obtenerTareas = async () =>{
         let usuarioActual = await sp.web.currentUser.get()
-        const tareas = await sp.web.lists.getByTitle('Flujo Tareas').items
+        let tareas = await sp.web.lists.getByTitle('Flujo Tareas').items
         .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
                 ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
         .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'OcultoA/ID', 'OcultoA/Name')
@@ -65,6 +69,11 @@ class EditarCluster extends Component{
         .get()
         .catch(error=>{
             alert('Error al cargar la ventana: ' + error)
+        })
+        //Se realiza para tener el control de las tareas que se chequean/deschequean
+        tareas = tareas.map((tarea)=>{
+            tarea.Cambio = false
+            return tarea
         })
         this.setState({usuarioActual: usuarioActual, datos: tareas, backdrop: {abierto : false, mensaje: ''}})
     }
@@ -84,6 +93,7 @@ class EditarCluster extends Component{
 
     onGuardar = async () => {
         let {datos} = this.state
+        datos = datos.filter(x=> x.Cambio)
         
         const guardar = async () => {
             this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
