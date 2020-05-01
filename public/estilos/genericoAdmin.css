@@ -1,3 +1,7 @@
+.MuiInputBase-root {
+  font-size: 10px !important;
+}
+
 .titulo {
   font-size: 16pt !important;
   padding-top: 7px;
@@ -18,7 +22,7 @@
   font-weight: normal!important;
   color: black;
   font-size: 11pt;
-  padding-left: 20px!important;
+  padding-left: 15px!important;
   border-bottom: #ADDC7A;
   border-bottom-width: 2px;
   border-bottom-style: solid;
@@ -38,7 +42,7 @@
   font-weight: normal!important;
   color: black;
   font-size: 10pt;
-  padding-left: 25px!important;
+  padding-left: 20px!important;
   border-bottom: #ADDC7A;
   border-bottom-width: 2px;
   border-bottom-style: solid;

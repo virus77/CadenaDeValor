@@ -452,7 +452,7 @@ class Generico extends Component {
                             'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
                             'IdTarea/Subcluster', 'IdTarea/AbrirLink', 'OcultoA/ID', 'OcultoA/Title')
                         .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
-                                'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico', 'OcultoA')
+                            'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico', 'OcultoA')
                         .orderBy('Orden', true)
                         .top(1000)
                         .get()
@@ -473,8 +473,8 @@ class Generico extends Component {
                         });
 
                     Mkt = actividades
-                    .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
-                    .sort(function (a, b) { return a.IdTarea.ID - b.IdTarea.ID })
+                        .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
+                        .sort(function (a, b) { return a.IdTarea.ID - b.IdTarea.ID })
 
                     result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
 
@@ -1278,7 +1278,7 @@ class Generico extends Component {
                 }).catch(error => {
                     alert('Error al actualizar Flujo Tareas: ' + error)
                 })
-            } else if(arregloDatos.tarea === 271){
+            } else if (arregloDatos.tarea === 271) {
                 //Actividad ficticia
                 this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '')
             } else if (arregloDatos.tarea === 272) {
@@ -1304,14 +1304,14 @@ class Generico extends Component {
                     let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
                     this.setState({ datosFPT: datosActualizados })
                 }
-            } else if(arregloDatos.tarea === 289){
+            } else if (arregloDatos.tarea === 289) {
                 //Edición de clúster de Marketing
                 let datosActualizados
                 let datosActualizadosO
                 let datosActualizadosMkt
-                const datosActualizar = arregloDatos.dato.datos.filter(x=>x.Cambio)
+                const datosActualizar = arregloDatos.dato.datos.filter(x => x.Cambio)
 
-                datosActualizar.forEach(dato=>{
+                datosActualizar.forEach(dato => {
                     const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === dato.ID)
                     const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === dato.ID)
                     const filaIndiceMkt = this.state.Mkt.findIndex(datos => datos.ID === dato.ID)
@@ -1373,13 +1373,13 @@ class Generico extends Component {
             <div className="item row" >
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={<p>{fila.IdTarea.ID + ': ' + (fila.IdTarea.ID !== 271 ? fila.IdTarea.Title : fila.NombreActividad)}</p>} id={fila.ID} estilo='col-sm-4' editable={true} idElemento={fila.IdTarea.ID !== 271 ? fila.ID : fila.IdTarea.ID} esTarea={true} terreno={nombreTerreno} datos={fila} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "15px" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "right", paddingRight: "7px" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "right", paddingLeft: "30px" }}><DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "right", paddingLeft: "30px" }}>{<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />}</p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "right", paddingLeft: "37px" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={more_details_icon !== null ?<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={more_details_icon !== null ? <p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p> : null} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1390,15 +1390,15 @@ class Generico extends Component {
         return (
             <div className="itemIn row" >
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
-                    <Columna titulo={num.Title + ': ' + num.BitacoraInc.Title} estilo='col-sm-3' />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingRight: "5px" }}>{num.AreaAsignadaInc !== undefined ? num.AreaAsignadaInc.NombreCorto : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
+                    <Columna titulo={<p>{num.Title + ': ' + num.BitacoraInc.Title}</p>} estilo='col-sm-4' />
+                    <Columna titulo={<p style={{ textAlign: "left" }}>{num.AreaAsignadaInc !== undefined ? num.AreaAsignadaInc.NombreCorto : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? this.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={date} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "left" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
         )
@@ -1409,14 +1409,14 @@ class Generico extends Component {
             <div className="itemIn row" >
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={dato.IdTarea.ID + ': ' + (dato.IdTarea.ID !== 271 ? dato.IdTarea.Title : dato.NombreActividad)} estilo='col-sm-4' editable={true} idElemento={dato.IdTarea.ID !== 271 ? dato.ID : dato.IdTarea.ID} esTarea={true} terreno={nombreTerreno} datos={dato} />
-                    <Columna titulo={dato.GrupoResponsable !== undefined ? dato.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingRight: "5px" }}><img title={dato.AsignadoA === undefined ? 'Sin asignar' : (dato.AsignadoA.length > 0 ? this.obtenerAsignados(dato.AsignadoA) : 'Sin asignar')} src={dato.AsignadoA === undefined ? plus_icon : (dato.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', dato.AsignadoA !== undefined ? dato.AsignadoA : [], dato, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}>{dato.GrupoResponsable !== undefined ? dato.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img title={dato.AsignadoA === undefined ? 'Sin asignar' : (dato.AsignadoA.length > 0 ? this.obtenerAsignados(dato.AsignadoA) : 'Sin asignar')} src={dato.AsignadoA === undefined ? plus_icon : (dato.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', dato.AsignadoA !== undefined ? dato.AsignadoA : [], dato, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title}</span>} style={{ textAlign: "right", paddingLeft: "30px" }} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "left" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
         )
@@ -1427,13 +1427,13 @@ class Generico extends Component {
             <div className="item row" >
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={fila.IdTarea.ID + ': ' + (fila.IdTarea.ID !== 271 ? datoFPT.IdDocTramite.Title : fila.NombreActividad)} estilo='col-sm-4' editable={true} idElemento={fila.IdTarea.ID !== 271 ? fila.ID : datoFPT.IdFlujoId} esTarea={true} terreno={nombreTerreno} datos={datoFPT} />
-                    <Columna titulo={fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p><img title={datoFPT.AsignadoA === undefined ? 'Sin asignar' : (datoFPT.AsignadoA.length > 0 ? this.obtenerAsignados(datoFPT.AsignadoA) : 'Sin asignar')} src={datoFPT.AsignadoA === undefined ? plus_icon : (datoFPT.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA : [], datoFPT, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} />} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={datoFPT.AsignadoA === undefined ? 'Sin asignar' : (datoFPT.AsignadoA.length > 0 ? this.obtenerAsignados(datoFPT.AsignadoA) : 'Sin asignar')} src={datoFPT.AsignadoA === undefined ? plus_icon : (datoFPT.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA : [], datoFPT, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "right", paddingLeft: "30px" }}><DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'LineaBase')} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "right", paddingLeft: "30px" }}><DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "right", paddingLeft: "37px" }} className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "10px" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(datoFPT, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(datoFPT) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1454,7 +1454,7 @@ class Generico extends Component {
                             var id = "body" + idcluster;
                             var arrow = "expandir" + idcluster
                             var average = util.average(props, fila.cluster.IdTarea.Orden);
-                                return (
+                            return (
                                 <div key={fila.cluster.Orden} style={{ width: "98%" }}>
                                     <div className="row" >
                                         {<input style={{ paddingLeft: "5px", marginTop: "13px", visibility: "hidden" }} type='checkbox' className='checkBox'></input>}
@@ -1473,7 +1473,7 @@ class Generico extends Component {
                                                     valida === true ?
                                                         <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
                                                             <p className="numberCircle pad100"><img src={disk} alt='disk_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p>
-                                                        </div>:
+                                                        </div> :
                                                         <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
                                                             <p className="numberCircleEG pad"><img src={attach_icon} alt='attach_icon'></img></p>
                                                         </div>
@@ -1646,7 +1646,7 @@ class Generico extends Component {
                         else {
                             return (
                                 <div key={index} className={fila.estilo} >
-                                    <p style={{ marginTop: "30px", textAlign: "center" }}>
+                                    <p style={{ marginTop: "30px", paddingLeft: "10px" }}>
                                         {fila.titulo}
                                     </p>
                                 </div>
@@ -1741,7 +1741,7 @@ class Generico extends Component {
                     <div style={{ padding: "8px", position: 'fixed', top: '7%', width: "98%" }}>
                         <div style={{ paddingLeft: "3%", width: "97%" }}>
                             <div>
-                                <div className="row">
+                                <div className="row" style={{ paddingLeft: "5%" }}>
                                     {filaHeader}
                                 </div>
                             </div>
@@ -1828,7 +1828,7 @@ class Generico extends Component {
                                     datosPITerr.tarea = fila.Tarea
                                 }
                                 return (
-                                    <div key={fila.ID} style={{ paddingLeft: "20px", width: "98%" }}>
+                                    <div key={fila.ID} style={{ width: "98%" }}>
                                         {fila.Tarea.EsSubcluster === "1" ?
                                             fila.IdRCDTT === undefined ?
                                                 <div className="row" >
@@ -1839,7 +1839,7 @@ class Generico extends Component {
                                                     }
                                                     {this.muiNormalEG(fila, props, Columna, nombreTerreno, plus_icon, assignedTo_icon)}
                                                 </div> :
-                                                <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                <div key={fila.ID} style={{ paddingLeft: "30px", width: "100%" }}>
                                                     <div className="row" >
                                                         {fila.Tarea.ID === 271 ? <input style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input> :
                                                             (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ?
@@ -1916,7 +1916,7 @@ class Generico extends Component {
                                                     {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                 </div>
                                             </div>
-                                        : 
+                                            :
                                             (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
                                                     return datoFPT.IdFlujoId === fila.ID ?
@@ -1926,8 +1926,8 @@ class Generico extends Component {
                                                                 {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                             </div>
                                                         </div> : null
-                                            })
-                                            :
+                                                })
+                                                :
                                                 (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
                                                     <>
                                                         <div style={{ paddingLeft: "20px", width: "98%" }}>
@@ -1962,7 +1962,7 @@ class Generico extends Component {
                                                             }
                                                         })}
                                                     </>
-                                                :
+                                                    :
                                                     (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
                                                         <>
                                                             <div style={{ paddingLeft: "20px", width: "98%" }}>
@@ -1973,7 +1973,7 @@ class Generico extends Component {
                                                             </div>
                                                             {this.state.Mkt.map((dato) => {
                                                                 const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                                                                if(!ocultoA.results.includes(usuarioActual.Id)){
+                                                                if (!ocultoA.results.includes(usuarioActual.Id)) {
                                                                     switch (fila.IdTarea.ID) {
                                                                         case 287:
                                                                             return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
@@ -1997,7 +1997,7 @@ class Generico extends Component {
                                                                 }
                                                             })}
                                                         </>
-                                                    : null
+                                                        : null
                                                     )
                                                 )
                                             )}
@@ -2029,83 +2029,83 @@ class Generico extends Component {
                                             : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
                                                     return datoFPT.IdFlujoId === fila.ID ?
-                                                    <div style={{ paddingLeft: "20px", width: "98%" }}>
-                                                        <div className="row">
-                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                            {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                        </div>
-                                                    </div> : null
+                                                        <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                            <div className="row">
+                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                {this.muiTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                            </div>
+                                                        </div> : null
                                                 })
-                                            : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
-                                                <>
-                                                    <div style={{ paddingLeft: "20px", width: "98%" }}>
-                                                        <div className="row" >
-                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                            {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                        </div>
-                                                    </div>
-                                                    {this.state.bitacorasInfo.map((num) => {
-                                                        var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                        var date = thisDate != null ? thisDate[0].FechaCompSol : null;
-                                                        const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
-                                                        switch (fila.IdTarea.ID) {
-                                                            case 273:
-                                                                return (num.MotivoCausaInc.Title === "Arquitectura" ?
-                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                        <div className="row" >
-                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                        </div>
-                                                                    </div> : null)
-                                                            case 274:
-                                                                return (num.MotivoCausaInc.Title === "Ejecutivo" ?
-                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                        <div className="row" >
-                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                        </div>
-                                                                    </div> : null)
-                                                            default:
-                                                                break;
-                                                        }
-                                                    })}
-                                                </>
-                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
                                                     <>
                                                         <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                             <div className="row" >
                                                                 <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                             </div>
                                                         </div>
-                                                        {this.state.Mkt.map((dato) => {
-                                                            const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                                                            if(!ocultoA.results.includes(usuarioActual.Id)){
-                                                                switch (fila.IdTarea.ID) {
-                                                                    case 287:
-                                                                        return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
-                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                                <div className="row" >
-                                                                                    <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                                                </div>
-                                                                            </div> : null)
-                                                                    case 288:
-                                                                        return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
-                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                                <div className="row" >
-                                                                                    <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                                                </div>
-                                                                            </div> : null)
-                                                                    default:
-                                                                        break;
-                                                                }
+                                                        {this.state.bitacorasInfo.map((num) => {
+                                                            var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
+                                                            var date = thisDate != null ? thisDate[0].FechaCompSol : null;
+                                                            const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
+                                                            switch (fila.IdTarea.ID) {
+                                                                case 273:
+                                                                    return (num.MotivoCausaInc.Title === "Arquitectura" ?
+                                                                        <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                            <div className="row" >
+                                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                            </div>
+                                                                        </div> : null)
+                                                                case 274:
+                                                                    return (num.MotivoCausaInc.Title === "Ejecutivo" ?
+                                                                        <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                            <div className="row" >
+                                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                            </div>
+                                                                        </div> : null)
+                                                                default:
+                                                                    break;
                                                             }
                                                         })}
                                                     </>
-                                                    : null
-                                                )
+                                                    : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                        <>
+                                                            <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                                <div className="row" >
+                                                                    <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                </div>
+                                                            </div>
+                                                            {this.state.Mkt.map((dato) => {
+                                                                const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                                                                if (!ocultoA.results.includes(usuarioActual.Id)) {
+                                                                    switch (fila.IdTarea.ID) {
+                                                                        case 287:
+                                                                            return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
+                                                                                <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                    <div className="row" >
+                                                                                        <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                        {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                    </div>
+                                                                                </div> : null)
+                                                                        case 288:
+                                                                            return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
+                                                                                <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                    <div className="row" >
+                                                                                        <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                        {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                    </div>
+                                                                                </div> : null)
+                                                                        default:
+                                                                            break;
+                                                                    }
+                                                                }
+                                                            })}
+                                                        </>
+                                                        : null
+                                                    )
                                                 )
                                             )
                                         }
