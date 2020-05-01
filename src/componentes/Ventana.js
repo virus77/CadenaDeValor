@@ -374,6 +374,10 @@ class Ventana extends Component {
         return await sp.web.siteGroups();
     }
 
+    obtenerSiNo = async () =>{
+        return await [{Id: 0, Title: 'Sí'}, {Id: 1, Title: 'No'}]
+    }
+
     async onCargarArchivo(e, nombreDocumento) {
         const {archivosCargados} = this.state
         if (window.confirm('¿Desea adjuntar el archivo "' + e.target.files[0].name + '"?')) {

@@ -474,7 +474,7 @@ class Generico extends Component {
 
                     Mkt = actividades
                     .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
-                    .sort(function (a, b) { return a.IdTarea.ID - b.IdTarea.ID })
+                    .sort(function (a, b) { return a.ID - b.ID })
 
                     result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
 
@@ -1390,7 +1390,7 @@ class Generico extends Component {
         return (
             <div className="itemIn row" >
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
-                    <Columna titulo={num.Title + ': ' + num.BitacoraInc.Title} estilo='col-sm-3' />
+                    <Columna titulo={num.Title + ': ' + num.MotivoCausaInc.Title} estilo='col-sm-3' />
                     <Columna titulo={<p style={{ textAlign: "center", paddingRight: "5px" }}>{num.AreaAsignadaInc !== undefined ? num.AreaAsignadaInc.NombreCorto : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
                     <Columna titulo={<p><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? this.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} />} estilo='col-sm-1' editable={false} />
@@ -1447,9 +1447,11 @@ class Generico extends Component {
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
                     //Otras ventanas
+                    let datosV = props.datos.filter(x=> x.Orden >= props.idVentana && x.Orden < props.idVentana + 1)
                     const filaCluster = props.titulos.map((fila) => {
                         if (fila.cluster.IdTarea.TxtCluster !== 'Dummy') {
-                            var valida = util.action271(fila.cluster.Orden, props.datos);
+                            var valida = util.action271(fila.cluster.Orden, datosV);
+                            let hayAFActiva = datosV.filter(x=>x.Orden === fila.cluster.Orden && x.IdTarea.ID === 271 && x.Estatus.ID !== 3)
                             var idcluster = fila.cluster.ID * 0.16;
                             var id = "body" + idcluster;
                             var arrow = "expandir" + idcluster
@@ -1460,24 +1462,18 @@ class Generico extends Component {
                                         {<input style={{ paddingLeft: "5px", marginTop: "13px", visibility: "hidden" }} type='checkbox' className='checkBox'></input>}
                                         <div className='titulo'>
                                             <div onClick={() => util.toggle(id, arrow, 4)} className="row" >
-                                                <div className="col-sm-10">
+                                                <div className="col-sm-9">
                                                     <p style={{ paddingLeft: "14px" }}>
                                                         <img style={{ paddingRight: "1%" }} id={arrow} src={arrow_up_icon} alt='arrow_up_icon'></img>
                                                         {fila.cluster.IdTarea.TxtCluster}
                                                     </p>
                                                 </div>
-                                                {fila.cluster.IdTarea.Orden === 3.14 ?
-                                                    <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
-                                                        <p className="numberCircle pad100"><img src={pen} alt='pen_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p>
-                                                    </div> :
-                                                    valida === true ?
-                                                        <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
-                                                            <p className="numberCircle pad100"><img src={disk} alt='disk_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p>
-                                                        </div>:
-                                                        <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
-                                                            <p className="numberCircleEG pad"><img src={attach_icon} alt='attach_icon'></img></p>
-                                                        </div>
-                                                }
+                                                <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
+                                                    {fila.cluster.IdTarea.Orden === 3.14 ? <p className="numberCircle pad100"><img src={pen} alt='pen_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p>: <p></p>}
+                                                </div>
+                                                <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
+                                                    {hayAFActiva.length > 0 ? <p className="numberCircle pad100"><img src={disk} alt='disk_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p>: <p></p>}
+                                                </div>
                                                 <div className="col-sm-1">
                                                     {average === 100 ? <p className="numberCircle pad100">{average}%</p> : <p className="numberCircle pad">{average}%</p>}
                                                 </div>
@@ -1491,20 +1487,20 @@ class Generico extends Component {
                                                     util.bodyFunAll(terr, props, fila).length > 2 ?
                                                         <div id={id.substring(0, 4) + idcluster++} tag={id.substring(0, 4) + idcluster++}
                                                             style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.Orden} />
+                                                            <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                         </div> :
                                                         <div id={id} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.Orden} />
+                                                            <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                         </div> :
                                                     <div className={id} id={id + "*"} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                        <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.Orden} />
+                                                        <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                     </div>
                                                 }
                                                 <div className='row empty-space' ></div>
                                             </div>
                                             : <div>
                                                 <div key={idcluster + 1} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                    <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.Orden} />
+                                                    <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                 </div>
                                             </div>
                                     })}
@@ -2036,76 +2032,76 @@ class Generico extends Component {
                                                         </div>
                                                     </div> : null
                                                 })
-                                            : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
-                                                <>
-                                                    <div style={{ paddingLeft: "20px", width: "98%" }}>
-                                                        <div className="row" >
-                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                            {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                        </div>
-                                                    </div>
-                                                    {this.state.bitacorasInfo.map((num) => {
-                                                        var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                        var date = thisDate != null ? thisDate[0].FechaCompSol : null;
-                                                        const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
-                                                        switch (fila.IdTarea.ID) {
-                                                            case 273:
-                                                                return (num.MotivoCausaInc.Title === "Arquitectura" ?
-                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                        <div className="row" >
-                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                        </div>
-                                                                    </div> : null)
-                                                            case 274:
-                                                                return (num.MotivoCausaInc.Title === "Ejecutivo" ?
-                                                                    <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                        <div className="row" >
-                                                                            <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                            {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                        </div>
-                                                                    </div> : null)
-                                                            default:
-                                                                break;
-                                                        }
-                                                    })}
-                                                </>
-                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.EsBitacora === '1' ?
                                                     <>
                                                         <div style={{ paddingLeft: "20px", width: "98%" }}>
                                                             <div className="row" >
                                                                 <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                {this.muiNormal(fila, hyperlink_icon, null, usuarioActual, webUrl, "/sitepages/Bitacora.aspx?b=" + this.state.bitacorasInfo[0].BitacoraInc.ID, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
                                                             </div>
                                                         </div>
-                                                        {this.state.Mkt.map((dato) => {
-                                                            const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                                                            if(!ocultoA.results.includes(usuarioActual.Id)){
-                                                                switch (fila.IdTarea.ID) {
-                                                                    case 287:
-                                                                        return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
-                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                                <div className="row" >
-                                                                                    <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                                                </div>
-                                                                            </div> : null)
-                                                                    case 288:
-                                                                        return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
-                                                                            <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
-                                                                                <div className="row" >
-                                                                                    <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
-                                                                                    {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
-                                                                                </div>
-                                                                            </div> : null)
-                                                                    default:
-                                                                        break;
-                                                                }
+                                                        {this.state.bitacorasInfo.map((num) => {
+                                                            var thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
+                                                            var date = thisDate != null ? thisDate[0].FechaCompSol : null;
+                                                            const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
+                                                            switch (fila.IdTarea.ID) {
+                                                                case 273:
+                                                                    return (num.MotivoCausaInc.Title === "Arquitectura" ?
+                                                                        <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                            <div className="row" >
+                                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                            </div>
+                                                                        </div> : null)
+                                                                case 274:
+                                                                    return (num.MotivoCausaInc.Title === "Ejecutivo" ?
+                                                                        <div key={fila.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                            <div className="row" >
+                                                                                <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                {this.mui273274(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                            </div>
+                                                                        </div> : null)
+                                                                default:
+                                                                    break;
                                                             }
                                                         })}
                                                     </>
-                                                    : null
-                                                )
+                                                    : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '1' && fila.IdTarea.Subcluster === null ?
+                                                        <>
+                                                            <div style={{ paddingLeft: "20px", width: "98%" }}>
+                                                                <div className="row" >
+                                                                    <input id={fila.ID} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                    {this.muiNormal(fila, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                </div>
+                                                            </div>
+                                                            {this.state.Mkt.map((dato) => {
+                                                                const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                                                                if(!ocultoA.results.includes(usuarioActual.Id)){
+                                                                    switch (fila.IdTarea.ID) {
+                                                                        case 287:
+                                                                            return (dato.IdTarea.Subcluster === "Entrega para diseño de material de ventas" ?
+                                                                                <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                    <div className="row" >
+                                                                                        <input id={dato.ID * 5} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                        {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                    </div>
+                                                                                </div> : null)
+                                                                        case 288:
+                                                                            return (dato.IdTarea.Subcluster === "Material de ventas fabricado" ?
+                                                                                <div key={dato.ID} style={{ paddingLeft: "50px", width: "100%" }}>
+                                                                                    <div className="row" >
+                                                                                        <input id={dato.ID * 4} style={{ visibility: "hidden", marginRight: "1%" }} type='checkbox' name="Hidden" className='checkBox-sm' ></input>
+                                                                                        {this.mui287288(dato, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es)}
+                                                                                    </div>
+                                                                                </div> : null)
+                                                                        default:
+                                                                            break;
+                                                                    }
+                                                                }
+                                                            })}
+                                                        </>
+                                                        : null
+                                                    )
                                                 )
                                             )
                                         }
