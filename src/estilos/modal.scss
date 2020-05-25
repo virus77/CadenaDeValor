@@ -88,6 +88,44 @@ label {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.formulario input {
+    margin: 0 .25rem;
+    min-width: 100px;
+    border: 1px solid #eee;
+    border-left: 5px solid;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+
+.formulario input:optional {
+    margin: 0 .25rem;
+    min-width: 100px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.formulario input:required {
+    border-color: darkseagreen;
+}
+.formulario input:invalid {
+    border-color: salmon;
+}
+.div_required {
+    min-width: 100px;
+    border: 1px solid darkseagreen;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.div_invalid {
+    min-width: 100px;
+    border: 1px solid salmon;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.nombreArchivo{
+    border: 0!important
+}
+
 /*[type="file"] {
     height: 0;
     overflow: hidden;

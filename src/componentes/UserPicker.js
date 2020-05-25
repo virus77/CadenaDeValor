@@ -8,6 +8,7 @@ export default function ComboBox(props) {
     <Autocomplete
       id="combo-box-demo"
       options={props.usuarios}
+      disabled = {props.disabled}
       defaultValue={props.itemsSeleccionados}
       size="small"
       onChange = {function(event,value,reason){

@@ -56,7 +56,7 @@ class Detalle extends Component{
     render(){
         const {estatus} = this.state
         return(
-            <div>
+            <div className='col-sm-12'>
                 <div className='form-row align-items-center'>
                     <div className='col-sm-6'>
                         <h5 className='textoEncabezado'>Sobre la tarea</h5>

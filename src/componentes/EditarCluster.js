@@ -37,7 +37,9 @@ class EditarCluster extends Component{
         const index = datos.findIndex(x=> x.ID === parseInt(name))
         let newData = datos[index]
         
-        if(!checked){
+        newData.Visible = checked
+        newData.Cambio = !newData.Cambio
+        /*if(!checked){
             if(newData.OcultoA === undefined){
                 newData.OcultoA = [{ID: usuarioActual.Id, Name: usuarioActual.LoginName }]
                 newData.Cambio = !newData.Cambio
@@ -50,10 +52,10 @@ class EditarCluster extends Component{
                 newData.Cambio = !newData.Cambio
             }
         }else{
-            const indexUsuario = newData.OcultoA.findIndex(x=> x .ID === usuarioActual.Id)
+            const indexUsuario = newData.OcultoA.findIndex(x=> x.ID === usuarioActual.Id)
             newData.OcultoA.splice(indexUsuario, 1)
             newData.Cambio = !newData.Cambio
-        }
+        }*/
         
         let datosActualizados = update(this.state.datos, { $splice: [[index, 1, newData]] })
         this.setState({datos: datosActualizados})
@@ -64,8 +66,10 @@ class EditarCluster extends Component{
         let tareas = await sp.web.lists.getByTitle('Flujo Tareas').items
         .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
                 ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
-        .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'OcultoA/ID', 'OcultoA/Name')
-        .expand('IdTarea', 'OcultoA')
+        //.select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'OcultoA/ID', 'OcultoA/Name')
+        .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'Visible')
+        .expand('IdTarea')
+        //.expand('IdTarea', 'OcultoA')
         .get()
         .catch(error=>{
             alert('Error al cargar la ventana: ' + error)
@@ -98,9 +102,10 @@ class EditarCluster extends Component{
         const guardar = async () => {
             this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
             await util.asyncForEach(datos, async dato => {
-                const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
                 await sp.web.lists.getByTitle('Flujo Tareas').items.getById(dato.ID).update({
-                    OcultoAId: ocultoA
+                    //OcultoAId: ocultoA
+                    Visible: dato.Visible
                 })
                 .catch(error=>{
                     alert('Error al guardar en Flujo Tareas: ' + error)
@@ -117,7 +122,7 @@ class EditarCluster extends Component{
     //#endregion
     render(){
         return(
-            <div>
+            <div style={{ width: '100%' }}>
                 {!this.state.backdrop.abierto ?
                     <div>
                         <div className='form-row'>
@@ -126,7 +131,8 @@ class EditarCluster extends Component{
                                 {this.state.datos.map((dato) =>{
                                     return dato.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' ?
                                     <div key={dato.ID}>
-                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />
+                                        {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
+                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
                                         <label htmlFor={dato.ID} className='textoActividad'>{dato.IdTarea.Title}</label>
                                     </div>
                                     : null
@@ -137,7 +143,8 @@ class EditarCluster extends Component{
                                 {this.state.datos.map((dato) =>{
                                     return dato.IdTarea.Subcluster === 'Material de ventas fabricado' ?
                                     <div key={dato.ID}>
-                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />
+                                        {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
+                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
                                         <label htmlFor={dato.ID} className='textoActividad'>{dato.IdTarea.Title}</label>
                                     </div>
                                     : null

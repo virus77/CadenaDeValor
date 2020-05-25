@@ -89,3 +89,12 @@ p {
   font-weight: 0px;
   color: #75E7BC!important;
 }
+
+.presionado{
+    border-style: outset!important;
+    border-radius: 2em/2em!important;
+}
+
+.normal{
+    border-radius: 2em/2em!important;
+}

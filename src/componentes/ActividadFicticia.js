@@ -36,7 +36,7 @@ class ActividadFicticia extends Component {
     }
 
     //#region Métodos de ciclo de vida
-    async componentWillMount() {
+    async componentDidMount() {
         //Obtiene los datos del usuario actual
         usuarioActual = await sp.web.currentUser.get();
         const listaUsuarios = await sp.web.siteUsers()
@@ -324,21 +324,23 @@ class ActividadFicticia extends Component {
     //#endregion
 
     render() {
-        const { NombreActividad, GrupoResponsable, LineaBase, FechaEstimada, Estatus, usuarioAsignados } = this.state
+        const { NombreActividad, GrupoResponsable, LineaBase, FechaEstimada, Estatus, usuarioAsignados, ID } = this.state
+        const esCreador = this.props.gruposUsuarioActual.filter(x=> x.ID === GrupoResponsable.ID).length> 0 ? true : false
+        const esAsignado = usuarioAsignados.filter(x=> x.Id === this.props.usuarioActual.Id).length> 0 ? true : false
         return (
-            <div>
+            <div className='col-sm-12'>
                 {!this.state.backdrop.abierto ?
                     <div>
                         <div className='form-row'>
                             <div className='col-sm-8 borde'>
                                 <h6 className='texto'><span className='obligatorio'>*</span>Nombre de la actividad</h6>
-                                <input type="text" name='NombreActividad' className='form-control' value={NombreActividad} onChange={this.onCambiar} maxLength={255} required />
+                                <input type="text" name='NombreActividad' className='form-control' value={NombreActividad} onChange={this.onCambiar} maxLength={255} required disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
                                 <h6 className='texto'>Grupo responsable</h6>
                                 <input type="text" name='GrupoResponsable' className='form-control' value={GrupoResponsable.NombreCortoGantt} readOnly />
                                 <h6 className='texto'><span className='obligatorio'>*</span>Asignado(s) a</h6>
-                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={usuarioAsignados} seleccionarItems={this.onSeleccionarItems} />
+                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={usuarioAsignados} seleccionarItems={this.onSeleccionarItems} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
                                 <h6 className='texto'>Fecha compromiso</h6>
-                                <input type="date" name='LineaBase' className='form-control' value={LineaBase} onChange={this.onCambiar} />
+                                <input type="date" name='LineaBase' className='form-control' value={LineaBase} onChange={this.onCambiar} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
                                 <h6 className='texto'>Fecha estimada de entrega</h6>
                                 <input type="date" name='FechaEstimada' className='form-control' value={FechaEstimada} onChange={this.onCambiar} />
                             </div>
@@ -354,7 +356,7 @@ class ActividadFicticia extends Component {
                         <hr />
                         <div className='row'>
                             <div className='col-sm-6 izquierda'>
-                                { this.state.ID > 0 ? <input type="button" className="btn btn-secondary btn-md" value='Eliminar' onClick={this.onEliminar} /> : null }
+                                { ID > 0 && esCreador ? <input type="button" className="btn btn-secondary btn-md" value='Eliminar' onClick={this.onEliminar} /> : null }
                             </div>
                             <div className='col-sm-6 derecha'>
                                 <input type="button" className="btn btn-info btn-md" value='Guardar' onClick={this.onGuardar} />

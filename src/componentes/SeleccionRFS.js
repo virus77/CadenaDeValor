@@ -29,7 +29,7 @@ class SeleccionRFS extends Component{
     }
     
     obtenerDatosGuardados = async () =>{
-        const item = await sp.web.lists.getByTitle("RFSN").items.getById(this.state.idFlujoTareas).get()
+        //const item = await sp.web.lists.getByTitle("RFSN").items.getById(this.state.idFlujoTareas).get()
 
     }
 

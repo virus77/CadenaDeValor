@@ -18,7 +18,7 @@
   font-weight: normal!important;
   color: black;
   font-size: 11pt;
-  padding-left: 20px!important;
+  padding-left: 15px!important;
   border-bottom: #ADDC7A;
   border-bottom-width: 2px;
   border-bottom-style: solid;
@@ -38,7 +38,7 @@
   font-weight: normal!important;
   color: black;
   font-size: 10pt;
-  padding-left: 25px!important;
+  padding-left: 20px!important;
   border-bottom: #ADDC7A;
   border-bottom-width: 2px;
   border-bottom-style: solid;
@@ -271,4 +271,8 @@
   font-size: 15pt;
   font-weight: 0px;
   color: #ADDC7A!important;
+}
+
+.fixedPadding{
+  padding-left: 2%!important;
 }
