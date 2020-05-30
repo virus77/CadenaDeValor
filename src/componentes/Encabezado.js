@@ -41,10 +41,14 @@ class Encabezado extends Component {
     }
 
     onAbrirModal = (terreno, id, esTarea, campo, valor, fila, size, padding) => {
-        this.setState({
-            modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila, size: size, padding: padding },
-            datos: { campo: campo, valor: valor }
-        })
+        if(id === 268 && this.props.rfs){
+            alert('No se puede cambiar el MACO porque ya se definió RFS. Para cambiarlo, envíe un ticket al área de sistemas.')
+        }else{
+            this.setState({
+                modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila, size: size, padding: padding },
+                datos: { campo: campo, valor: valor }
+            })
+        }
     }
 
     onActualizarMaco = nuevoMaco => {

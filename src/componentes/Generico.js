@@ -69,21 +69,16 @@ class Generico extends Component {
             disabled: true,
             clustersVentana: [],
             MACO: this.props.maco,
-            datos: {
-                campo: '',
-                valor: ''
-            },
+            datos: { campo: '', valor: '' },
             modal: {
                 abierto: false,
                 id: 0,
                 terreno: '',
                 esTarea: false,
-                filaSeleccionada: {}
+                filaSeleccionada: {},
+                url: ''
             },
-            backdrop: {
-                cargado: false,
-                mensaje: 'Cargando contenido...'
-            },
+            backdrop: { cargado: false, mensaje: 'Cargando contenido...' },
             terrenos: [],
             bitacorasInfo: [],
             solucionInfo: [],
@@ -101,7 +96,8 @@ class Generico extends Component {
             datosFPT: [],
             usuarioActual: [],
             gruposUsuarioActual: [],
-            seguridad: []
+            seguridad: [],
+            tieneRFS: false
         }
         this.state = this.inialState;
     }
@@ -174,12 +170,16 @@ class Generico extends Component {
                 });
 
             result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
+
+            const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
             
             //let d =util.generarArregloEG(result, datos)
             this.setState({
                 cargado: true, datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, clustersVentana: result,
-                totalAdmin: ventanas[0].Administración.length, totalNorm: ventanas[0].Normativo.length,
-                totalProy: ventanas[0].Proyectos.length, idVentanaAnterior: this.state.idVentanaSeleccionada,
+                totalAdmin: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
+                totalNorm: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
+                totalProy: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length : 0,
+                idVentanaAnterior: this.state.idVentanaSeleccionada, tieneRFS: tieneRFS,
                 terrenos: terrenos, terrenoTitulo: terrenoTitulo, backdrop: { cargado: true, mensaje: '' },
                 gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, seguridad: seguridad
             });
@@ -233,7 +233,7 @@ class Generico extends Component {
 
         if(abrirModal){
             this.setState({
-                modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila, size: size, padding: padding, usuarioActual: this.state.usuarioActual, gruposUsuarioActual: this.state.gruposUsuarioActual },
+                modal: { abierto: true, id: id, terreno: terreno, esTarea: esTarea, filaSeleccionada: fila, size: size, padding: padding, usuarioActual: this.state.usuarioActual, gruposUsuarioActual: this.state.gruposUsuarioActual, url: webUrl },
                 datos: { campo: campo, valor: valor }
             })
         }
@@ -392,7 +392,7 @@ class Generico extends Component {
                         .top(1000)
                         .get();
 
-                    let datosEG = util.inicializarArregloDatos(4, datos)
+                    let datosEG = util.inicializarArregloDatos(idVentanaSeleccionada, datos)
                     datosEG.datos = datos;
                     result = Array.from(new Set(datosEG.datos.map(s => s.Tarea.TxtCluster)))
                         .map(currentCluster => {
@@ -402,12 +402,16 @@ class Generico extends Component {
                         });
 
                     result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
+
+                    const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
+
                     //let d =util.generarArregloEG(result, datosEG)
                     this.setState({
                         backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result,
                         datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true,
                         idTerreno: nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno, MACO: nuevoTerreno !== '' ? nuevoTerreno.MACO : this.state.MACO,
-                        terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true
+                        terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true,
+                        tieneRFS: tieneRFS
                     });
                     //#endregion
                     break;
@@ -442,16 +446,16 @@ class Generico extends Component {
                     datosFPT = util.establacerDatoLista('Fechas paquete de trámites', datosFPT, this.props.IdProyInv)
 
                     let ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
-                    let datosActs = util.inicializarArregloDatos(0, actividades)
+                    let datosActs = util.inicializarArregloDatos(idVentanaSeleccionada, actividades.filter(x=> x.Orden >= idVentanaSeleccionada && x.Orden <= idVentanaSeleccionada + 1))
                     actividades = util.establacerDatoLista('Flujo Tareas', actividades, this.props.IdProyInv)
                     datosActs.datos = actividades
 
                     result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
-                        .map(currentCluster => {
-                            return {
-                                cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.Orden) < parseFloat(idVentanaSeleccionada + 1)))
-                            };
-                        });
+                    .map(currentCluster => {
+                        return {
+                            cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.Orden) < parseFloat(idVentanaSeleccionada + 1)))
+                        };
+                    });
 
                     Mkt = actividades
                     .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
@@ -471,13 +475,19 @@ class Generico extends Component {
                             return -1;
                         return 0;
                     })
+
+                    const hayRFS = actividades.some(x=> x.IdTarea.ID === 24 && x.Estatus.ID === 3)
                     //let d =util.generarArregloActs('Flujo Tareas', result, datosActs)
                     this.setState({
                         idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, datosOriginalVentana: datosActs,
-                        totalAdmin: ventanas[0].Administración.length, totalNorm: ventanas[0].Normativo.length, totalProy: ventanas[0].Proyectos.length,
-                        idVentanaAnterior: idVentanaSeleccionada, AdministracionAnterior: ventanas[0].Administración.length,
-                        NormativoAnterior: ventanas[0].Normativo.length, terrenos: terrenos, terrenoTitulo: terrenoTitulo,
-                        ProyectosAnterior: ventanas[0].Proyectos.length, disabled: false, backdrop: { cargado: true, mensaje: '' },
+                        totalAdmin: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
+                        totalNorm: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
+                        totalProy: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length: 0,
+                        idVentanaAnterior: idVentanaSeleccionada, tieneRFS: hayRFS,
+                        AdministracionAnterior: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
+                        NormativoAnterior: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
+                        ProyectosAnterior: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length: 0,
+                        terrenos: terrenos, terrenoTitulo: terrenoTitulo,  disabled: false, backdrop: { cargado: true, mensaje: '' },
                         filtrosTabla: filtrosTabla, datosFPT: datosFPT, Mkt: Mkt, bitacorasInfo: bitacorasInfo, seguridad: seguridad,
                         solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true
                     })
@@ -567,6 +577,7 @@ class Generico extends Component {
         let val = { results: [] }
         let favoritos = []
         const user = this.state.usuarioActual
+        const { idVentana } = this.state
         if (util.IsNullOrEmpty(fila.Favoritos) === false) {
             const exists = fila.Favoritos.filter(x => x.ID === user.Id)
             if (exists.length === 0) {
@@ -599,8 +610,8 @@ class Generico extends Component {
                 let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
                 newData.Favoritos = favoritos
                 newDataO.Favoritos = favoritos
-                let datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
-                let datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
+                let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
                 datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                 datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
                 this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
@@ -636,7 +647,7 @@ class Generico extends Component {
 
     //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
     onSeleccionarFecha = async (fecha, fila, campo) => {
-        const { usuarioActual } = this.state
+        const { usuarioActual, idVentana } = this.state
         if (fila.Lista === 'Flujo Tareas') {
             const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
             const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === fila.ID)
@@ -667,9 +678,9 @@ class Generico extends Component {
                     break;
             }
 
-            let datosActualizados = util.inicializarArregloDatos(this.state.idVentana, this.state.datosVentana.datos)
+            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
             datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-            let datosActualizadosO = util.inicializarArregloDatos(this.state.idVentana, this.state.datosOriginalVentana.datos)
+            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
             datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
             this.setState({ datosVentana: datosActualizados, datosOriginalVentan: datosActualizadosO })
         } else {
@@ -764,22 +775,25 @@ class Generico extends Component {
                     if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
                         //Sino tiene Id en fechas paquete de trámites, guarda la información en dicha lista
                         if (elemento.datos.IdFPTId === null) {
-                            fpt = await sp.web.lists.getByTitle("Fechas paquete de trámites").items.add({
-                                Title: this.state.terrenoTitulo,
-                                IdDocTaskId: elemento.datos.IdRCDTT.IdRTD,
-                                IdFlujoId: fta.data !== undefined ? fta.data.ID : fta[0].ID,
-                                IdDocTramiteId: elemento.datos.IdRCDTT.IdTramite,
-                                InternalNameFdeI: 'FdeI' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
-                                InternalNameFdeLaP: 'FdeP' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
-                                InternalNameFdeR: 'FdeR' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
-                                InternalNameFdeV: 'FdeV' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
-                                AsignadoAId: usuariosAsignados,
-                                EstatusId: 1,
-                                EstatusAnteriorId: 1
-                            })
-                            .catch(error =>{
-                                alert('Error al generar datos del trámite: ' + error)
-                            })
+                            if(elemento.datos.IdRCDTT !== undefined){
+                                fpt = await sp.web.lists.getByTitle("Fechas paquete de trámites").items.add({
+                                    Title: this.state.terrenoTitulo,
+                                    IdDocTaskId: elemento.datos.IdRCDTT.IdRTD,
+                                    IdFlujoId: fta.data !== undefined ? fta.data.ID : fta[0].ID,
+                                    IdDocTramiteId: elemento.datos.IdRCDTT.IdTramite,
+                                    InternalNameFdeI: 'FdeI' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
+                                    InternalNameFdeLaP: 'FdeP' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
+                                    InternalNameFdeR: 'FdeR' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
+                                    InternalNameFdeV: 'FdeV' + elemento.datos.IdRCDTT.TituloInternoDelCampo,
+                                    GrupoResponsableId: elemento.datos.GrupoResponsable.ID,
+                                    AsignadoAId: usuariosAsignados,
+                                    EstatusId: 1,
+                                    EstatusAnteriorId: 1
+                                })
+                                .catch(error =>{
+                                    alert('Error al generar datos del trámite: ' + error)
+                                })
+                            }
                         } else {
                             //Si ya tiene Id en fechas paquete de trámites, actualiza la información en dicha lista
                             await sp.web.lists.getByTitle("Fechas paquete de trámites").items.getById(elemento.datos.IdFPTId).update({
@@ -811,7 +825,7 @@ class Generico extends Component {
                         newData.EstatusId = elemento.datos.Tarea.EsCluster === '1' ? 1 : 3
                         newData.IdFPTId = fpt !== 0 ? fpt.data.Id : null
 
-                        datosActualizados = util.inicializarArregloDatos(this.state.idVentana, this.state.datosVentanaEG.datos)
+                        datosActualizados = util.inicializarArregloDatos(this.state.idVentana, this.state.datosVentanaEG.datos.filter(x=> x.Orden >= this.state.idVentana && x.Orden <= this.state.idVentana + 1))
                         datosActualizados.datos = update(this.state.datosVentanaEG.datos, { $splice: [[indice, 1, newData]] })
                     })
                     .catch(error =>{
@@ -847,7 +861,7 @@ class Generico extends Component {
                             newData.Seleccionado = elemento.datos.Seleccionado
                             newData.AsignadoAId = elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] }
 
-                            datosActualizados = util.inicializarArregloDatos(this.state.idVentana, this.state.datosVentanaEG.datos)
+                            datosActualizados = util.inicializarArregloDatos(this.state.idVentana, this.state.datosVentanaEG.datos.filter(x=> x.Orden >= this.state.idVentana && x.Orden <= this.state.idVentana + 1))
                             datosActualizados.datos = update(this.state.datosVentanaEG.datos, { $splice: [[indice, 1, newData]] })
                         })
                         .catch(error =>{
@@ -856,6 +870,12 @@ class Generico extends Component {
                     });
                 }
             });
+            await sp.web.lists.getByTitle("HistorialEG").items.add({
+                ProyectoInversionId: this.state.idProyecto
+            })
+            .catch(error =>{
+                alert('Error al guardar el historial de E.G.: ' + error)
+            })
             alert('Datos guardados correctamente')
             this.setState({
                 totalAdmin: this.state.totalAdmin + contadores.admin, totalNorm: this.state.totalNorm + contadores.norm,
@@ -879,14 +899,13 @@ class Generico extends Component {
         //Obtiene los datos del usuario actual
         const usuarioActual = await sp.web.currentUser.get();
         //Obtiene los grupos en los que está registrado el usuario actual en la lista de GanttPersonColab
-        //const gruposUsuarioActual = seguridad.filter(x=> x.AdminAreaGantt.some(y=> y.ID === usuarioActual.Id ) || x.RespAreaGantt.some(y=> y.ID === usuarioActual.Id))
         const gruposUsuarioActual = await sp.web.lists.getByTitle('GanttPersonColab').items
             .filter('AdminAreaGanttId eq ' + usuarioActual.Id)
             .get()
 
         const esAdministrador = gruposUsuarioActual.some(x=> x.NombreCortoGantt === 'EG')
 
-        //this.cargarDatosIniciales(this.props.rfs, this.props.idProyecto, this.props.idTerreno, this.props.TerrenoId, '', usuarioActual, gruposUsuarioActual)
+        //this.cargarDatosIniciales(tieneRFS, this.props.idProyecto, this.props.idTerreno, this.props.TerrenoId, '', usuarioActual, gruposUsuarioActual)
 
         if(esAdministrador){
             this.cargarDatosIniciales(this.props.rfs, this.props.idProyecto, this.props.idTerreno, this.props.TerrenoId, '', usuarioActual, gruposUsuarioActual, seguridad)
@@ -927,8 +946,8 @@ class Generico extends Component {
 
                 newData.AsignadoA = arregloDatos.dato.usuarioAsignados
                 newDataO.AsignadoA = arregloDatos.dato.usuarioAsignados
-                let datosActualizados = util.inicializarArregloDatos(4, this.state.datosVentanaEG.datos)
-                let datosActualizadosO = util.inicializarArregloDatos(4, this.state.datosOriginalVentanaEG.datos)
+                let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentanaEG.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentanaEG.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
                 datosActualizados.datos = update(this.state.datosVentanaEG.datos, { $splice: [[filaEGIndice, 1, newData]] })
                 datosActualizadosO.datos = update(this.state.datosOriginalVentanaEG.datos, { $splice: [[filaEGIndiceO, 1, newDataO]] })
                 this.setState({ datosVentanaEG: datosActualizados, datosOriginalVentanaEG: datosActualizadosO })
@@ -954,7 +973,7 @@ class Generico extends Component {
                                             tareaEG = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
                                                 IdProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                                 IdTareaId: nuevaTarea.ID,
-                                                NivelId: nuevaTarea.Nivel.ID,
+                                                NivelId: nuevaTarea.NivelId,
                                                 IdTerrenoId: terrenoPI.Id,
                                                 GrupoResponsableId: nuevaTarea.GrupoId,
                                                 EstatusId: 1,
@@ -1151,7 +1170,7 @@ class Generico extends Component {
                                                             tareaEG = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
                                                                 IdProyectoInversionId: idProyecto,
                                                                 IdTareaId: nuevaTarea.ID,
-                                                                NivelId: nuevaTarea.Nivel.ID,
+                                                                NivelId: nuevaTarea.NivelId,
                                                                 IdTerrenoId: terr.data.Id,
                                                                 GrupoResponsableId: nuevaTarea.GrupoId,
                                                                 EstatusId: 1,
@@ -1286,8 +1305,8 @@ class Generico extends Component {
                             newData.AsignadoA = arregloDatos.dato.usuarioAsignados
                             newDataO.AsignadoA = arregloDatos.dato.usuarioAsignados
     
-                            let datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
-                            let datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
+                            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
     
                             datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                             datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
@@ -1336,8 +1355,8 @@ class Generico extends Component {
                         newData.Estatus = arregloDatos.dato.estatus
                         newDataO.Estatus = arregloDatos.dato.estatus
     
-                        let datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
-                        let datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
+                        let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                        let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
     
                         datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                         datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
@@ -1369,8 +1388,8 @@ class Generico extends Component {
                         newDataO.Visible = dato.Visible
                         newDataMkt.Visible = dato.Visible
     
-                        datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
-                        datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
+                        datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                        datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
     
                         datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                         datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
@@ -1386,7 +1405,7 @@ class Generico extends Component {
                 .then(async ()=>{
                     if(filaSeleccionada.Lista === 'Flujo Tareas'){
                         if(filaSeleccionada.IdTarea.CreaBitacora === '1' || filaSeleccionada.IdTarea.TareaCrear !== '0'){
-                            this.onCambiarVentana(this.state.idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
+                            this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
                         }
                         else{
                             let filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.ID)
@@ -1396,8 +1415,8 @@ class Generico extends Component {
 
                             newData.Estatus = arregloDatos.dato
                             newDataO.Estatus = arregloDatos.dato
-                            let datosActualizados = util.inicializarArregloDatos(0, this.state.datosVentana.datos)
-                            let datosActualizadosO = util.inicializarArregloDatos(0, this.state.datosOriginalVentana.datos)
+                            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
                             datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                             datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
 
@@ -1436,8 +1455,25 @@ class Generico extends Component {
                         let filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === filaSeleccionada.ID)
                         let newData = this.state.datosFPT[filaIndice]
                         newData.Estatus = arregloDatos.dato
-                        let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-                        this.setState({ datosFPT: datosActualizados })
+                        let datosActualizadosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+                        const actualizarSubcluster = await util.cambiarEstatusCluster(filaSeleccionada.IdFlujoId, datosActualizadosFPT, this.state.datosVentana.datos)
+                        if(actualizarSubcluster){
+                            let filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.IdFlujoId)
+                            let filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.IdFlujoId)
+                            let newData = this.state.datosVentana.datos[filaIndice]
+                            let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+
+                            newData.Estatus = arregloDatos.dato
+                            newDataO.Estatus = arregloDatos.dato
+                            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+                            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+
+                            this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO, datosFPT: datosActualizadosFPT })
+                        }else{
+                            this.setState({ datosFPT: datosActualizadosFPT })
+                        }
                     }
                 })
                 .catch(error => {
@@ -1579,7 +1615,7 @@ class Generico extends Component {
     }
 
     render() {
-        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, filtrosEncabezado, seguridad } = this.state
+        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, filtrosEncabezado, seguridad, tieneRFS } = this.state
         
         const Cluster = (props) => {
             if (props.titulos.length > 0) {
@@ -1798,15 +1834,15 @@ class Generico extends Component {
                     case 'Asignado a':
                         let valores = []
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
-                        let valoreAsignadoA = fila.Arreglo.map((valor) => {
+                        const arregloAsignados = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
+                        //let valoreAsignadoA = fila.Arreglo.map((valor) => {
+                        let valoreAsignadoA = arregloAsignados.map((valor) => {
                             return idVentana === 4 ?
                                 (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
                                 :
                                 (valor.IdTarea !== undefined ?
-                                    (valor.Orden >= idVentana && valor.Orden <= idVentana + 1 ?
-                                        (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
-                                        : null) : null
-                                )
+                                    (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
+                                : null)
                         })
                         valoreAsignadoA = [...new Set(valores)]
                         return (
@@ -1828,7 +1864,9 @@ class Generico extends Component {
                     case 'Estatus':
                     case 'Linea base':
                     case 'F. estimada':
-                        let valoresRespEst = fila.Arreglo.map((valor) => {
+                        const arregloRespEst = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
+                        //let valoresRespEst = fila.Arreglo.map((valor) => {
+                        let valoresRespEst = arregloRespEst.map((valor) => {
                             return idVentana === 4 ?
                                 fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
                                     : (fila.titulo === 'Estatus' ? valor.Estatus.Title
@@ -1838,14 +1876,13 @@ class Generico extends Component {
                                     )
                                 :
                                 (valor.IdTarea !== undefined ?
-                                    (valor.Orden >= idVentana && valor.Orden <= idVentana + 1 ?
-                                        fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
-                                            : (fila.titulo === 'Estatus' ? valor.Estatus.Title
-                                                : (fila.titulo === 'Linea base' ? util.spDate(valor.LineaBase)
-                                                    : (fila.titulo === 'F. estimada' ? util.spDate(valor.FechaEstimada) : null)
-                                                )
-                                            ) : null) : null
-                                )
+                                    fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
+                                    : (fila.titulo === 'Estatus' ? valor.Estatus.Title
+                                        : (fila.titulo === 'Linea base' ? util.spDate(valor.LineaBase)
+                                            : (fila.titulo === 'F. estimada' ? util.spDate(valor.FechaEstimada) : null)
+                                        )
+                                    )
+                                : null)
                         })
                         valoresRespEst = valoresRespEst.filter(x => x !== null && x !== undefined)
                         valoresRespEst = [...new Set(valoresRespEst)]
@@ -2050,7 +2087,7 @@ class Generico extends Component {
                                             :
                                             (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
-                                                    return datoFPT.IdFlujoId === fila.ID && util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id) ?
+                                                    return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x=> x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
                                                         <div style={{ paddingLeft: "4%" }}>
                                                             <div className="row">
                                                                 {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2067,7 +2104,7 @@ class Generico extends Component {
                                                             </div>
                                                         </div>
                                                         {this.state.datosFPT.map((datoFPT) => {
-                                                            return datoFPT.IdFlujoId === fila.ID && util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)?
+                                                            return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x=> x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
                                                                 <div style={{ paddingLeft: "5%" }}>
                                                                     <div className="row">
                                                                         {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual, gruposUsuarioActual)}
@@ -2171,7 +2208,7 @@ class Generico extends Component {
                                             </div>
                                             : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
-                                                    return datoFPT.IdFlujoId === fila.ID && util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)?
+                                                    return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x=> x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
                                                         <div style={{ paddingLeft: "4%"}}>
                                                             <div className="row">
                                                                 {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2186,7 +2223,7 @@ class Generico extends Component {
                                                             </div>
                                                         </div>
                                                         {this.state.datosFPT.map((datoFPT) => {
-                                                            return datoFPT.IdFlujoId === fila.ID && util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)?
+                                                            return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x=> x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
                                                                 <div style={{ paddingLeft: "5%" }}>
                                                                     <div className="row">
                                                                         {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2307,7 +2344,7 @@ class Generico extends Component {
                     <Backdrop abierto={!this.state.backdrop.cargado} mensaje={this.state.backdrop.mensaje} />
                     {this.state.cargado ?
                         <div className='container-fluid'>
-                            <Encabezado rfs={this.props.rfs} idPITerr={!this.props.rfs ? idProyecto : idTerreno} terreno={nombreTerreno}
+                            <Encabezado rfs={tieneRFS} idPITerr={!tieneRFS ? idProyecto : idTerreno} terreno={nombreTerreno}
                                 maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
                                 totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} usuarioActual = {usuarioActual} gruposUsuarioActual = {gruposUsuarioActual}
                                 filtros={filtrosEncabezado} seguridad= {seguridad} />

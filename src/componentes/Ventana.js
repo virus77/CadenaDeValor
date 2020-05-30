@@ -56,7 +56,8 @@ class Ventana extends Component {
             catalogo: [],
             camposLista:[],
             refs: {},
-            datosTramite: []
+            datosTramite: [],
+            editablePorUsuario: true
         }
         this.onGuardar = this.onGuardar.bind(this);
         this.onEnviar = this.onEnviar.bind(this);
@@ -476,7 +477,6 @@ class Ventana extends Component {
                     'ListaDeGuardadoIN', 'ListaDeGuardadoSecundario', 'ListaDeGuardadoSecundarioIN', 'Catalogos', 'Ordenamiento',
                     'Requerido', 'Tramite', 'Activo', 'Boton', 'IdRTD', 'IdTramite', 'IdDocumento', 'Url', 'EstiloColumna',
                     'Accion', 'Parametros')
-                //.filter('(TareaId eq ' + (this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : this.props.abrir.filaSeleccionada.IdTarea.ID) + ') and (Activo eq 1)')
                 .filter(filtroConsulta)
                 .expand('Tarea')
                 .orderBy('Ordenamiento', true)
@@ -617,7 +617,10 @@ class Ventana extends Component {
                         this.setState({ campos: campos, catalogoEstatus: catalogoEstatus })
                     }else{
                         await obtenerDatos().then(()=>{
-                            this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs, camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite })
+                            const existeGrupo = this.props.abrir.gruposUsuarioActual.some(x=> x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID)
+                            const idsAsignados = util.obtenerIdAsignados(this.props.abrir.filaSeleccionada.AsignadoA)
+                            const existeAsignado = idsAsignados.results.includes(this.props.abrir.usuarioActual.Id)
+                            this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs, camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite, editablePorUsuario: (existeGrupo || existeAsignado) })
                         })
                     }
                 })
@@ -642,7 +645,7 @@ class Ventana extends Component {
                         this.obtenerDatosGuardados(this.props.abrir.id)
                     }
                 } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 269){
-                    const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.Title : this.props.abrir.filaSeleccionada.ProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.Terreno.Title
+                    const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
                     const result = await this.obtenerDocumentosCargados(urlDoctos, 'EGAutorizada')
                     if(result!== undefined)
                     { archivosCargados.push({nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL +  '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl }) }
@@ -876,7 +879,6 @@ class Ventana extends Component {
             ID = this.state.datosTramite[0].ID
             idTarea = this.state.datosTramite[0].IdTareaId
         }
-        //const { IdProyectoInversion, IdTerreno, Nivel, ID } = this.props.abrir.filaSeleccionada
         if(!archivosValidos.includes(extension)){
             alert('Archivo con extensión inválida: "' + extension + '"')
         }
@@ -884,7 +886,7 @@ class Ventana extends Component {
             let datosActualizados = this.respaldarValores()
             let formData = new FormData()
             formData.append("file", archivo)
-            const url = 'http://con.quierocasa.com.mx:21520/CompraDeTerreno/_layouts/15/IQC.CadenaValor.CompraDeTerreno.Services/HandlerFileUpload.ashx?' + idTarea + "|" + IdDocumento + "|" + IdProyectoInversion.ID + "|" + (IdTerreno === undefined ? 0 : IdTerreno.ID) + "|" + 0 + "|" + 0 + "|" + IdProyectoInversion.Title + "|" + (IdTerreno === undefined ? '' : IdTerreno.Title) + "|" + '' + "|" + '' + "|" + (Nivel.ID === 1 ? 'I' : (Nivel.ID === 2 ? 'T' : 'C')) + "|" + IdControl + "|" + href + "|" + ID + ""
+            const url = this.props.abrir.url + '/CompraDeTerreno/_layouts/15/IQC.CadenaValor.CompraDeTerreno.Services/HandlerFileUpload.ashx?' + idTarea + "|" + IdDocumento + "|" + IdProyectoInversion.ID + "|" + (IdTerreno === undefined ? 0 : IdTerreno.ID) + "|" + 0 + "|" + 0 + "|" + IdProyectoInversion.Title + "|" + (IdTerreno === undefined ? '' : IdTerreno.Title) + "|" + '' + "|" + '' + "|" + (Nivel.ID === 1 ? 'I' : (Nivel.ID === 2 ? 'T' : 'C')) + "|" + IdControl + "|" + href + "|" + ID + ""
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -916,7 +918,7 @@ class Ventana extends Component {
     render() {
         var boton = '';
         var ID = 0;
-        let { idTarea, archivosCargados, esIframe, catalogo } = this.state
+        let { idTarea, archivosCargados, esIframe, catalogo, editablePorUsuario } = this.state
 
         const Formulario = () => {
             const formulario =  this.state.campos.map((campo, index) => {
@@ -926,7 +928,7 @@ class Ventana extends Component {
                 if(esIframe === '1'){
                     return(
                     <div key={0} className="form-group col-md-12">
-                        <iframe is='x-frame-bypass' src={'http://con.quierocasa.com.mx:21520' + this.props.abrir.filaSeleccionada.UrlTarea} width='100%'></iframe>
+                        <iframe is='x-frame-bypass' src={this.props.abrir.url + this.props.abrir.filaSeleccionada.UrlTarea} width='100%'></iframe>
                     </div>)
                 }else{
                     return (
@@ -969,7 +971,7 @@ class Ventana extends Component {
                                                 </div>
                                     case 'Link':
                                         return  <div key={campo.ID} className="form-group">
-                                                    <a href={util.ensablarURL(campo.Url, this.props.abrir.filaSeleccionada)} target='_blank' disabled={campo.Activo}>{campo.Title}</a>
+                                                    <a href={util.ensablarURL(campo.Url, this.props.abrir.filaSeleccionada, this.props.abrir.url)} target='_blank' disabled={campo.Activo}>{campo.Title}</a>
                                                 </div>
                                     case 'LinkPE':
                                         return  <div key={campo.ID} className="form-group">
@@ -1107,12 +1109,10 @@ class Ventana extends Component {
             <div>
                 {this.state.campos.length > 0 ?
                     <Modal isOpen={this.props.abrir.abierto} size={this.props.abrir.size}>
-                        <ModalHeader className='encabezado' close={closeBtn}>
-                            {this.state.campos[0].Tarea.Title}
-                        </ModalHeader>
+                        <ModalHeader className='encabezado' close={closeBtn}>{this.state.campos[0].Tarea.Title}</ModalHeader>
                         <form action='' className= {idTarea !== 24 && idTarea !== 25 && idTarea !== 30 && idTarea !== 35 && idTarea !== 268 && idTarea !== 271 && idTarea !== 272 && idTarea !== 289 ?'formulario' : ''} ref={this.form} onSubmit={e => e.preventDefault()}>
                             <div className='datoTerreno'>{this.props.abrir.terreno}</div>
-                            <fieldset disabled = {!this.props.abrir.esTarea ? false : (this.props.abrir.filaSeleccionada.Estatus.ID === 3 ? true : false)}>
+                            <fieldset disabled = {!this.props.abrir.esTarea ? false : (this.props.abrir.filaSeleccionada.Estatus.ID === 3 || !editablePorUsuario ? true : false)}>
                                 <ModalBody className='form-row'>
                                     {
                                         idTarea === 25 || idTarea === 30 || idTarea === 35 ?

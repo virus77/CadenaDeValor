@@ -351,8 +351,9 @@ const util = {
                 .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
                     'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
                     'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada', 'Title',
-                    'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified')
-                .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos')
+                    'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified',
+                    'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt')
+                .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos', 'GrupoResponsable')
                 .get()
         }
         return datosFPT
@@ -595,11 +596,13 @@ const util = {
         let finalUrl = datos.IdTarea.ID !== 244 ? (datos.IdTerreno.MACO === 'C' ? ' C' : '') : (datos.IdTerreno.MACO === 'C' ? 'C_R' : '_R')
         return url.replace('{PI}', datos.IdProyectoInversion.Title).replace('{Terr}', datos.IdTerreno.Title).replace('{IN}', innerName + finalUrl)
     },
-    ensablarURL: function(url, datos){
-        return  url.replace('{IdPI}', datos.IdProyectoInversion.ID).replace('{IdTerr}', datos.IdTerreno !== undefined ? datos.IdTerreno.ID : '')
+    ensablarURL: function(campo, datos, url){
+        return  campo.replace('{IdPI}', datos.IdProyectoInversion.ID).replace('{PI}', datos.IdProyectoInversion.Title)
+                .replace('{IdTerr}', datos.IdTerreno !== undefined ? datos.IdTerreno.ID : '').replace('{Terr}', datos.IdTerreno !== undefined ? datos.IdTerreno.Title : '')
                 .replace('{LinkFichasVenta}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkFichasVenta : '')
                 .replace('{LinkMemoriaAcabados}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkMemoriaAcabados : '')
                 .replace('{LinkFichasDesarrollo}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkFichasDesarrollo : '')
+                .replace('{sitio}', url)
     },
     crearBitacoras: async function(idTarea,terreno, PI, tareaCrear){
         const rootweb = await sp.web.getParentWeb()
@@ -790,6 +793,26 @@ const util = {
             default:
                 break;
         }
+    },
+    cambiarEstatusCluster: async function(idFlujoTarea, datos, datosActividades){
+        let actualizado = false
+        const esSubcluster = datosActividades.some(x=> x.ID === idFlujoTarea && x.IdTarea.EsCluster === '1' && x.IdTarea.EsSubcluster === '1' && x.IdTarea.EsBitacora === '0' && x.IdTarea.Subcluster !== null)
+        if(esSubcluster){
+            const clusterIncompleto = datos.some(x=> x.IdFlujoId === idFlujoTarea && x.Estatus.ID !== 3)
+            if(!clusterIncompleto){
+                await sp.web.lists.getByTitle('Flujo Tareas').items.getById(idFlujoTarea).update({
+                    EstatusId: 3,
+                    EstatusAnteriorId: 3
+                })
+                .then(()=>{
+                    actualizado = true
+                })
+                .catch(error=>{
+                    alert('Error al actualizar el subclúster: ' + error)
+                })
+            }
+        }
+        return actualizado
     }
 }
 export default util;
