@@ -8,7 +8,6 @@ input[type=button]{
 .encabezado {
     background-color: #40B9C7;
     color: white;
-    padding: 5px;
 }
 
 h5 {
@@ -20,7 +19,7 @@ h5 {
     color: #6A7172;
     font-size: 14pt;
     text-align: right;
-    padding: 10px;
+    padding: 5px;
 }
 
 .cuerpo {
@@ -102,4 +101,42 @@ label {
 .close{
     color: white!important;
     opacity: 1!important;
+}
+
+.formulario input {
+    margin: 0 .25rem;
+    min-width: 100px;
+    border: 1px solid #eee;
+    border-left: 5px solid;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+
+.formulario input:optional {
+    margin: 0 .25rem;
+    min-width: 100px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.formulario input:required {
+    border-color: darkseagreen;
+}
+.formulario input:invalid {
+    border-color: salmon;
+}
+.div_required {
+    min-width: 100px;
+    border: 1px solid darkseagreen;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.div_invalid {
+    min-width: 100px;
+    border: 1px solid salmon;
+    border-radius: 5px;
+    transition: border-color .5s ease-out;
+}
+.nombreArchivo{
+    border: 0!important
 }

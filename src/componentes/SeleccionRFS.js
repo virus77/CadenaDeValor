@@ -27,11 +27,6 @@ class SeleccionRFS extends Component{
         }
         this.state = this.initialState
     }
-    
-    obtenerDatosGuardados = async () =>{
-        //const item = await sp.web.lists.getByTitle("RFSN").items.getById(this.state.idFlujoTareas).get()
-
-    }
 
     onCambiarCantidad = e =>{
         const {name, valueAsNumber} = e.target;
@@ -71,9 +66,17 @@ class SeleccionRFS extends Component{
     }
 
     onSumarMetraje = e=>{
-        const {value, checked} = e.target
-        this.setState({ sumaSeleccion: checked? this.state.sumaSeleccion + parseFloat(value) : this.state.sumaSeleccion - parseFloat(value),
-                        totalTerrenosSeleccionados: checked? this.state.totalTerrenosSeleccionados + 1 : this.state.totalTerrenosSeleccionados - 1})
+        const { value, checked, id } = e.target
+        const { terrenos } = this.state
+        
+        let terrenoIndex = terrenos.findIndex(x => x.ID === parseInt(id));
+        let newData = terrenos[terrenoIndex];
+        newData.Empadronamiento = checked ? 'Sí' : null;
+        let datosActualizados = update(terrenos, { $splice: [[terrenoIndex, 1, newData]] })
+        
+        this.setState({ sumaSeleccion: checked ? this.state.sumaSeleccion + parseFloat(value) : this.state.sumaSeleccion - parseFloat(value),
+                        totalTerrenosSeleccionados: checked? this.state.totalTerrenosSeleccionados + 1 : this.state.totalTerrenosSeleccionados - 1,
+                        terrenos: datosActualizados})
     }
 
     onSumaTotal = e =>{
@@ -120,7 +123,7 @@ class SeleccionRFS extends Component{
                 }
                 break;
             case 'TS':
-                if(this.state.terrenos.length === 1 && this.state.terrenosResultantes.length>0){
+                if(this.state.totalTerrenosSeleccionados === 1 && this.state.terrenosResultantes.length>0){
                     if(this.state.sumaSeleccion !== this.state.sumatoriaNueva){
                         alert('No validación: Las sumatorias no coinciden')
                     }else{
@@ -128,7 +131,15 @@ class SeleccionRFS extends Component{
                         this.onCerrar()
                     }
                 }else{
-                    alert('Por favor, seleccione solamente un terreno')
+                    if(this.state.totalTerrenosSeleccionados === 1 && this.state.terrenosResultantes.length === 0){
+                        alert('Por favor, elija la cantidad de terrenos resultantes')
+                    }else if(this.state.totalTerrenosSeleccionados !== 1 && this.state.terrenosResultantes.length === 0){
+                        alert('Por favor, seleccione un terreno y elija la cantidad de terrenos resultantes')
+                    }else if(this.state.totalTerrenosSeleccionados === 1 && this.state.terrenosResultantes.length > 0){
+                        alert('Por favor, seleccione solamente un terreno')
+                    }else if(this.state.totalTerrenosSeleccionados !== 1 && this.state.terrenosResultantes.length > 0){
+                        alert('Por favor, seleccione solamente un terreno')
+                    }
                 }
                 break;
             default:
@@ -139,7 +150,7 @@ class SeleccionRFS extends Component{
     async componentDidMount(){
         const terrenos = await sp.web.lists.getByTitle("Terrenos").items
         .filter('IdProyectoInversionId eq ' + this.props.datos.ProyectoInversion.ID + ' and Empadronamiento eq null')
-        .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO')
+        .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO', 'Empadronamiento')
         .get();
         this.setState({terrenos: terrenos})
     }
@@ -154,7 +165,7 @@ class SeleccionRFS extends Component{
                             {this.state.terrenos.map((terreno) =>{
                                     return(
                                         <div key={terreno.ID}>
-                                            <input className='form-check-input' type='checkbox' id={terreno.ID} name={terreno.ID} value={terreno.Metraje} onChange={this.onSumarMetraje} />
+                                            <input className='form-check-input' type='checkbox' id={terreno.ID} name={terreno.ID} checked= {terreno.Empadronamiento === null ? false : true } value={terreno.Metraje} onChange={this.onSumarMetraje} />
                                             <h4>{terreno.Title + ': ' + terreno.NombredelTerreno2}</h4>
                                         </div>
                                     )
@@ -163,6 +174,7 @@ class SeleccionRFS extends Component{
                             </div>
                         </div>
                         <div className="row">
+                            
                             <div className="col-sm form-group">
                                 <h6>Sumatoria de superficies originales seleccionadas:</h6>
                                 <input type='number' className='form-control form-control-sm control' id='sumaSeleccion' name='sumaSeleccion' value= {this.state.sumaSeleccion} readOnly />

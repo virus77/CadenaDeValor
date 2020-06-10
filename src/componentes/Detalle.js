@@ -58,7 +58,7 @@ class Detalle extends Component{
         return(
             <div className='col-sm-12'>
                 <div className='form-row align-items-center'>
-                    <div className='col-sm-6'>
+                    <div className='col-sm-6' style= {{ height: '220px' }}>
                         <h5 className='textoEncabezado'>Sobre la tarea</h5>
                         <h6 className='textoAgrupador'>Estatus manual</h6>
                         <input type="checkbox" id='detenido' name='detenido' value={6} checked={estatus.Title.toLowerCase() === 'detenido' ? true :false} onChange={this.onSeleccionarEstatus} />
@@ -66,7 +66,7 @@ class Detalle extends Component{
                         <input type="checkbox" id='cancelado' name='cancelado' value={7} checked={estatus.Title.toLowerCase() === 'cancelado' ? true :false} onChange={this.onSeleccionarEstatus} />
                         <label htmlFor='cancelado' className='texto'>Actividad cancelada</label>
                     </div>
-                    <div className='col-sm-6 bordeL'>
+                    <div className='col-sm-6 bordeL' style= {{ height: '220px' }}>
                         <h5 className='textoEncabezado'>Informativo</h5>
                         <div className='informativo'>
                             <label className='informativoTexto'>Id PI: </label>

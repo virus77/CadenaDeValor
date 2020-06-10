@@ -31,6 +31,26 @@
   padding-bottom: 4px;
 }
 
+.itemPersonal {
+  border: white;
+  border-style: solid;
+  border-width: 8pt;
+  font-weight: normal !important;
+  color: black;
+  font-size: 10pt;
+  padding-left: 15px !important;
+  border-bottom: gray;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-left: gray;
+  border-left-style: solid;
+  border-left-width: 8px;
+  cursor: pointer !important;
+  width: 99%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 .itemIn {
   border: white;
   border-style: solid;
@@ -43,6 +63,26 @@
   border-bottom-width: 2px;
   border-bottom-style: solid;
   border-left: #40b9c7;
+  border-left-style: solid;
+  border-left-width: 8px;
+  cursor: pointer !important;
+  width: 99%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.itemInPersonal {
+  border: white;
+  border-style: solid;
+  border-width: 8pt;
+  font-weight: normal !important;
+  color: black;
+  font-size: 10pt;
+  padding-left: 20px !important;
+  border-bottom: gray;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-left: gray;
   border-left-style: solid;
   border-left-width: 8px;
   cursor: pointer !important;

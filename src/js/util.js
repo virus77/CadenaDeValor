@@ -51,11 +51,11 @@ const util = {
         return {
             eg: [],
             acts: [],
-            responsable: '',
-            asignadoa: '',
-            lineabase: '',
-            festimada: '',
-            estatus: ''
+            responsable: [],
+            asignadoa: [],
+            lineabase: [],
+            festimada: [],
+            estatus: []
         }
     },
     //Función utilizada para colocar la hoja de esctilo perteneciente a cada área
@@ -597,7 +597,7 @@ const util = {
         return url.replace('{PI}', datos.IdProyectoInversion.Title).replace('{Terr}', datos.IdTerreno.Title).replace('{IN}', innerName + finalUrl)
     },
     ensablarURL: function(campo, datos, url){
-        return  campo.replace('{IdPI}', datos.IdProyectoInversion.ID).replace('{PI}', datos.IdProyectoInversion.Title)
+        return  campo.replace('{IdPI}', datos.IdProyectoInversion.ID).replace('{PI}', datos.IdProyectoInversion.Title).replace('{IdPIVer}', datos.IdProyectoInversion.IdBusquedaVersionado)
                 .replace('{IdTerr}', datos.IdTerreno !== undefined ? datos.IdTerreno.ID : '').replace('{Terr}', datos.IdTerreno !== undefined ? datos.IdTerreno.Title : '')
                 .replace('{LinkFichasVenta}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkFichasVenta : '')
                 .replace('{LinkMemoriaAcabados}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkMemoriaAcabados : '')
@@ -813,6 +813,61 @@ const util = {
             }
         }
         return actualizado
+    },
+    filtrarDatosPorColumna: function (columna, filtrosTabla, datosFiltrados) {
+        switch (columna) {
+            case 'responsable':
+                if(filtrosTabla[columna].length > 0){
+                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
+                        return filtrosTabla[columna].includes(datoFiltrado.GrupoResponsable.NombreCortoGantt)
+                    })
+                }
+                break;
+            case 'asignadoa':
+                let valores = []
+                if(filtrosTabla[columna].length > 0){
+                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
+                        return datoFiltrado.AsignadoA !== undefined ? datoFiltrado.AsignadoA.filter((x) => { return filtrosTabla[columna].includes(x.Title) ? valores.push(datoFiltrado) : null }) : null
+                    })
+                    datosFiltrados = valores
+                }
+                break;
+            case 'lineabase':
+                if(filtrosTabla[columna].length > 0){
+                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
+                        return datoFiltrado.LineaBase !== null ? (filtrosTabla[columna].includes(util.spDate(datoFiltrado.LineaBase)) ? util.spDate(datoFiltrado.LineaBase) : null) : null
+                    })
+                }
+                break;
+            case 'festimada':
+                if(filtrosTabla[columna].length > 0){
+                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
+                        return datoFiltrado.FechaEstimada !== null ? (filtrosTabla[columna].includes(util.spDate(datoFiltrado.FechaEstimada)) ? util.spDate(datoFiltrado.FechaEstimada) : null) : null
+                    })
+                }
+                break;
+            case 'estatus':
+                if(filtrosTabla[columna].length > 0){
+                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
+                        return filtrosTabla[columna].includes(datoFiltrado.Estatus.Title)
+                    })
+                }
+                break;
+            default:
+                break;
+        }
+        return datosFiltrados
+    },
+    obtenerTotalPorVentana: function (idVentana, datos, datosAux) {
+        let total= 0
+        switch(idVentana){
+            case 1:
+                return total = datos.filter(x=> x.Orden >= idVentana && x.Orden < (idVentana +1)).length
+            case 2:
+            case 3:
+                total = datos.filter(x=> (x.Orden >= idVentana && x.Orden < (idVentana +1)) && x.IdTarea.EsSubcluster === '0').length
+                return total = total + datosAux.length
+        }
     }
 }
 export default util;

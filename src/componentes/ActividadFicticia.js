@@ -295,19 +295,19 @@ class ActividadFicticia extends Component {
                 await this.actualizarFlujoTareas(this.state.LineaBase, this.state.FechaEstimada, usuariosAsignados)
                 .then(async ()=>{
                     if(this.state.OrdenEG !== undefined){
-                        await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).update({
-                            NombreActividad: this.state.NombreActividad,
-                            AsignadoAId: usuariosAsignados,
-                            GrupoResponsableId: this.state.GrupoResponsable.ID,
-                            EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus
-                        })
-                        .then(()=>{
-                            this.props.datosRetorno(this.state)
-                            this.onCerrar()
-                        })
-                        .catch(error=>{
-                            alert('Error al guardar en Estrategia de gestión: ' + error)
-                        })
+                        if(this.state.IDEG >0){
+                            await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).update({
+                                NombreActividad: this.state.NombreActividad,
+                                AsignadoAId: usuariosAsignados,
+                                GrupoResponsableId: this.state.GrupoResponsable.ID,
+                                EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus
+                            })
+                            .catch(error=>{
+                                alert('Error al guardar en Estrategia de gestión: ' + error)
+                            })
+                        }
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
                     }else{
                         this.props.datosRetorno(this.state)
                         this.onCerrar()
@@ -335,12 +335,16 @@ class ActividadFicticia extends Component {
                             <div className='col-sm-8 borde'>
                                 <h6 className='texto'><span className='obligatorio'>*</span>Nombre de la actividad</h6>
                                 <input type="text" name='NombreActividad' className='form-control' value={NombreActividad} onChange={this.onCambiar} maxLength={255} required disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <br />
                                 <h6 className='texto'>Grupo responsable</h6>
                                 <input type="text" name='GrupoResponsable' className='form-control' value={GrupoResponsable.NombreCortoGantt} readOnly />
+                                <br />
                                 <h6 className='texto'><span className='obligatorio'>*</span>Asignado(s) a</h6>
                                 <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={usuarioAsignados} seleccionarItems={this.onSeleccionarItems} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <br />
                                 <h6 className='texto'>Fecha compromiso</h6>
                                 <input type="date" name='LineaBase' className='form-control' value={LineaBase} onChange={this.onCambiar} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <br />
                                 <h6 className='texto'>Fecha estimada de entrega</h6>
                                 <input type="date" name='FechaEstimada' className='form-control' value={FechaEstimada} onChange={this.onCambiar} />
                             </div>

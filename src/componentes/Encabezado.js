@@ -61,7 +61,8 @@ class Encabezado extends Component {
     };
 
     render() {
-        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco, esAdministrador } = this.props
+        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco } = this.props
+        const { esAdministrador } = this.state
         return (
             <div>
                 <div className='container-fluid' style={{ paddingTop: "1%" }}>
@@ -70,7 +71,7 @@ class Encabezado extends Component {
                         <div className='col-sm-1 columna'><img id='FiltroFavoritos' className={!this.props.filtros.includes('favs') ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(5, disabled)} src={idVentana !== 4 ? fav_icon : favDis_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroGantt' className={!this.props.filtros.includes('gantt') ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(6, false)} src={idVentana !== 4 ? gantt_icon : gantt_icon} alt='gantt_icon' disabled={false} ></img></div>
                         <div className='col-sm-1 columna'><img id='FiltroVerTodo' className={!this.props.filtros.includes('ver') ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (this.props.maco === 'B' ? macob : macoc)} alt='macob' onClick={() => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") }} ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (this.props.maco === 'B' ? macob : macoc)} alt='macob' onClick={ idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img></div>
                         <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img></div>
                         <div className='col-sm-5 menu'>
                             <nav className="navbar navbar-expand-sm bg-light navbar-light">

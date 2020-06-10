@@ -20,7 +20,7 @@ import "@pnp/sp/files/web";
 import "@pnp/sp/folders";
 import "@pnp/sp/security";
 import util from '../js/util'
-import '../estilos/modal.scss';
+import '../estilos/modal.css';
 import moment from 'moment';
 
 import clsx from 'clsx';
@@ -95,7 +95,9 @@ class Ventana extends Component {
                     break;
                 case 270:
                     //Establece los usuarios asignados del modal de Asignado a
-                    this.props.evento({ tarea: 0, dato: this.state })
+                    if(this.state.usuarioAsignados.length>0){
+                        this.props.evento({ tarea: 0, dato: this.state })
+                    }
                     break;
                 case 271:
                     //Establece la actividad ficticia creada en el cluster correspondiente
@@ -290,7 +292,7 @@ class Ventana extends Component {
 
     guardarDatos = async (listas, camposLista) => {
         await util.asyncForEach(listas, async lista=>{
-            if(lista!== 'Documentos' && lista!== 'null'){
+            if(lista!== 'Documentos' && lista!== 'null' && lista!== '0'){
                 let newCamposLista = camposLista[lista]
                 let json = {}
                 
@@ -635,7 +637,10 @@ class Ventana extends Component {
         const {archivosCargados} = this.state
         if (this.props.abrir.abierto) {
             if (this.props.abrir.id === 270) {
-                const users = await sp.web.siteUsers();
+                let users = await sp.web.siteUsers();
+                if(this.props.abrir.gruposUsuarioActual.some(x=> !x.AdminAreaGanttId.some(x=> x === this.props.abrir.usuarioActual.Id) && x.RespAreaGanttId.some(x=> x === this.props.abrir.usuarioActual.Id))){
+                    users = users.filter(x=> x.Id === this.props.abrir.usuarioActual.Id)
+                }
                 this.obtenerPosiciones(users)
                 this.setState({ usuarios: users })
             } else if (this.props.abrir.filaSeleccionada.Tarea !== undefined){
