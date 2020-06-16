@@ -16,7 +16,7 @@ const util = {
         return idVentana === 4 ? {
             columnas: [
                 { titulo: '', interN: '', Arreglo: "", estilo: 'col-sm-5' },
-                { titulo: 'Responsable', interN: 'GrupoResponsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: arreglo, estilo: 'col-sm-2' },
+                { titulo: 'Responsable', interN: 'Responsable', value: 'NombreCortoGantt', Tipo: "EG", Arreglo: arreglo, estilo: 'col-sm-2' },
                 { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "EG", Arreglo: arreglo, estilo: 'col-sm-2' },
                 { titulo: 'E. de G. autorizada', Arreglo: "", estilo: 'col-sm-2' },
                 { titulo: 'Favoritos', interN: 'Favoritos', Tipo: "EG", value: 'Favoritos', Arreglo: arreglo, estilo: 'col-sm-1' }
@@ -25,10 +25,10 @@ const util = {
         } : {
                 columnas: [
                     { titulo: '', interN: '', value: '', Tipo: "Act", Arreglo: '', estilo: 'col-sm-4' },
-                    { titulo: 'Responsable', interN: 'GrupoResponsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: arreglo.filter(x=> x.GrupoResponsable !== undefined), estilo: 'col-sm-1' },
+                    { titulo: 'Responsable', interN: 'Responsable', Tipo: "Act", value: 'NombreCortoGantt', Arreglo: arreglo.filter(x=> x.GrupoResponsable !== undefined), estilo: 'col-sm-1' },
                     { titulo: 'Asignado a', interN: 'AsignadoA', value: 'Title', Tipo: "Act", Arreglo: arreglo.filter(x=> x.AsignadoA !== undefined), estilo: 'col-sm-1' },
                     { titulo: 'Linea base', interN: 'LineaBase', value: 'Title', Tipo: "Act", Arreglo: arreglo.filter(x=> x.LineaBase !== null), estilo: 'col-sm-1' },
-                    { titulo: 'F. estimada', interN: 'FechaEstimada', value: 'Title', Tipo: "Act", Arreglo: arreglo.filter(x=> x.FechaEstimada !== null), estilo: 'col-sm-1' },
+                    { titulo: 'F. estimada', interN: 'FEstimada', value: 'Title', Tipo: "Act", Arreglo: arreglo.filter(x=> x.FechaEstimada !== null), estilo: 'col-sm-1' },
                     { titulo: 'Estatus', interN: 'Estatus', value: 'Title', Tipo: "Estatus", Arreglo: arreglo.filter(x=> x.Estatus !== undefined), estilo: 'col-sm-1' },
                     { titulo: 'Adjunto', interN: 'Adjunto', value: 'Adjunto', Tipo: "Act", Arreglo: '', estilo: 'col-sm-1' },
                     { titulo: 'Detalle', interN: 'Detalle', value: 'Detalle', Tipo: "Act", Arreglo: '', estilo: 'col-sm-1' },
@@ -92,10 +92,28 @@ const util = {
         }
         return newDate;
     },
-    //Función utilizada para obtener el % de respuestas con base a la ponderación de cada cluster
+    //Obtiene el porcentaje de tareas completadas (Enviadas/Concluidas) por cada clúster de tipo conjunto de tareas (EsCluster eq 0)
     average: function (props, orden) {
         var average = 0;
         var rowsNum = props.datos.filter(x => x.IdTarea.Orden === orden && x.IdTarea.ID !== 271);
+        var Res = rowsNum.filter(x => x.Estatus.ID === 3);
+
+        average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
+        return average.toFixed(0);
+    },
+    //Obtiene el porcentaje de tareas completadas (Enviadas/Concluidas) por cada clúster de tipo tarea (EsCluster eq 1)
+    averageFPT: function (datos, idFlujoTareas) {
+        var average = 0;
+        var rowsNum = datos.filter(x => x.IdFlujoId === idFlujoTareas);
+        var Res = rowsNum.filter(x => x.Estatus.ID === 3);
+
+        average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
+        return average.toFixed(0);
+    },
+    //Obtiene el porcentaje de tareas completadas (Enviadas/Concluidas) del clúster de Marketing
+    averageMkt: function (datos) {
+        var average = 0;
+        var rowsNum = datos.filter(x => x.IdTarea.Orden === 3.14 && (x.IdTarea.ID !== 287 && x.IdTarea.ID !== 288) && x.Visible);
         var Res = rowsNum.filter(x => x.Estatus.ID === 3);
 
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
@@ -346,7 +364,7 @@ const util = {
                 filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ')' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ')'
             })
 
-            datosFPT = await sp.web.lists.getByTitle('Fechas paquete de trámites').items
+            datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
                 .filter(filtroFPT)
                 .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
                     'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
@@ -359,7 +377,7 @@ const util = {
         return datosFPT
     },
     obtenerSeguridad: async function(){
-        const seguridad = await sp.web.lists.getByTitle('GanttConfigRespAct').items
+        const seguridad = await currentWeb.lists.getByTitle('GanttConfigRespAct').items
         .select('ID', 'Title', 'IdActividadId', 'RespAreaGantt/ID', 'RespAreaGantt/Name', 'GrupoRespGantt')
         .expand('RespAreaGantt')
         .get()
@@ -592,11 +610,11 @@ const util = {
         }
         return datos;
     },
-    ensablarURLPE: function(url, datos, innerName){
-        let finalUrl = datos.IdTarea.ID !== 244 ? (datos.IdTerreno.MACO === 'C' ? ' C' : '') : (datos.IdTerreno.MACO === 'C' ? 'C_R' : '_R')
-        return url.replace('{PI}', datos.IdProyectoInversion.Title).replace('{Terr}', datos.IdTerreno.Title).replace('{IN}', innerName + finalUrl)
+    ensamblarURLPE: function(url, datos, innerName, urlSitio){
+        let finalUrl = datos.IdTarea.ID !== 244 ? (datos.IdTerreno.MACO === 'C' ? ' C' : '') : (datos.IdTerreno.MACO === 'C' ? ' C_R' : '_R')
+        return url.replace('{PI}', datos.IdProyectoInversion.Title).replace('{Terr}', datos.IdTerreno.Title).replace('{IN}', innerName + finalUrl).replace('{sitio}', urlSitio)
     },
-    ensablarURL: function(campo, datos, url){
+    ensamblarURL: function(campo, datos, url){
         return  campo.replace('{IdPI}', datos.IdProyectoInversion.ID).replace('{PI}', datos.IdProyectoInversion.Title).replace('{IdPIVer}', datos.IdProyectoInversion.IdBusquedaVersionado)
                 .replace('{IdTerr}', datos.IdTerreno !== undefined ? datos.IdTerreno.ID : '').replace('{Terr}', datos.IdTerreno !== undefined ? datos.IdTerreno.Title : '')
                 .replace('{LinkFichasVenta}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkFichasVenta : '')
@@ -605,13 +623,13 @@ const util = {
                 .replace('{sitio}', url)
     },
     crearBitacoras: async function(idTarea,terreno, PI, tareaCrear){
-        const rootweb = await sp.web.getParentWeb()
+        const rootweb = await currentWeb.getParentWeb()
         let websCdV = await rootweb.web.webs()
         let webBitacoras = websCdV[2]
         webBitacoras = await sp.site.openWebById(webBitacoras.Id)
         let json = {}
         if(tareaCrear!== '0'){
-            await sp.web.lists.getByTitle('Tareas').items.getById(parseInt(tareaCrear)).get().then(async(nuevaTarea)=>{
+            await currentWeb.lists.getByTitle('Tareas').items.getById(parseInt(tareaCrear)).get().then(async(nuevaTarea)=>{
                 json.IdProyectoInversionId = PI.ID
                 json.IdTareaId = nuevaTarea.ID
                 json.NivelId = nuevaTarea.NivelId
@@ -629,8 +647,8 @@ const util = {
             .get()
 
             if(bitacoras.length === 0){
-                await sp.web.lists.getByTitle('Tareas').items.getById(274).get().then(async(nuevaTarea)=>{
-                    const lineaBase = await sp.web.lists.getByTitle('Fechas objetivo').items
+                await currentWeb.lists.getByTitle('Tareas').items.getById(274).get().then(async(nuevaTarea)=>{
+                    const lineaBase = await currentWeb.lists.getByTitle('Fechas objetivo').items
                     .filter("Title eq '" + PI.Title + (!terreno.Title.startsWith('T-') ? "' and Terreno eq '" + terreno.Title : '') + "' and IdActividad eq 13")
                     .get()
 
@@ -641,7 +659,7 @@ const util = {
                         }
                     }
                     if(Object.keys(json).length > 0){
-                        await sp.web.lists.getByTitle('Flujo Tareas').items.add(json)
+                        await currentWeb.lists.getByTitle('Flujo Tareas').items.add(json)
                     }
                 })
                 
@@ -651,7 +669,7 @@ const util = {
         else if(idTarea === 188 || idTarea === 189){
             
             if(Object.keys(json).length > 0){
-                await sp.web.lists.getByTitle('Flujo Tareas').items.add(json)
+                await currentWeb.lists.getByTitle('Flujo Tareas').items.add(json)
             }
 
             const categorias = await webBitacoras.web.lists.getByTitle("Categoria").items
@@ -745,7 +763,7 @@ const util = {
         })
     },
     obtenerBitacorasInfo: async function(proyectoTitulo, terrenoTitulo){
-        const rootweb = await sp.web.getParentWeb();
+        const rootweb = await currentWeb.getParentWeb();
         let websCdV = await rootweb.web.webs();
         let webBitacoras = websCdV[2];
         webBitacoras = await sp.site.openWebById(webBitacoras.Id);
@@ -754,7 +772,7 @@ const util = {
         let bitacorasInfo = await webBitacoras.web.lists.getByTitle('Incidencia').items
         .filter("(BitacoraInc/TerrenoBit eq '" + proyectoTitulo + "') or (BitacoraInc/TerrenoBit eq '" + terrenoTitulo + "')")
         .select('ID', 'Title', 'EdoInc', 'MotivoCausaInc/Title', 'BitacoraInc/ID', 'BitacoraInc/Title', 'BitacoraInc/TerrenoBit',
-                'MotivoCausaInc/ID', 'AreaAsignadaInc/NombreCorto', 'AsignadoAInc/Title')
+                'MotivoCausaInc/ID', 'AreaAsignadaInc/NombreCorto', 'AsignadoAInc/ID', 'AsignadoAInc/Title')
         .expand('MotivoCausaInc', 'BitacoraInc', 'AreaAsignadaInc', 'AsignadoAInc')
         .top(100)
         .get()
@@ -787,8 +805,10 @@ const util = {
             case 'Con solucion':
                 return 'Pendiente'
             case 'Rechazado':
+            case 'Rechazada':
                 return 'Rechazado'
             case 'Aprobado':
+            case 'Cerrada':
                 return 'Concluido'
             default:
                 break;
@@ -800,7 +820,7 @@ const util = {
         if(esSubcluster){
             const clusterIncompleto = datos.some(x=> x.IdFlujoId === idFlujoTarea && x.Estatus.ID !== 3)
             if(!clusterIncompleto){
-                await sp.web.lists.getByTitle('Flujo Tareas').items.getById(idFlujoTarea).update({
+                await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(idFlujoTarea).update({
                     EstatusId: 3,
                     EstatusAnteriorId: 3
                 })
@@ -858,15 +878,260 @@ const util = {
         }
         return datosFiltrados
     },
-    obtenerTotalPorVentana: function (idVentana, datos, datosAux) {
+    obtenerTotalPorVentana: function (idVentana, datos, datosFPT, datosBit) {
         let total= 0
+        let datosCdTFiltrados = []
         switch(idVentana){
             case 1:
-                return total = datos.filter(x=> x.Orden >= idVentana && x.Orden < (idVentana +1)).length
+                datosCdTFiltrados = datos.filter(x=> (x.Orden >= idVentana && x.Orden < (idVentana +1)) && x.IdTarea.EsSubcluster === '0')
+                datosCdTFiltrados.forEach((datoCdT)=>{
+                    total = datosFPT.some(x=> x.IdFlujoId === datoCdT.ID && (x.Estatus.ID === 4 || x.Estatus.ID === 5)) ? total + 1 : total
+                })
+                return total += datosCdTFiltrados.filter(x=> x.Estatus.ID === 4 || x.Estatus.ID === 5).length
             case 2:
             case 3:
-                total = datos.filter(x=> (x.Orden >= idVentana && x.Orden < (idVentana +1)) && x.IdTarea.EsSubcluster === '0').length
-                return total = total + datosAux.length
+                datosCdTFiltrados = datos.filter(x=> (x.Orden >= idVentana && x.Orden < (idVentana +1)) && x.IdTarea.EsSubcluster === '0')
+                datosCdTFiltrados.forEach((datoCdT)=>{
+                    total = datosFPT.some(x=> x.IdFlujoId === datoCdT.ID && (x.Estatus.ID === 4 || x.Estatus.ID === 5)) ? total + 1 : total
+                })
+                if(idVentana === 3){
+                    total += datosBit.filter(x=> x.EdoInc === 'Rechazada').length
+                }
+                return total += datosCdTFiltrados.filter(x=> x.Estatus.ID === 4 || x.Estatus.ID === 5).length
+        }
+    },
+    establecerLineaBaseBit: function(datosSolucion, datosBit){
+        return datosBit.map((bit)=>{
+            const thisDate = datosSolucion.filter(x => x.IncidenciaSol.ID === bit.ID);
+            const date = thisDate.length > 0 ? thisDate[0].FechaCompSol : null;
+            bit.LineaBase = date
+
+            return bit
+        })
+    },
+    actualizarPropiedadesEstatus: function(dataSource, datoBuscar){
+        const filaIndice = dataSource.findIndex(datos => datos.ID === datoBuscar)
+        let newData = dataSource[filaIndice]
+
+    },
+    generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosEncabezado){
+        if(idVentana !== 4){
+            const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
+            let datosVentana = datosCdT.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
+            let filtros = {
+                responsable: [],
+                asignadoa: [],
+                lineabase: [],
+                festimada: [],
+                estatus: []
+            }
+            datosVentana.forEach((item)=>{
+                const permitido = strGruposUsuarioActual.includes(item.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(item.AsignadoA).results.includes(usuarioActual) ? true : false
+                if(item.GrupoResponsable !== undefined){
+                    if (filtrosEncabezado.includes('ver')){
+                        if(!filtros.responsable.includes(item.GrupoResponsable.NombreCortoGantt)){
+                            filtros.responsable.push(item.GrupoResponsable.NombreCortoGantt)
+                        }
+                    }else if(permitido){
+                        if(!filtros.responsable.includes(item.GrupoResponsable.NombreCortoGantt)){
+                            filtros.responsable.push(item.GrupoResponsable.NombreCortoGantt)
+                        }
+                    }
+                }
+                
+                if(item.AsignadoA !== undefined){
+                    const asignados = this.obtenerAsignados(item.AsignadoA)
+                    if (filtrosEncabezado.includes('ver')){
+                        asignados.forEach((itemAsignado)=>{
+                            if(!filtros.asignadoa.includes(itemAsignado)){
+                                filtros.asignadoa.push(itemAsignado)
+                            }
+                        })
+                    }else if(permitido){
+                        asignados.forEach((itemAsignado)=>{
+                            if(!filtros.asignadoa.includes(itemAsignado)){
+                                filtros.asignadoa.push(itemAsignado)
+                            }
+                        })
+                    }
+                }
+                if(item.LineaBase !== null){
+                    if (filtrosEncabezado.includes('ver')){
+                        if(!filtros.lineabase.includes(this.spDate(item.LineaBase))){
+                            filtros.lineabase.push(this.spDate(item.LineaBase))
+                        }
+                    }else if(permitido){
+                        if(!filtros.lineabase.includes(this.spDate(item.LineaBase))){
+                            filtros.lineabase.push(this.spDate(item.LineaBase))
+                        }
+                    }
+                }
+                if(item.FechaEstimada !== null){
+                    if (filtrosEncabezado.includes('ver')){
+                        if(!filtros.festimada.includes(this.spDate(item.FechaEstimada))){
+                            filtros.festimada.push(this.spDate(item.FechaEstimada))
+                        }
+                    }else if(permitido){
+                        if(!filtros.festimada.includes(this.spDate(item.FechaEstimada))){
+                            filtros.festimada.push(this.spDate(item.FechaEstimada))
+                        }
+                    }
+                }
+                if(item.Estatus !== undefined){
+                    if (filtrosEncabezado.includes('ver')){
+                        if(!filtros.estatus.includes(item.Estatus.Title)){
+                            filtros.estatus.push(item.Estatus.Title)
+                        }
+                    }else if(permitido){
+                        if(!filtros.estatus.includes(item.Estatus.Title)){
+                            filtros.estatus.push(item.Estatus.Title)
+                        }
+                    }
+                }
+
+                const datosFPTPorId = datosFPT.filter(x=> x.IdFlujoId === item.ID)
+                datosFPTPorId.forEach((datoFPT) =>{
+                    if(datoFPT.GrupoResponsable !== undefined){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.responsable.includes(datoFPT.GrupoResponsable.NombreCortoGantt)){
+                                filtros.responsable.push(datoFPT.GrupoResponsable.NombreCortoGantt)
+                            }
+                        }else if(permitido){
+                            if(!filtros.responsable.includes(datoFPT.GrupoResponsable.NombreCortoGantt)){
+                                filtros.responsable.push(datoFPT.GrupoResponsable.NombreCortoGantt)
+                            }
+                        }
+                    }
+                    if(datoFPT.AsignadoA !== undefined){
+                        const asignados = this.obtenerAsignados(datoFPT.AsignadoA)
+                        if (filtrosEncabezado.includes('ver')){
+                            asignados.forEach((itemAsignado)=>{
+                                if(!filtros.asignadoa.includes(itemAsignado)){
+                                    filtros.asignadoa.push(itemAsignado)
+                                }
+                            })
+                        }else if(permitido){
+                            asignados.forEach((itemAsignado)=>{
+                                if(!filtros.asignadoa.includes(itemAsignado)){
+                                    filtros.asignadoa.push(itemAsignado)
+                                }
+                            })
+                        }
+                    }
+                    if(datoFPT.LineaBase !== null){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.lineabase.includes(this.spDate(datoFPT.LineaBase))){
+                                filtros.lineabase.push(this.spDate(datoFPT.LineaBase))
+                            }
+                        }else if(permitido){
+                            if(!filtros.lineabase.includes(this.spDate(datoFPT.LineaBase))){
+                                filtros.lineabase.push(this.spDate(datoFPT.LineaBase))
+                            }
+                        }
+                    }
+                    if(datoFPT.FechaEstimada !== null){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.festimada.includes(this.spDate(datoFPT.FechaEstimada))){
+                                filtros.festimada.push(this.spDate(datoFPT.FechaEstimada))
+                            }
+                        }else if(permitido){
+                            if(!filtros.festimada.includes(this.spDate(datoFPT.FechaEstimada))){
+                                filtros.festimada.push(this.spDate(datoFPT.FechaEstimada))
+                            }
+                        }
+                    }
+                    if(datoFPT.Estatus !== undefined){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.estatus.includes(datoFPT.Estatus.Title)){
+                                filtros.estatus.push(datoFPT.Estatus.Title)
+                            }
+                        }else if(permitido){
+                            if(!filtros.estatus.includes(datoFPT.Estatus.Title)){
+                                filtros.estatus.push(datoFPT.Estatus.Title)
+                            }
+                        }
+                    }
+                })
+            })
+
+            if(idVentana === 3){
+                datosBit.forEach((itemBit) =>{
+                    const permitido = strGruposUsuarioActual.includes(itemBit.AreaAsignadaInc.NombreCorto) || this.obtenerIdAsignados(itemBit.AsignadoAInc).results.includes(usuarioActual) ? true : false
+                    if(itemBit.AreaAsignadaInc !== undefined){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.responsable.includes(itemBit.AreaAsignadaInc.NombreCorto)){
+                                filtros.responsable.push(itemBit.AreaAsignadaInc.NombreCorto)
+                            }
+                        }else if(permitido){
+                            if(!filtros.responsable.includes(itemBit.AreaAsignadaInc.NombreCorto)){
+                                filtros.responsable.push(itemBit.AreaAsignadaInc.NombreCorto)
+                            }
+                        }
+                    }
+                        
+                    if(itemBit.AsignadoA !== undefined){
+                        const asignados = this.obtenerAsignados(itemBit.AsignadoAInc)
+                        if (filtrosEncabezado.includes('ver')){
+                            asignados.forEach((itemAsignado)=>{
+                                if(!filtros.asignadoa.includes(itemAsignado)){
+                                    filtros.asignadoa.push(itemAsignado)
+                                }
+                            })
+                        }else if(permitido){
+                            asignados.forEach((itemAsignado)=>{
+                                if(!filtros.asignadoa.includes(itemAsignado)){
+                                    filtros.asignadoa.push(itemAsignado)
+                                }
+                            })
+                        }
+                    }
+                    if(itemBit.LineaBase !== null){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.lineabase.includes(this.spDate(itemBit.LineaBase))){
+                                filtros.lineabase.push(this.spDate(itemBit.LineaBase))
+                            }
+                        }else if(permitido){
+                            if(!filtros.lineabase.includes(this.spDate(itemBit.LineaBase))){
+                                filtros.lineabase.push(this.spDate(itemBit.LineaBase))
+                            }
+                        }
+                    }
+                    if(itemBit.EdoInc !== null){
+                        if (filtrosEncabezado.includes('ver')){
+                            if(!filtros.estatus.includes(itemBit.EdoInc)){
+                                filtros.estatus.push(itemBit.EdoInc)
+                            }
+                        }else if(permitido){
+                            if(!filtros.estatus.includes(itemBit.EdoInc)){
+                                filtros.estatus.push(itemBit.EdoInc)
+                            }
+                        }
+                    }
+                })
+            }
+            return filtros
+        }else{
+            let filtros = {
+                responsable: [],
+                asignadoa: []
+            }
+
+            datosCdT.datos.forEach((item)=>{
+                if(item.GrupoResponsable !== undefined){
+                    if(!filtros.responsable.includes(item.GrupoResponsable.NombreCortoGantt)){
+                        filtros.responsable.push(item.GrupoResponsable.NombreCortoGantt)
+                    }
+                }
+                if(item.AsignadoA !== undefined){
+                    const asignados = this.obtenerAsignados(item.AsignadoA)
+                    asignados.forEach((itemAsignado)=>{
+                        if(!filtros.asignadoa.includes(itemAsignado)){
+                            filtros.asignadoa.push(itemAsignado)
+                        }
+                    })
+                }
+            })
+            return filtros
         }
     }
 }

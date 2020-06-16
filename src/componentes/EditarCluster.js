@@ -19,7 +19,9 @@ class EditarCluster extends Component{
         this.initialState = {
             backdrop: {abierto: true, mensaje: 'Cargando...'},
             usuarioActual: '',
-            datos: []
+            datos: [],
+            t287completa: '',
+            t288completa: '',
         }
         this.state = this.initialState
     }
@@ -62,12 +64,12 @@ class EditarCluster extends Component{
     }
 
     obtenerTareas = async () =>{
-        let usuarioActual = await sp.web.currentUser.get()
-        let tareas = await sp.web.lists.getByTitle('Flujo Tareas').items
+        let usuarioActual = await currentWeb.currentUser.get()
+        let tareas = await currentWeb.lists.getByTitle('Flujo Tareas').items
         .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
                 ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
         //.select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'OcultoA/ID', 'OcultoA/Name')
-        .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'Visible')
+        .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'Visible', 'EstatusId')
         .expand('IdTarea')
         //.expand('IdTarea', 'OcultoA')
         .get()
@@ -80,6 +82,20 @@ class EditarCluster extends Component{
             return tarea
         })
         this.setState({usuarioActual: usuarioActual, datos: tareas, backdrop: {abierto : false, mensaje: ''}})
+    }
+
+    obtenerTareasCluster = async (IdTarea) =>{
+        await currentWeb.lists.getByTitle('Flujo Tareas').items
+        .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
+                ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and IdTareaId eq ' + IdTarea + ')')
+        .get()
+        .then(async (fts)=>{
+            if(fts[0].EstatusId !== 1){
+                await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(fts[0].ID).update({
+                    EstatusId: 1
+                })
+            }
+        })
     }
     //#endregion
 
@@ -100,24 +116,44 @@ class EditarCluster extends Component{
         datos = datos.filter(x=> x.Cambio)
         
         const guardar = async () => {
-            this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
-            await util.asyncForEach(datos, async dato => {
-                //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                await sp.web.lists.getByTitle('Flujo Tareas').items.getById(dato.ID).update({
-                    //OcultoAId: ocultoA
-                    Visible: dato.Visible
+            if(datos.length>0){
+                this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
+                await util.asyncForEach(datos, async dato => {
+                    //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
+                    await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(dato.ID).update({
+                        //OcultoAId: ocultoA
+                        Visible: dato.Visible
+                    })
+                    .catch(error=>{
+                        alert('Error al guardar en Flujo Tareas: ' + error)
+                    })
                 })
-                .catch(error=>{
-                    alert('Error al guardar en Flujo Tareas: ' + error)
-                })
-            })
-            this.setState({backdrop: {abierto: false, mensaje: ''}})
+                
+                let cluster287 = this.state.datos.filter(x=> x.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' && x.Visible);
+                cluster287 = cluster287.length > 0 ? cluster287.some(x=> x.EstatusId !== 3) : '';
+                let cluster288 = this.state.datos.filter(x=> x.IdTarea.Subcluster === 'Material de ventas fabricado' && x.Visible);
+                cluster288 = cluster288.length > 0 ? cluster288.some(x=> x.EstatusId !== 3) : '';
+
+                if(cluster287 !== ''){
+                    if(cluster287){
+                        await this.obtenerTareasCluster(287)
+                    }
+                }
+                if(cluster288 !== ''){
+                    if(cluster288){
+                        await this.obtenerTareasCluster(288)
+                    }
+                }
+                this.setState({backdrop: {abierto: false, mensaje: ''}, t287completa: !cluster287, t288completa: !cluster288 })
+            }
         }
-        guardar()
+        await guardar()
         .then(()=>{
             this.props.datosRetorno(this.state)
             this.onCerrar()
         })
+
+        this.onCerrar()
     }
     //#endregion
     render(){

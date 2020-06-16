@@ -148,7 +148,7 @@ class SeleccionRFS extends Component{
     }
 
     async componentDidMount(){
-        const terrenos = await sp.web.lists.getByTitle("Terrenos").items
+        const terrenos = await currentWeb.lists.getByTitle("Terrenos").items
         .filter('IdProyectoInversionId eq ' + this.props.datos.ProyectoInversion.ID + ' and Empadronamiento eq null')
         .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO', 'Empadronamiento')
         .get();

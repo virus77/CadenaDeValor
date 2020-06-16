@@ -6,9 +6,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import Principal from './componentes/Principal';
-//import Encabezado from './componentes/Encabezado';
 import Generico from './componentes/Generico';
-//import Modal from './componentes/Ventana';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
@@ -55,8 +53,8 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    var listItemsT = await sp.web.lists.getByTitle("Terrenos").items
-      .select("ID", "Title", "Modified", "NombredelTerreno2", "IdProyectoInversion/ID",
+    var listItemsT = await currentWeb.lists.getByTitle("Terrenos").items
+      .select("ID", "Title", "Modified", "NombredelTerreno", "NombredelTerreno2", "IdProyectoInversion/ID",
         "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
       .expand("IdProyectoInversion")
       .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
@@ -64,7 +62,7 @@ class App extends Component {
       .top(1000)
       .get();
 
-    var listItemsPI = await sp.web.lists.getByTitle("Proyecto Inversion").items
+    var listItemsPI = await currentWeb.lists.getByTitle("Proyecto Inversion").items
       .select("ID", "NombreProyectoInversion")
       .orderBy("NombreProyectoInversion", true)
       .top(1000)

@@ -13,6 +13,7 @@ import Input from '@material-ui/core/Input';
 import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Select, MenuItem } from '@material-ui/core'
 import arrow_up_icon from '../imagenes/arrow_up_icon.png';
+import arrow_down_icon from '../imagenes/arrow_down_icon.png';
 import attach_icon from '../imagenes/attach_icon.png';
 import more_details_icon from '../imagenes/more_details_icon.png';
 import more_details_icon_disabled from '../imagenes/more_details_icon_disabled.png';
@@ -51,7 +52,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
+const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class Generico extends Component {
     constructor(props) {
@@ -88,6 +89,7 @@ class Generico extends Component {
             terrenos: [],
             bitacorasInfo: [],
             solucionInfo: [],
+            opcionesFiltrosEncabezado: [],
             filtrosEncabezado: [],
             Mkt: [],
             filtrosTabla: {
@@ -102,7 +104,8 @@ class Generico extends Component {
             gruposUsuarioActual: [],
             seguridad: [],
             tieneRFS: false,
-            orden: { col: '', asc: true }
+            orden: { col: '', asc: true },
+            clusterToggle: []
         }
         this.state = this.inialState;
     }
@@ -115,7 +118,7 @@ class Generico extends Component {
 
             //Si es terreno(s) original(es)
             if (!esRFS) {
-                actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
+                actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
                     .filter('(IdProyectoInversionId eq ' + idProyecto + ')')
                     .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
                     .expand('IdTarea', 'IdTerreno')
@@ -124,7 +127,7 @@ class Generico extends Component {
 
                 terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
 
-                datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
+                datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
                     .filter('(ProyectoInversionId eq ' + idProyecto + ')')
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
                         'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
@@ -138,7 +141,7 @@ class Generico extends Component {
                     .get();
             } else {
                 //Si es terreno RFS
-                actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
+                actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
                     .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title))) and (IdTarea/Desactivable eq 0))")
                     .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
                     .expand('IdTarea', 'IdTerreno')
@@ -147,7 +150,7 @@ class Generico extends Component {
 
                 terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
 
-                datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
+                datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
                     .filter("(ProyectoInversionId eq " + idProyecto + ") and ((TerrenoId eq " + idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
                         'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
@@ -176,9 +179,13 @@ class Generico extends Component {
 
             result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
 
+            let clusterToggle = result.map((x=>{ return { id: x.cluster.OrdenEG, abierto: true}}))
+            clusterToggle = clusterToggle.filter(x => x.id !== null)
+
             const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
             
             //let d =util.generarArregloEG(result, datos)
+            const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(4, datosEG, [], [], [], 0, [])
             this.setState({
                 cargado: true, datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, clustersVentana: result,
                 totalAdmin: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
@@ -186,12 +193,233 @@ class Generico extends Component {
                 totalProy: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length : 0,
                 idVentanaAnterior: this.state.idVentanaSeleccionada, tieneRFS: tieneRFS,
                 terrenos: terrenos, terrenoTitulo: terrenoTitulo, backdrop: { cargado: true, mensaje: '' },
-                gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, seguridad: seguridad
+                gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, seguridad: seguridad,
+                clusterToggle: clusterToggle, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado
             });
 
         } else {
             this.setState({ backdrop: { cargado: false, mensaje: 'Completo' } });
             alert('Se crearon los terrenos nuevos y su estrategia de gestión. Vuelva al menú principal para continuar.')
+        }
+    }
+
+    onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS, nuevoTerreno, usuarioActual, gruposUsuarioActual, seguridad) => {
+        const { idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
+        let { filtrosTabla, filtrosEncabezado, orden, clusterToggle } = this.state
+        const datosOriginalesVEG = this.state.datosOriginalVentanaEG
+        const datosOriginalesV = this.state.datosOriginalVentana
+        let result = [];
+        let actividades = [];
+        let Mkt = [];
+        let bitacorasInfo = []
+        let solucionInfo = []
+
+        if (tipoRFS === '' || tipoRFS === 'TF') {
+            switch (idVentanaSeleccionada) {
+                case 4:
+                    //#region
+                    if (name !== '' && style !== '') { util.styleLinkGen(name, style) }
+                    let datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+                        .filter('(ProyectoInversionId eq ' + idProyecto + ') or (TerrenoId eq ' + (nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno) + ')')
+                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
+                            'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
+                            'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/Subcluster', 'AsignadoA/ID', 'AsignadoA/Title',
+                            'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'Estatus/ID', 'Estatus/Title',
+                            'OrdenEG', 'NombreActividad', 'IdRCDTT/ID', 'IdRCDTT/Title', 'IdRCDTT/TituloInternoDelCampo',
+                            'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
+                        .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable', 'IdRCDTT', 'Estatus')
+                        .orderBy('OrdenEG', true)
+                        .top(1000)
+                        .get();
+
+                    let datosEG = util.inicializarArregloDatos(idVentanaSeleccionada, datos)
+                    datosEG.datos = datos;
+                    result = Array.from(new Set(datosEG.datos.map(s => s.Tarea.TxtCluster)))
+                        .map(currentCluster => {
+                            return {
+                                cluster: datosEG.datos.find(s => s.Tarea.TxtCluster === currentCluster).Tarea
+                            };
+                        });
+
+                    result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
+
+                    let clusterToggle = result.map((x=>{ return { id: x.cluster.OrdenEG, abierto: true}}))
+                    clusterToggle = clusterToggle.filter(x => x.id !== null)
+
+
+                    const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
+
+                    //let d =util.generarArregloEG(result, datosEG)
+                    //const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(4, datosEG, [], [], [], 0, [])
+                    
+                    this.setState({
+                        backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result,
+                        datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true,
+                        idTerreno: nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno, MACO: nuevoTerreno !== '' ? nuevoTerreno.MACO : this.state.MACO,
+                        terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true,
+                        tieneRFS: tieneRFS
+                    });
+                    //#endregion
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                    //#region
+                    if (name !== '' && style !== '') { util.styleLinkGen(name, style) }
+                    filtrosTabla = util.limpiarFiltrosTabla()
+                    orden = { col: '', asc: true }
+                    //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
+                    const complemento = !terrenoTitulo.startsWith('T-') ? ' and (IdTarea/Desactivable eq 0)' : ''
+
+                    actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                        .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title)))" + complemento + ")")
+                        .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
+                            'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
+                            'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
+                            'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID', 'Visible',
+                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
+                            'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title', 'Orden', 'NombreActividad',
+                            'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
+                            'IdTarea/Subcluster', 'IdTarea/AbrirLink', 'OcultoA/ID', 'OcultoA/Title', 'IdTerreno/MACO', 'IdTarea/CreaBitacora',
+                            'IdTerreno/LinkFichasVenta', 'IdTerreno/LinkMemoriaAcabados', 'IdTerreno/LinkFichasDesarrollo', 'IdTarea/TareaCrear',
+                            'IdProyectoInversion/IdBusquedaVersionado')
+                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
+                            'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico', 'OcultoA')
+                        .orderBy('Orden', true)
+                        .top(1000)
+                        .get()
+
+                    const terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
+
+                    let datosFPT = await util.generarConsultaFPT(actividades)
+                    datosFPT = util.establacerDatoLista('Fechas paquete de trámites', datosFPT, this.props.IdProyInv)
+
+                    //let ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
+                    let datosActs = util.inicializarArregloDatos(idVentanaSeleccionada, actividades.filter(x=> x.Orden >= idVentanaSeleccionada && x.Orden <= idVentanaSeleccionada + 1))
+                    actividades = util.establacerDatoLista('Flujo Tareas', actividades, this.props.IdProyInv)
+                    datosActs.datos = actividades
+
+                    result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
+                    .map(currentCluster => {
+                        return {
+                            cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.Orden) < parseFloat(idVentanaSeleccionada + 1)))
+                        };
+                    });
+
+                    Mkt = actividades
+                    .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
+                    .sort(function (a, b) { return a.ID - b.ID })
+
+                    //Obtiene datos de las bitácoras
+                    if(idVentanaSeleccionada === 3){
+                        const datosBit = await util.obtenerBitacorasInfo(proyectoTitulo,terrenoTitulo)
+                        solucionInfo = datosBit.solucion
+                        bitacorasInfo = util.establecerLineaBaseBit(datosBit.solucion, datosBit.bitacoras)
+                    }
+
+                    const totalAdmin = util.obtenerTotalPorVentana(1, datosActs.datos, datosFPT, [])
+                    const totalNorm = util.obtenerTotalPorVentana(2, datosActs.datos, datosFPT, bitacorasInfo)
+                    const totalProy = util.obtenerTotalPorVentana(3, datosActs.datos, datosFPT, bitacorasInfo)
+
+                    result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
+
+                    result.sort(function (a, b) {
+                        if (a.cluster.Orden > b.cluster.Orden)
+                            return 1;
+                        if (a.cluster.Orden < b.cluster.Orden)
+                            return -1;
+                        return 0;
+                    })
+
+                    clusterToggle = result.map((x=>{ return { id: x.cluster.IdTarea.Orden, abierto: true}}))
+                    clusterToggle = clusterToggle.filter(x => x.id !== null)
+
+                    const hayRFS = actividades.some(x=> x.IdTarea.ID === 24 && x.Estatus.ID === 3)
+
+                    const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentanaSeleccionada, datosActs, datosFPT, bitacorasInfo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
+                    //let d =util.generarArregloActs('Flujo Tareas', result, datosActs)
+                    this.setState({
+                        idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, datosOriginalVentana: datosActs,
+                        totalAdmin: totalAdmin, totalNorm: totalNorm, totalProy: totalProy, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado,
+                        idVentanaAnterior: idVentanaSeleccionada, tieneRFS: hayRFS, orden: orden, clusterToggle: clusterToggle,
+                        terrenos: terrenos, terrenoTitulo: terrenoTitulo,  disabled: false, backdrop: { cargado: true, mensaje: '' },
+                        filtrosTabla: filtrosTabla, datosFPT: datosFPT, Mkt: Mkt, bitacorasInfo: bitacorasInfo, seguridad: seguridad,
+                        solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true
+                    })
+                    //#endregion
+                    break;
+                //Filtro de favoritos, existe en gantt y ver todos
+                case 5:
+                case 6:
+                case 7:
+                    if (mensaje === false) {
+                        switch (idVentanaSeleccionada) {
+                            case 5:
+                                //Se hizo clic en el filtro de Favoritos
+                                {
+                                    if (!filtrosEncabezado.includes('favs'))
+                                        filtrosEncabezado.push('favs')
+                                    else
+                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'favs')
+
+                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
+                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
+
+                                    if (this.state.idVentana === 4) {
+                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                    } else {
+                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                    }
+                                }
+                                break;
+                            case 6:
+                                //Se hizo clic en el filtro de Tareas de Gantt
+                                {
+                                    if (!filtrosEncabezado.includes('gantt'))
+                                        filtrosEncabezado.push('gantt')
+                                    else
+                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'gantt')
+
+                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
+                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
+
+                                    if (this.state.idVentana === 4)
+                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                    else
+                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                }
+                                break;
+                            case 7:
+                                //Se hizo clic en el filtro de Ver todos
+                                {
+                                    if (!filtrosEncabezado.includes('ver'))
+                                        filtrosEncabezado.push('ver')
+                                    else
+                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'ver')
+
+                                    if (this.state.idVentana === 4)
+                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
+                                    else
+                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
+                case 8:
+                    //Se hizo clic en el icono de redirección a Gantt
+                    const dato = this.props.rfs === false ? proyectoTitulo : terrenoTitulo
+                    window.open(webUrl + "/CompraDeTerreno/sitepages/gantt.aspx?Valor=" + dato, "_blank");
+                    break;
+                default:
+                    break;
+            }
+        }
+        else {
+            this.setState({ backdrop: { cargado: true, mensaje: '' } });
+            alert('Se crearon los terrenos nuevos y su estrategia de gestión. Vuelva al menú principal para consultarlos.')
         }
     }
 
@@ -250,7 +478,7 @@ class Generico extends Component {
     //#endregion
 
     obtenerDatosTramite = async (idFlujoTareas) => {
-        const datosFPT = await sp.web.lists.getByTitle('Fechas paquete de trámites').items
+        const datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
             .filter('IdFlujoId eq ' + idFlujoTareas)
             .get()
         return datosFPT
@@ -428,219 +656,6 @@ class Generico extends Component {
             this.setState({ datosVentana: nuevosDatos, filtrosTabla: filtrosTabla })
         }
     }
-    
-    onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS, nuevoTerreno, usuarioActual, gruposUsuarioActual, seguridad) => {
-        const { idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
-        let { filtrosTabla, filtrosEncabezado, orden } = this.state
-        const datosOriginalesVEG = this.state.datosOriginalVentanaEG
-        const datosOriginalesV = this.state.datosOriginalVentana
-        let result = [];
-        let actividades = [];
-        let Mkt = [];
-        let bitacorasInfo = []
-        let solucionInfo = []
-
-        if (tipoRFS === '' || tipoRFS === 'TF') {
-            switch (idVentanaSeleccionada) {
-                case 4:
-                    //#region
-                    if (name !== '' && style !== '') { util.styleLinkGen(name, style) }
-                    let datos = await sp.web.lists.getByTitle('EstrategiaGestion').items
-                        .filter('(ProyectoInversionId eq ' + idProyecto + ') or (TerrenoId eq ' + (nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno) + ')')
-                        .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
-                            'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
-                            'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'AsignadoA/ID', 'AsignadoA/Title',
-                            'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'Estatus/ID', 'Estatus/Title',
-                            'OrdenEG', 'NombreActividad', 'IdRCDTT/ID', 'IdRCDTT/Title', 'IdRCDTT/TituloInternoDelCampo',
-                            'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
-                        .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable', 'IdRCDTT', 'Estatus')
-                        .orderBy('OrdenEG', true)
-                        .top(1000)
-                        .get();
-
-                    let datosEG = util.inicializarArregloDatos(idVentanaSeleccionada, datos)
-                    datosEG.datos = datos;
-                    result = Array.from(new Set(datosEG.datos.map(s => s.Tarea.TxtCluster)))
-                        .map(currentCluster => {
-                            return {
-                                cluster: datosEG.datos.find(s => s.Tarea.TxtCluster === currentCluster).Tarea
-                            };
-                        });
-
-                    result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
-
-                    const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
-
-                    //let d =util.generarArregloEG(result, datosEG)
-                    this.setState({
-                        backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result,
-                        datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true,
-                        idTerreno: nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno, MACO: nuevoTerreno !== '' ? nuevoTerreno.MACO : this.state.MACO,
-                        terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true,
-                        tieneRFS: tieneRFS
-                    });
-                    //#endregion
-                    break;
-                case 1:
-                case 2:
-                case 3:
-                    //#region
-                    if (name !== '' && style !== '') { util.styleLinkGen(name, style) }
-                    filtrosTabla = util.limpiarFiltrosTabla()
-                    orden = { col: '', asc: true }
-                    //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
-                    const complemento = !terrenoTitulo.startsWith('T-') ? ' and (IdTarea/Desactivable eq 0)' : ''
-
-                    actividades = await sp.web.lists.getByTitle('Flujo Tareas').items
-                        .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title)))" + complemento + ")")
-                        .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
-                            'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
-                            'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
-                            'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID', 'Visible',
-                            'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
-                            'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title', 'Orden', 'NombreActividad',
-                            'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
-                            'IdTarea/Subcluster', 'IdTarea/AbrirLink', 'OcultoA/ID', 'OcultoA/Title', 'IdTerreno/MACO', 'IdTarea/CreaBitacora',
-                            'IdTerreno/LinkFichasVenta', 'IdTerreno/LinkMemoriaAcabados', 'IdTerreno/LinkFichasDesarrollo', 'IdTarea/TareaCrear',
-                            'IdProyectoInversion/IdBusquedaVersionado')
-                        .expand('IdProyectoInversion', 'IdTerreno', 'Nivel', 'IdTarea', 'Estatus', 'EstatusAnterior', 'GrupoResponsable',
-                            'AsignadoA', 'Favoritos', 'Editor', 'LineaBaseModifico', 'OcultoA')
-                        .orderBy('Orden', true)
-                        .top(1000)
-                        .get()
-
-                    const terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
-
-                    let datosFPT = await util.generarConsultaFPT(actividades)
-                    datosFPT = util.establacerDatoLista('Fechas paquete de trámites', datosFPT, this.props.IdProyInv)
-
-                    //let ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
-                    let datosActs = util.inicializarArregloDatos(idVentanaSeleccionada, actividades.filter(x=> x.Orden >= idVentanaSeleccionada && x.Orden <= idVentanaSeleccionada + 1))
-                    actividades = util.establacerDatoLista('Flujo Tareas', actividades, this.props.IdProyInv)
-                    datosActs.datos = actividades
-
-                    result = Array.from(new Set(datosActs.datos.map(s => s.IdTarea.TxtCluster)))
-                    .map(currentCluster => {
-                        return {
-                            cluster: datosActs.datos.find(s => s.IdTarea.TxtCluster === currentCluster && (parseFloat(s.Orden) > parseFloat(idVentanaSeleccionada) && parseFloat(s.Orden) < parseFloat(idVentanaSeleccionada + 1)))
-                        };
-                    });
-
-                    Mkt = actividades
-                    .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
-                    .sort(function (a, b) { return a.ID - b.ID })
-
-                    //Obtiene datos de las bitácoras
-                    const datosBit = await util.obtenerBitacorasInfo(proyectoTitulo,terrenoTitulo)
-                    bitacorasInfo = datosBit.bitacoras
-                    solucionInfo = datosBit.solucion
-
-                    const totalAdmin = util.obtenerTotalPorVentana(1, datosActs.datos, null)
-                    const totalNorm = util.obtenerTotalPorVentana(2, datosActs.datos, datosFPT)
-                    const totalProy = util.obtenerTotalPorVentana(3, datosActs.datos, bitacorasInfo)
-
-                    result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
-
-                    result.sort(function (a, b) {
-                        if (a.cluster.Orden > b.cluster.Orden)
-                            return 1;
-                        if (a.cluster.Orden < b.cluster.Orden)
-                            return -1;
-                        return 0;
-                    })
-
-                    const hayRFS = actividades.some(x=> x.IdTarea.ID === 24 && x.Estatus.ID === 3)
-                    //let d =util.generarArregloActs('Flujo Tareas', result, datosActs)
-                    this.setState({
-                        idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, datosOriginalVentana: datosActs,
-                        //totalAdmin: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
-                        totalAdmin: totalAdmin, totalNorm: totalNorm, totalProy: totalProy,
-                        //totalNorm: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
-                        //totalProy: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length: 0,
-                        idVentanaAnterior: idVentanaSeleccionada, tieneRFS: hayRFS, orden: orden,
-                        //AdministracionAnterior: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
-                        //NormativoAnterior: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
-                        //ProyectosAnterior: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length: 0,
-                        terrenos: terrenos, terrenoTitulo: terrenoTitulo,  disabled: false, backdrop: { cargado: true, mensaje: '' },
-                        filtrosTabla: filtrosTabla, datosFPT: datosFPT, Mkt: Mkt, bitacorasInfo: bitacorasInfo, seguridad: seguridad,
-                        solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true
-                    })
-                    //#endregion
-                    break;
-                //Filtro de favoritos, existe en gantt y ver todos
-                case 5:
-                case 6:
-                case 7:
-                    if (mensaje === false) {
-                        switch (idVentanaSeleccionada) {
-                            case 5:
-                                //Se hizo clic en el filtro de Favoritos
-                                {
-                                    if (!filtrosEncabezado.includes('favs'))
-                                        filtrosEncabezado.push('favs')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'favs')
-
-                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
-
-                                    if (this.state.idVentana === 4) {
-                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                    } else {
-                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                    }
-                                }
-                                break;
-                            case 6:
-                                //Se hizo clic en el filtro de Tareas de Gantt
-                                {
-                                    if (!filtrosEncabezado.includes('gantt'))
-                                        filtrosEncabezado.push('gantt')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'gantt')
-
-                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
-
-                                    if (this.state.idVentana === 4)
-                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                    else
-                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                }
-                                break;
-                            case 7:
-                                //Se hizo clic en el filtro de Ver todos
-                                {
-                                    if (!filtrosEncabezado.includes('ver'))
-                                        filtrosEncabezado.push('ver')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'ver')
-
-                                    if (this.state.idVentana === 4)
-                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
-                                    else
-                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    break;
-                case 8:
-                    //Se hizo clic en el icono de redirección a Gantt
-                    const dato = this.props.rfs === false ? proyectoTitulo : terrenoTitulo
-                    window.open(webCdT + "/sitepages/gantt.aspx?Valor=" + dato, "_blank");
-                    break;
-                default:
-                    break;
-            }
-        }
-        else {
-            this.setState({ backdrop: { cargado: true, mensaje: '' } });
-            alert('Se crearon los terrenos nuevos y su estrategia de gestión. Vuelva al menú principal para consultarlos.')
-        }
-    }
 
     onCambiarMaco = maco => {
         this.setState({ MACO: maco.dato })
@@ -674,7 +689,7 @@ class Generico extends Component {
             favoritos.push({ ID: user.Id, Name: user.LoginName })
         }
 
-        await sp.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+        await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
             FavoritosId: val,
         }).then(() => {
             if (fila.Lista === 'Flujo Tareas') {
@@ -699,37 +714,18 @@ class Generico extends Component {
         })
     }
 
-    //Establece el contador de los cambios por clúster por cada una de las tareas modificadas en la E.G.
-    establecerContador = (contadores, ventana, tipo) => {
-        switch (ventana) {
-            case "Administración":
-                if (tipo === '+') { contadores.admin += 1 }
-                else { contadores.admin -= 1 }
-                break;
-            case "Normativo":
-                if (tipo === '+') { contadores.norm += 1 }
-                else { contadores.norm -= 1 }
-                break;
-            case "Proyectos":
-                if (tipo === '+') { contadores.proy += 1 }
-                else { contadores.proy -= 1 }
-                break;
-            default:
-                break;
-        }
-    }
-
     //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
     onSeleccionarFecha = async (fecha, fila, campo) => {
-        const { usuarioActual, idVentana } = this.state
+        const { idVentana, gruposUsuarioActual, usuarioActual, filtrosEncabezado } = this.state
+        let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT } = this.state
         if (fila.Lista === 'Flujo Tareas') {
-            const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
-            const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === fila.ID)
-            let newData = this.state.datosVentana.datos[filaIndice]
-            let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+            const filaIndice = datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
+            const filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === fila.ID)
+            let newData = datosVentana.datos[filaIndice]
+            let newDataO = datosOriginalVentana.datos[filaIndiceO]
             switch (campo) {
                 case 'LineaBase':
-                    await sp.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                    await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
                         LineaBase: fecha,
                         LineaBaseModificoId: usuarioActual.Id
                     }).then(() => {
@@ -741,7 +737,7 @@ class Generico extends Component {
                     })
                     break;
                 case 'FechaEstimada':
-                    await sp.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                    await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
                         FechaEstimada: fecha,
                     }).then(() => {
                         newData.FechaEstimada = moment(fecha).format()
@@ -751,18 +747,16 @@ class Generico extends Component {
                 default:
                     break;
             }
-
-            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
-            this.setState({ datosVentana: datosActualizados, datosOriginalVentan: datosActualizadosO })
+            datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+            datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+            this.setState({ datosVentana: datosVentana, datosOriginalVentan: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
         } else {
-            const filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === fila.ID)
-            let newData = this.state.datosFPT[filaIndice]
+            const filaIndice = datosFPT.findIndex(datos => datos.ID === fila.ID)
+            let newData = datosFPT[filaIndice]
             switch (campo) {
                 case 'LineaBase':
-                    await sp.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                    await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
                         LineaBase: fecha,
                         LineaBaseModificoId: usuarioActual.Id
                     }).then(() => {
@@ -771,7 +765,7 @@ class Generico extends Component {
                     })
                     break;
                 case 'FechaEstimada':
-                    await sp.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                    await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
                         FechaEstimada: fecha,
                     }).then(() => {
                         newData.FechaEstimada = moment(fecha).format()
@@ -781,8 +775,9 @@ class Generico extends Component {
                     break;
             }
 
-            let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-            this.setState({ datosFPT: datosActualizados })
+            datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+            this.setState({ datosFPT: datosFPT, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
         }
     }
 
@@ -797,11 +792,6 @@ class Generico extends Component {
 
     //Guarda la información capturada en la E.G.
     onSave = async elementos => {
-        let contadores = {
-            admin: 0,
-            norm: 0,
-            proy: 0
-        }
         //Filtra los elementos que hayan sido modificados
         elementos = elementos.filter(x => x.cambio)
         const guardarEG = async () => {
@@ -810,12 +800,11 @@ class Generico extends Component {
             await util.asyncForEach(elementos, async elemento => {
                 //Si no tiene ID de elemento asignado, se creará la tarea en Flujo Tareas
                 if (elemento.datos.IdFlujoTareasId === null || elemento.datos.IdFlujoTareasId === 0) {
-                    this.establecerContador(contadores, elemento.datos.Tarea.TxtVentana, '+')
                     const usuariosAsignados = util.obtenerIdAsignados(elemento.datos.AsignadoA)
                     let fta = []
                     //Si el elemento checkeado es clúster o subcluster...
                     if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
-                        fta = await sp.web.lists.getByTitle('Flujo Tareas').items
+                        fta = await currentWeb.lists.getByTitle('Flujo Tareas').items
                             .filter('IdProyectoInversionId eq ' + elemento.datos.ProyectoInversion.ID +
                                 ' and IdTerrenoId eq ' + elemento.datos.Terreno.ID + ' and IdTareaId eq ' +
                                 elemento.datos.Tarea.ID)
@@ -827,7 +816,7 @@ class Generico extends Component {
 
                     if (fta.length === 0) {
                         //Crea la tarea en flujo tareas de la actividad seleccionada
-                        fta = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
+                        fta = await currentWeb.lists.getByTitle("Flujo Tareas").items.add({
                             IdProyectoInversionId: elemento.datos.ProyectoInversion.ID,
                             IdTareaId: elemento.datos.Tarea.ID,
                             IdTerrenoId: elemento.datos.Terreno.ID,
@@ -850,7 +839,7 @@ class Generico extends Component {
                         //Sino tiene Id en fechas paquete de trámites, guarda la información en dicha lista
                         if (elemento.datos.IdFPTId === null) {
                             if(elemento.datos.IdRCDTT !== undefined){
-                                fpt = await sp.web.lists.getByTitle("Fechas paquete de trámites").items.add({
+                                fpt = await currentWeb.lists.getByTitle("Fechas paquete de trámites").items.add({
                                     Title: this.state.terrenoTitulo,
                                     IdDocTaskId: elemento.datos.IdRCDTT.IdRTD,
                                     IdFlujoId: fta.data !== undefined ? fta.data.ID : fta[0].ID,
@@ -870,7 +859,7 @@ class Generico extends Component {
                             }
                         } else {
                             //Si ya tiene Id en fechas paquete de trámites, actualiza la información en dicha lista
-                            await sp.web.lists.getByTitle("Fechas paquete de trámites").items.getById(elemento.datos.IdFPTId).update({
+                            await currentWeb.lists.getByTitle("Fechas paquete de trámites").items.getById(elemento.datos.IdFPTId).update({
                                 NoAplica: !elementos.cambio,
                                 AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] }
                             })
@@ -881,7 +870,7 @@ class Generico extends Component {
                     }
                     //Actualiza la información de la actividad seleccionada en la lista de Estrategia de gestión.
                     //Sólo si la actividad es de tipo cluster, el estatus no cambia a Enviado
-                    await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
+                    await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
                         Seleccionado: elemento.datos.Seleccionado,
                         IdFlujoTareasId: fta.data !== undefined ? fta.data.ID : fta[0].ID,
                         AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
@@ -908,21 +897,20 @@ class Generico extends Component {
                 } else {
                     //Si ya tiene ID de elemento asignado, se actualizará la tarea en flujo tareas
                     const usuariosAsignados = util.obtenerIdAsignados(elemento.datos.AsignadoA)
-                    this.establecerContador(contadores, elemento.datos.Tarea.TxtVentana, elemento.datos.Seleccionado ? '+' : '-')
-                    await sp.web.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareasId).update({
+                    await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(elemento.datos.IdFlujoTareasId).update({
                         AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
                         Visible: elemento.datos.Seleccionado
                     })
                     .then(async u => {
                         //Establece como seleccionado en la lista de EG
-                        await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
+                        await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(elemento.datos.ID).update({
                             AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
                             Seleccionado: elemento.datos.Seleccionado
                         })
                         .then(async () => {
                             //Si la actividad de es tipo cluster, actualiza los datos
                             if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
-                                await sp.web.lists.getByTitle("Fechas paquete de trámites").items.getById(elemento.datos.IdFPTId).update({
+                                await currentWeb.lists.getByTitle("Fechas paquete de trámites").items.getById(elemento.datos.IdFPTId).update({
                                     NoAplica: !elemento.cambio,
                                     AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] }
                                 })
@@ -944,21 +932,27 @@ class Generico extends Component {
                     });
                 }
             });
-            await sp.web.lists.getByTitle("HistorialEG").items.add({
+            await currentWeb.lists.getByTitle("HistorialEG").items.add({
                 ProyectoInversionId: this.state.idProyecto
             })
             .catch(error =>{
                 alert('Error al guardar el historial de E.G.: ' + error)
             })
             alert('Datos guardados correctamente')
-            this.setState({
-                totalAdmin: this.state.totalAdmin + contadores.admin, totalNorm: this.state.totalNorm + contadores.norm,
-                totalProy: this.state.totalProy + contadores.proy, datosVentanaEG: datosActualizados, backdrop: { cargado: true, mensaje: '' }
-            })
+            this.setState({ datosVentanaEG: datosActualizados, backdrop: { cargado: true, mensaje: '' } })
         }
         guardarEG();
     }
 
+    onTogggleCluster = (idCluster) =>{
+        let { clusterToggle } = this.state
+        const index = clusterToggle.findIndex(x=> x.id === idCluster)
+        let newData = clusterToggle[index]
+        newData.abierto = !newData.abierto
+        let datosActualizados = update(clusterToggle, { $splice: [[index, 1, newData]] })
+
+        this.setState({ clusterToggle: datosActualizados})
+    }
     //#region Métodos de ciclo de vida
     async componentDidMount() {
         util.styleLinkGen("genericoEG.css", "../estilos/genericoEG.css")
@@ -971,9 +965,9 @@ class Generico extends Component {
         //Obtiene los grupos y sus usuarios de la lista de GanttPersonColab
         const seguridad = await util.obtenerSeguridad()
         //Obtiene los datos del usuario actual
-        const usuarioActual = await sp.web.currentUser.get();
+        const usuarioActual = await currentWeb.currentUser.get();
         //Obtiene los grupos en los que está registrado el usuario actual en la lista de GanttPersonColab
-        const gruposUsuarioActual = await sp.web.lists.getByTitle('GanttPersonColab').items
+        const gruposUsuarioActual = await currentWeb.lists.getByTitle('GanttPersonColab').items
             .filter("AdminAreaGanttId eq " + usuarioActual.Id + " or RespAreaGanttId eq " + usuarioActual.Id + " or NombreCortoGantt eq 'TODOS'")
             .get()
 
@@ -989,15 +983,10 @@ class Generico extends Component {
     }
 
     //#endregion
-    obtenerAsignados = campo => {
-        const usuarios = campo.map((registro) => {
-            return (registro.Title)
-        })
-        return usuarios
-    }
 
     onActualizarDatos = async arregloDatos => {
-        const { idVentana, MACO, idProyecto, tipo , usuarioActual, gruposUsuarioActual, seguridad } = this.state
+        const { idVentana, MACO, idProyecto, tipo , usuarioActual, gruposUsuarioActual, seguridad, filtrosEncabezado } = this.state
+        let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT } = this.state
         if (idVentana === 4) {
             //Si el evento viene desde un modal que no es tarea
             if (arregloDatos.tarea === 0) {
@@ -1033,8 +1022,8 @@ class Generico extends Component {
                         if (arregloDatos.dato && MACO !== null) {
                             //Establece el spinner mientras se generan los datos de la EG
                             this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestión. Esto podrí­a tardar unos minutos...' } })
-                            const terrenosPI = await sp.web.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + idProyecto + ' and Empadronamiento eq null').get()
-                            const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "') and (CrearConRFS eq 0))").get();
+                            const terrenosPI = await currentWeb.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + idProyecto + ' and Empadronamiento eq null').get()
+                            const nuevasTareasEG = await currentWeb.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "') and (CrearConRFS eq 0))").get();
                             
                             const generarEG = async () => {
                                 await util.asyncForEach(terrenosPI, async terrenoPI => {
@@ -1042,7 +1031,7 @@ class Generico extends Component {
                                         let tareaEG = 0
                                         if (nuevaTarea.OrdenEG === null && nuevaTarea.ID !== 244) {
                                             //Crea el elemento en la lista de Flujo Tareas 
-                                            tareaEG = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
+                                            tareaEG = await currentWeb.lists.getByTitle("Flujo Tareas").items.add({
                                                 IdProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                                 IdTareaId: nuevaTarea.ID,
                                                 NivelId: nuevaTarea.NivelId,
@@ -1061,7 +1050,7 @@ class Generico extends Component {
                                             //Si la actividad a crear no es clúster, la crea normalmente
                                             if (nuevaTarea.EsCluster === '0') {
                                                 //Crea el elemento en la estrategia de gestión del terreno resultante actual
-                                                await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                     ProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                                     TerrenoId: terrenoPI.ID,
                                                     TareaId: nuevaTarea.ID,
@@ -1076,13 +1065,13 @@ class Generico extends Component {
                                                 })
                                             } else {
                                                 //Si la actividad a crear sí es clúster o subclúster, obtiene los campos y asigna su id de relación a cada nueva actividad
-                                                const tareasTramites = await sp.web.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
+                                                const tareasTramites = await currentWeb.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
                                                 let existeNodo = false
                                                 await util.asyncForEach(tareasTramites, async tareaTramite => {
                                                     //Crea el elemento en la estrategia de gestión del terreno resultante actual
                                                     //Si la tarea a crear es subcluster y aún no se ha creado la tarea nodo...
                                                     if (nuevaTarea.EsSubcluster === '1' && !existeNodo) {
-                                                        await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                        await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                             ProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                                             TerrenoId: terrenoPI.ID,
                                                             TareaId: nuevaTarea.ID,
@@ -1096,7 +1085,7 @@ class Generico extends Component {
                                                         })
                                                         existeNodo = true
                                                     }
-                                                    await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                    await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                         ProyectoInversionId: terrenoPI.IdProyectoInversionId,
                                                         TerrenoId: terrenoPI.ID,
                                                         TareaId: nuevaTarea.ID,
@@ -1134,19 +1123,19 @@ class Generico extends Component {
                         }).join(',')
 
                         //Obtiene las tareas a deshabilitar después de hacer un RFS
-                        const tareasDeshabilitar = await sp.web.lists.getByTitle("Tareas").items
+                        const tareasDeshabilitar = await currentWeb.lists.getByTitle("Tareas").items
                             .filter('Desactivable eq 1')
                             .select('ID')
                             .get()
                         
                         //Deshabilita las tareas a nivel PI que ya no son necesarias después de hacer un RFS
                         await util.asyncForEach(tareasDeshabilitar, async (tareaDeshabilitar) => {
-                            await sp.web.lists.getByTitle("Flujo Tareas").items
+                            await currentWeb.lists.getByTitle("Flujo Tareas").items
                                 .filter('IdProyectoInversionId eq ' + idProyecto + ' and IdTareaId eq ' + tareaDeshabilitar.ID)
                                 .get()
                                 .then(async (ft) => {
                                     if (ft.length > 0) {
-                                        await sp.web.lists.getByTitle("Flujo Tareas").items.getById(ft[0].Id).update({
+                                        await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(ft[0].Id).update({
                                             EstatusId: 3,
                                             EstatusAnteriorId: 3
                                         })
@@ -1160,7 +1149,7 @@ class Generico extends Component {
                                 })
                         })
                         .then(async () => {
-                            const rootweb = await sp.web.getParentWeb()
+                            const rootweb = await currentWeb.getParentWeb()
                             let websCdV = await rootweb.web.webs()
                             let weBdTVersionado = websCdV[0]
                             weBdTVersionado = await sp.site.openWebById(weBdTVersionado.Id)
@@ -1173,7 +1162,7 @@ class Generico extends Component {
                             //Guarda la información de los terrenos seleccionados en la terea en la lista de RFS
                             await util.asyncForEach(arregloDatos.dato.terrenos, async (terrenoActual) => {
                                 if(terrenoActual.Empadronamiento === 'Sí'){
-                                    await sp.web.lists.getByTitle('RFSN').items.add({
+                                    await currentWeb.lists.getByTitle('RFSN').items.add({
                                         IdProyectoInversionId: idProyecto,
                                         FRSN: arregloDatos.dato.tipo === 'TS' ? 'Subdivisión' : (tipo === 'TR' ? 'Relotificación' : 'Fusión'),
                                         IdFlujoId: arregloDatos.dato.idFlujoTareas,
@@ -1188,7 +1177,7 @@ class Generico extends Component {
                             })
                             .then(async () => {
                                 //Establece la tarea como Enviada
-                                await sp.web.lists.getByTitle("Flujo Tareas").items.getById(arregloDatos.dato.idFlujoTareas).update({
+                                await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(arregloDatos.dato.idFlujoTareas).update({
                                     EstatusId: 3,
                                     EstatusAnteriorId: 3
                                 })
@@ -1197,7 +1186,7 @@ class Generico extends Component {
                                     //para que se consideren como TERRENOS NO VIVOS
                                     await util.asyncForEach(arregloDatos.dato.terrenos, async (terrenoActual) => {
                                         if(terrenoActual.Empadronamiento === 'Sí'){
-                                            await sp.web.lists.getByTitle("Terrenos").items.getById(terrenoActual.ID).update({
+                                            await currentWeb.lists.getByTitle("Terrenos").items.getById(terrenoActual.ID).update({
                                                 Empadronamiento: 'Sí'
                                             })
                                             .catch(error => {
@@ -1222,7 +1211,7 @@ class Generico extends Component {
                                         })
                                         .then(async () => {
                                             //Crea los terrenos resultantes en la lista de terrenos de Compra de terreno
-                                            await sp.web.lists.getByTitle('Terrenos').items.add({
+                                            await currentWeb.lists.getByTitle('Terrenos').items.add({
                                                 IdProyectoInversionId: idProyecto,
                                                 Title: nuevoTerrenoId,
                                                 NombredelTerreno: arregloDatos.dato.tipo === 'TS' ? 'Subdivisión' : (arregloDatos.dato.tipo === 'TF' ? 'Fusión' : 'Relotificación'),
@@ -1237,14 +1226,14 @@ class Generico extends Component {
                                             })
                                             .then(async (terr) => {
                                                 //Obtiene las tareas que se crarán para el nuevo terreno dependiendo de su MACO y tipo de RFS (TS, TF o TR)
-                                                const nuevasTareasEG = await sp.web.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + arregloDatos.dato.tipo + "' or MACO eq '" + terrenoResultante.MACO + "'))").get();
+                                                const nuevasTareasEG = await currentWeb.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + arregloDatos.dato.tipo + "' or MACO eq '" + terrenoResultante.MACO + "'))").get();
 
                                                 const generarEG = async () => {
                                                     await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
                                                         let tareaEG = 0
                                                         if (nuevaTarea.OrdenEG === null && nuevaTarea.ID !== 244) {
                                                             //Crea el elemento en la lista de Flujo Tareas
-                                                            tareaEG = await sp.web.lists.getByTitle("Flujo Tareas").items.add({
+                                                            tareaEG = await currentWeb.lists.getByTitle("Flujo Tareas").items.add({
                                                                 IdProyectoInversionId: idProyecto,
                                                                 IdTareaId: nuevaTarea.ID,
                                                                 NivelId: nuevaTarea.NivelId,
@@ -1262,7 +1251,7 @@ class Generico extends Component {
                                                         if (nuevaTarea.EnEG) {
                                                             if (nuevaTarea.EsCluster === '0') {
                                                                 //Crea el elemento en la estrategia de gestión del terreno resultante actual
-                                                                await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                                await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                                     ProyectoInversionId: idProyecto,
                                                                     TerrenoId: terr.data.Id,
                                                                     TareaId: nuevaTarea.ID,
@@ -1277,13 +1266,13 @@ class Generico extends Component {
                                                                 })
                                                             } else {
                                                                 //Si la actividad a crear sí es clúster o subclúster, obtiene los campos y asigna su id de relación a cada nueva actividad
-                                                                const tareasTramites = await sp.web.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
+                                                                const tareasTramites = await currentWeb.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
                                                                 let existeNodo = false
                                                                 await util.asyncForEach(tareasTramites, async tareaTramite => {
                                                                     //Crea el elemento en la estrategia de gestión del terreno resultante actual
                                                                     //Si la tarea a crear es subcluster y aún no se ha creado la tarea nodo...
                                                                     if (nuevaTarea.EsSubcluster === '1' && !existeNodo) {
-                                                                        await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                                        await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                                             ProyectoInversionId: idProyecto,
                                                                             TerrenoId: terr.data.Id,
                                                                             TareaId: nuevaTarea.ID,
@@ -1297,7 +1286,7 @@ class Generico extends Component {
                                                                         })
                                                                         existeNodo = true
                                                                     }
-                                                                    await sp.web.lists.getByTitle("EstrategiaGestion").items.add({
+                                                                    await currentWeb.lists.getByTitle("EstrategiaGestion").items.add({
                                                                         ProyectoInversionId: idProyecto,
                                                                         TerrenoId: terr.data.Id,
                                                                         TareaId: nuevaTarea.ID,
@@ -1359,62 +1348,62 @@ class Generico extends Component {
                     let usuariosAsignados = util.obtenerIdAsignados(arregloDatos.dato.usuarioAsignados)
                     const idElemento = filaSeleccionada.ID
     
-                    await sp.web.lists.getByTitle(arregloDatos.dato.lista).items.getById(idElemento).update({
+                    await currentWeb.lists.getByTitle(arregloDatos.dato.lista).items.getById(idElemento).update({
                         AsignadoAId: usuariosAsignados
                     }).then(async () => {
                         const filtroEG = arregloDatos.dato.lista === 'Flujo Tareas' ? (filaSeleccionada.Nivel.ID === 1 ?
                             'ProyectoInversionId eq ' + filaSeleccionada.IdProyectoInversion.ID + ' and TareaId eq ' + filaSeleccionada.IdTarea.ID
                             : 'ProyectoInversionId eq ' + filaSeleccionada.IdProyectoInversion.ID + ' and TerrenoId eq ' + filaSeleccionada.IdTerreno.ID + ' and TareaId eq ' + filaSeleccionada.IdTarea.ID)
                                 : 'IdFPTId eq ' + filaSeleccionada.ID
-                        const itemEG = await sp.web.lists.getByTitle("EstrategiaGestion").items.filter(filtroEG).get()
+                        const itemEG = await currentWeb.lists.getByTitle("EstrategiaGestion").items.filter(filtroEG).get()
                         if (itemEG.length > 0) {
-                            await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(itemEG[0].Id).update({
+                            await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(itemEG[0].Id).update({
                                 AsignadoAId: usuariosAsignados
                             })
                         }
     
                         if (arregloDatos.dato.lista === 'Flujo Tareas') {
-                            let filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === idElemento)
-                            let filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === idElemento)
-                            let newData = this.state.datosVentana.datos[filaIndice]
-                            let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+                            let filaIndice = datosVentana.datos.findIndex(datos => datos.ID === idElemento)
+                            let filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === idElemento)
+                            let newData = datosVentana.datos[filaIndice]
+                            let newDataO = datosOriginalVentana.datos[filaIndiceO]
                             newData.AsignadoA = arregloDatos.dato.usuarioAsignados
                             newDataO.AsignadoA = arregloDatos.dato.usuarioAsignados
     
-                            let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-                            let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-    
-                            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                            datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+                            datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
                             
                             if(filaSeleccionada.IdTarea.Subcluster !== null){
-                                filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
-                                filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+                                filaIndice = datosVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+                                filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
 
-                                newData = this.state.datosVentana.datos[filaIndice]
-                                newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+                                newData = datosVentana.datos[filaIndice]
+                                newDataO = datosOriginalVentana.datos[filaIndiceO]
                                 
                                 usuariosAsignados = util.combinarIdAsignados(newData.AsignadoA, arregloDatos.dato.usuarioAsignados)
                                 const newAsignados = util.combinarAsignados(newData.AsignadoA, arregloDatos.dato.usuarioAsignados)
                                 newData.AsignadoA = newAsignados
                                 newDataO.AsignadoA = newAsignados
 
-                                datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                                datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                                datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+                                datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
 
-                                await sp.web.lists.getByTitle(arregloDatos.dato.lista).items.getById(newData.ID).update({
+                                await currentWeb.lists.getByTitle(arregloDatos.dato.lista).items.getById(newData.ID).update({
                                     AsignadoAId: usuariosAsignados
                                 })
                             }
 
-                            this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
+                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                            this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                         } else {
-                            const filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === idElemento)
-                            let newData = this.state.datosFPT[filaIndice]
+                            const filaIndice = datosFPT.findIndex(datos => datos.ID === idElemento)
+                            let newData = datosFPT[filaIndice]
                             newData.AsignadoA = arregloDatos.dato.usuarioAsignados
     
-                            let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-                            this.setState({ datosFPT: datosActualizados })
+                            datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+
+                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                            this.setState({ datosFPT: datosFPT, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                         }
                     }).catch(error => {
                         alert('Error al actualizar Flujo Tareas: ' + error)
@@ -1424,57 +1413,81 @@ class Generico extends Component {
                     this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
                 } else if (arregloDatos.tarea === 272) {
                     if (arregloDatos.dato.lista === 'Flujo Tareas') {
-                        const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        let newData = this.state.datosVentana.datos[filaIndice]
-                        let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+                        const filaIndice = datosVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
+                        const filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
+                        let newData = datosVentana.datos[filaIndice]
+                        let newDataO = datosOriginalVentana.datos[filaIndiceO]
                         newData.Estatus = arregloDatos.dato.estatus
                         newDataO.Estatus = arregloDatos.dato.estatus
     
-                        let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-                        let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-    
-                        datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                        datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
-                        this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
+                        datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+                        datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                        this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana })
                     } else {
-                        const filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        let newData = this.state.datosFPT[filaIndice]
+                        const filaIndice = datosFPT.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
+                        let newData = datosFPT[filaIndice]
                         newData.Estatus = arregloDatos.dato.estatus
     
-                        let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-                        this.setState({ datosFPT: datosActualizados })
+                        datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+                        this.setState({ datosFPT: datosFPT })
                     }
                 } else if (arregloDatos.tarea === 289) {
                     //Edición de clúster de Marketing
-                    let datosActualizados
-                    let datosActualizadosO
-                    let datosActualizadosMkt
                     const datosActualizar = arregloDatos.dato.datos.filter(x => x.Cambio)
-    
-                    datosActualizar.forEach(dato => {
-                        const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === dato.ID)
-                        const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === dato.ID)
-                        const filaIndiceMkt = this.state.Mkt.findIndex(datos => datos.ID === dato.ID)
-    
-                        let newData = this.state.datosVentana.datos[filaIndice]
-                        let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
-                        let newDataMkt = this.state.Mkt[filaIndiceMkt]
-                        newData.Visible = dato.Visible
-                        newDataO.Visible = dato.Visible
-                        newDataMkt.Visible = dato.Visible
-    
-                        datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-                        datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-    
-                        datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                        datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
-                        datosActualizadosMkt = update(this.state.Mkt, { $splice: [[filaIndiceMkt, 1, newDataMkt]] })
-                    })
-                    this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO, Mkt: datosActualizadosMkt })
+                    if(datosActualizar.length>0){
+                        let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                        let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
+                        let datosActualizadosMkt
+                        
+                        //Permite que se visualice cada item individual seleccionado en la ventana de edición de clúster
+                        datosActualizar.forEach(dato => {
+                            const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === dato.ID)
+                            const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === dato.ID)
+                            const filaIndiceMkt = this.state.Mkt.findIndex(datos => datos.ID === dato.ID)
+        
+                            let newData = this.state.datosVentana.datos[filaIndice]
+                            let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
+                            let newDataMkt = this.state.Mkt[filaIndiceMkt]
+                            newData.Visible = dato.Visible
+                            newDataO.Visible = dato.Visible
+                            newDataMkt.Visible = dato.Visible
+        
+                            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
+                            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                            datosActualizadosMkt = update(this.state.Mkt, { $splice: [[filaIndiceMkt, 1, newDataMkt]] })
+                        })
+
+                        if(arregloDatos.dato.t287completa !== ''){
+                            const filaIndice287 = this.state.datosVentana.datos.findIndex(datos => datos.IdTarea.ID === 287)
+                            const filaIndice287O = this.state.datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.ID === 287)
+
+                            let newData287 = this.state.datosVentana.datos[filaIndice287]
+                            let newData287O = this.state.datosOriginalVentana.datos[filaIndice287O]
+                            newData287.Estatus = arregloDatos.dato.t287completa ? this.state.datosVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+                            newData287O.Estatus = arregloDatos.dato.t287completa ? this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+
+                            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice287, 1, newData287]] })
+                            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndice287O, 1, newData287O]] })
+                        }
+
+                        if(arregloDatos.dato.t288completa !== ''){
+                            const filaIndice288 = this.state.datosVentana.datos.findIndex(datos => datos.IdTarea.ID === 288)
+                            const filaIndice288O = this.state.datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.ID === 288)
+
+                            let newData288 = this.state.datosVentana.datos[filaIndice288]
+                            let newData288O = this.state.datosOriginalVentana.datos[filaIndice288O]
+                            newData288.Estatus = arregloDatos.dato.t288completa ? this.state.datosVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+                            newData288O.Estatus = arregloDatos.dato.t288completa ? this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+
+                            datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice288, 1, newData288]] })
+                            datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndice288O, 1, newData288O]] })
+                        }
+
+                        this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO, Mkt: datosActualizadosMkt })
+                    }
                 }
             }else{
-                await sp.web.lists.getByTitle(filaSeleccionada.Lista).items.getById(filaSeleccionada.ID).update({
+                await currentWeb.lists.getByTitle(filaSeleccionada.Lista).items.getById(filaSeleccionada.ID).update({
                     EstatusId: arregloDatos.dato.ID,
                     EstatusAnteriorId: arregloDatos.dato.ID
                 })
@@ -1484,6 +1497,8 @@ class Generico extends Component {
                             this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
                         }
                         else{
+                            let esClusterMkt = false
+                            let datosActualizadosMkt
                             let filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.ID)
                             let filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.ID)
                             let newData = this.state.datosVentana.datos[filaIndice]
@@ -1497,7 +1512,7 @@ class Generico extends Component {
                             datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
 
                             if(filaSeleccionada.IdTarea.ID === 20 || filaSeleccionada.IdTarea.ID === 28 || filaSeleccionada.IdTarea.ID === 33 || filaSeleccionada.IdTarea.ID === 38){
-                                await sp.web.lists.getByTitle("Terrenos").items
+                                await currentWeb.lists.getByTitle("Terrenos").items
                                 .select('ID', 'IdProyectoInversionId', 'NombredelTerreno2')
                                 .filter('ID eq ' + filaSeleccionada.IdTerreno.ID)
                                 .get().then(async (dato)=>{
@@ -1523,9 +1538,43 @@ class Generico extends Component {
                                     alert('Error al consultar la lista Terrenos: ' + error)
                                 })
                             }
-                            this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
+                            if(filaSeleccionada.IdTarea.EsSubcluster === '0' && filaSeleccionada.IdTarea.Subcluster !== null){
+                                esClusterMkt = true
+                                const filaIndiceMkt = this.state.Mkt.findIndex(datos => datos.ID === filaSeleccionada.ID)
+                                let newDataMkt = this.state.Mkt[filaIndiceMkt]
+                                newDataMkt.Estatus = arregloDatos.dato
+                                newDataMkt.EstatusAnterior= arregloDatos.dato
+                                datosActualizadosMkt = update(this.state.Mkt, { $splice: [[filaIndiceMkt, 1, newDataMkt]] })
+
+                                let tareasIncompletas = datosActualizadosMkt.filter(x=> x.IdTarea.Subcluster === filaSeleccionada.IdTarea.Subcluster && x.Visible)
+                                tareasIncompletas = tareasIncompletas.length > 0 ? tareasIncompletas.some(x=> x.Estatus.ID !== 3) : false
+                                const filaTareaCluster = this.state.datosVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+                                const filaTareaClusterO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+
+                                let tareaCluster = this.state.datosVentana.datos[filaTareaCluster]
+                                let tareaClusterO = this.state.datosOriginalVentana.datos[filaTareaClusterO]
+
+                                if(tareaCluster.Estatus.ID === 1 && !tareasIncompletas || tareaCluster.Estatus.ID === 3 && tareasIncompletas){
+                                    await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(tareaCluster.ID).update({
+                                        EstatusId: !tareasIncompletas ? 3 : 1,
+                                        EstatusAnteriorId: !tareasIncompletas ? 3 : 1
+                                    }).then(()=>{
+                                        tareaCluster.Estatus = !tareasIncompletas ? this.state.datosVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+                                        tareaCluster.EstatusAnterior = tareaCluster.Estatus
+                                        tareaClusterO.Estatus = !tareasIncompletas ? this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 3).Estatus : this.state.datosOriginalVentana.datos.find(x=> x.Estatus.ID === 1).Estatus
+                                        tareaClusterO.EstatusAnterior = tareaClusterO.Estatus
+
+                                        tareaCluster.datos = update(this.state.datosVentana.datos, { $splice: [[filaTareaCluster, 1, tareaCluster]] })
+                                        tareaClusterO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaTareaClusterO, 1, tareaClusterO]] })
+                                    })
+                                }
+                            }
+                            if(!esClusterMkt){
+                                this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
+                            }else{
+                                this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO, Mkt: datosActualizadosMkt })
+                            }
                         }
-                        
                     }
                     else if(filaSeleccionada.Lista === 'Fechas paquete de trámites'){
                         let filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === filaSeleccionada.ID)
@@ -1570,7 +1619,7 @@ class Generico extends Component {
                     terreno={nombreTerreno} abrirExterno={'0'} url={''}
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
-                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={ fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null } /></p>} estilo='col-sm-2' editable={false} />
+                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={ fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null } /></p>} estilo='col-sm-2' editable={false} />
                 <Columna estilo='col-sm-2' />
             </div>
         )
@@ -1586,7 +1635,7 @@ class Generico extends Component {
                     terreno={nombreTerreno} abrirExterno={'0'} url={''}
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
-                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={ fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null} /></p>} estilo='col-sm-2' editable={false} />
+                <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={ fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null} /></p>} estilo='col-sm-2' editable={false} />
                 <Columna estilo='col-sm-2' />
             </div>
         )
@@ -1600,7 +1649,7 @@ class Generico extends Component {
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={<p>{fila.IdTarea.ID + ': ' + (fila.IdTarea.ID !== 271 ? fila.IdTarea.Title : fila.NombreActividad)}</p>} id={fila.ID} estilo='col-sm-4' editable={editable} idElemento={fila.IdTarea.ID !== 271 ? fila.ID : fila.IdTarea.ID} esTarea={true} terreno={nombreTerreno} datos={fila} abrirExterno={fila.IdTarea.AbrirLink} url={fila.UrlTarea} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (fila.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (fila.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorLB && fila.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} /> : util.spDate(fila.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} /> : util.spDate(fila.FechaEstimada)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
@@ -1620,7 +1669,7 @@ class Generico extends Component {
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={<p>{fila.IdTarea.ID + ': ' + (fila.IdTarea.ID !== 271 ? fila.IdTarea.Title : fila.NombreActividad)}</p>} id={fila.ID} estilo='col-sm-4' editable={false} idElemento={fila.IdTarea.ID !== 271 ? fila.ID : fila.IdTarea.ID} esTarea={true} terreno={nombreTerreno} datos={fila} abrirExterno={fila.IdTarea.AbrirLink} url={fila.UrlTarea} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? this.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? forbidden : (fila.AsignadoA.length > 0 ? assignedTo_icon : forbidden)} alt='assignedTo_icon' /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? forbidden : (fila.AsignadoA.length > 0 ? assignedTo_icon : forbidden)} alt='assignedTo_icon' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorLB && fila.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} /> : util.spDate(fila.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} /> : util.spDate(fila.FechaEstimada)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
@@ -1632,18 +1681,18 @@ class Generico extends Component {
         )
     }
 
-    filaIncidencia = (fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident) => {
+    filaIncidencia = (fila, num, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident) => {
         return (
             <div className="itemIn row">
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={<p>{num.Title + ': ' + num.MotivoCausaInc.Title}</p>} estilo='col-sm-4' />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{num.AreaAsignadaInc !== undefined ? num.AreaAsignadaInc.NombreCorto : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? this.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}>{util.spDate(date)}</p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? util.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}>{util.spDate(num.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon_disabled} alt='more_details_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon_disabled} alt='more_details_icon' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1658,7 +1707,7 @@ class Generico extends Component {
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={dato.IdTarea.ID + ': ' + (dato.IdTarea.ID !== 271 ? dato.IdTarea.Title : dato.NombreActividad)} estilo='col-sm-4' editable={true} idElemento={dato.IdTarea.ID !== 271 ? dato.ID : dato.IdTarea.ID} esTarea={true} terreno={nombreTerreno} datos={dato} abrirExterno={dato.IdTarea.AbrirLink} url={dato.UrlTarea} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{dato.GrupoResponsable !== undefined ? dato.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (dato.AsignadoA.length > 0 ? this.obtenerAsignados(dato.AsignadoA) : 'Sin asignar')} src={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (dato.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', dato.AsignadoA !== undefined ? dato.AsignadoA : [], dato, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (dato.AsignadoA.length > 0 ? util.obtenerAsignados(dato.AsignadoA) : 'Sin asignar')} src={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (dato.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', dato.AsignadoA !== undefined ? dato.AsignadoA : [], dato, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorLB && dato.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'LineaBase')} /> : util.spDate(dato.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} /> : util.spDate(dato.FechaEstimada)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title}</span>} style={{ textAlign: "right", paddingLeft: "30px" }} estilo='col-sm-1' editable={false} />
@@ -1673,12 +1722,13 @@ class Generico extends Component {
     filaTramites = (fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual) => {
         const esEditorLB = gruposUsuarioActual.some(gpo=> (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo=> (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
+        fila.Lista = "Fechas paquete de trámites"
         return (
             <div className={fila.IdTarea.ID !== 271 ? "item row" : "itemPersonal row"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
                     <Columna titulo={fila.IdTarea.ID + ': ' + (fila.IdTarea.ID !== 271 ? datoFPT.IdDocTramite.Title : fila.NombreActividad)} estilo='col-sm-4' editable={true} idElemento={fila.IdTarea.ID !== 271 ? fila.ID : datoFPT.IdFlujoId} esTarea={true} terreno={nombreTerreno} datos={datoFPT} abrirExterno={fila.IdTarea.AbrirLink} url={fila.UrlTarea} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (datoFPT.AsignadoA.length > 0 ? this.obtenerAsignados(datoFPT.AsignadoA) : 'Sin asignar')} src={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (datoFPT.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA : [], fila, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img title={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (datoFPT.AsignadoA.length > 0 ? util.obtenerAsignados(datoFPT.AsignadoA) : 'Sin asignar')} src={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (datoFPT.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={ (esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA : [], datoFPT, this.state.idVentana, "", "550px") } : null } /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorLB ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'LineaBase')} /> : util.spDate(fila.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} /> : util.spDate(fila.FechaEstimada)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title}</span>} estilo='col-sm-1' editable={false} />
@@ -1691,7 +1741,7 @@ class Generico extends Component {
     }
 
     render() {
-        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, filtrosEncabezado, seguridad, tieneRFS } = this.state
+        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, filtrosEncabezado, seguridad, tieneRFS, clusterToggle } = this.state
         
         const Cluster = (props) => {
             if (props.titulos.length > 0) {
@@ -1700,22 +1750,19 @@ class Generico extends Component {
                     let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
                     
                     let filaCluster = props.titulos.map((fila) => {
-                        if (fila.cluster.IdTarea.TxtCluster !== 'Dummy' && datosV.some(x=> x.IdTarea.TxtCluster  === fila.cluster.IdTarea.TxtCluster)) {
+                        if (fila.cluster.IdTarea.TxtCluster !== 'Dummy' && datosV.some(x=> x.IdTarea.TxtCluster === fila.cluster.IdTarea.TxtCluster)) {
                         //if (datosV.some(x=> x.IdTarea.TxtCluster  === fila.cluster.IdTarea.TxtCluster)) {
                             const existeAFActiva = datosV.some(x=>x.Orden === fila.cluster.Orden && x.IdTarea.ID === 271 && x.Estatus.ID !== 3)
-                            let idcluster = fila.cluster.ID * 0.16;
-                            let id = "body" + idcluster;
-                            let arrow = "expandir" + idcluster
-                            let average = util.average(props, fila.cluster.IdTarea.Orden);
+                            let average = fila.cluster.IdTarea.EsCluster === '0' ? (fila.cluster.IdTarea.Orden !== 3.14 ? util.average(props, fila.cluster.IdTarea.Orden) : util.averageMkt(props.datos)) : util.averageFPT(this.state.datosFPT, fila.cluster.ID);
                             return (
                                 <div key={fila.cluster.Orden} style={{ width: "98%" }}>
-                                    <div className="row" >
+                                    <div className="row">
                                         {<input style={{ paddingLeft: "5px", marginTop: "13px", visibility: "hidden" }} type='checkbox' className='checkBox'></input>}
                                         <div className='titulo'>
-                                            <div className="row" >
+                                            <div className="row">
                                                 <div className="col-sm-9">
-                                                    <p style={{ paddingLeft: "10px" }} onClick={() => util.toggle(id, arrow, 4)}>
-                                                        <img style={{ paddingRight: "1%" }} id={arrow} src={arrow_up_icon} alt='arrow_up_icon'></img>
+                                                    <p style={{ paddingLeft: "10px" }} onClick={() => this.onTogggleCluster(fila.cluster.IdTarea.Orden)}>
+                                                        <img style={{ paddingRight: "1%" }} src={clusterToggle.find(x=> x.id === fila.cluster.IdTarea.Orden).abierto ? arrow_up_icon : arrow_down_icon} alt='arrow_up_icon'></img>
                                                         {fila.cluster.IdTarea.TxtCluster}
                                                     </p>
                                                 </div>
@@ -1733,91 +1780,92 @@ class Generico extends Component {
                                     </div>
                                     {this.state.terrenos.map((terr) => {
                                         return util.bodyFunAll(terr, props, fila).length > 0 ?
-                                            <div key={idcluster}>
+                                            <div key={fila.cluster.IdTarea.Orden + '_' + terr } style={{ display: clusterToggle.find(x=> x.id === fila.cluster.IdTarea.Orden).abierto ? 'block' : 'none'}}>
                                                 {terr !== "" ?
                                                     util.bodyFunAll(terr, props, fila).length > 2 ?
-                                                        <div id={id.substring(0, 4) + idcluster++} tag={id.substring(0, 4) + idcluster++}
-                                                            style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                                        <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                             <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
-                                                        </div> :
-                                                        <div id={id} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                                        </div>
+                                                        :
+                                                        <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                             <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
-                                                        </div> :
-                                                    <div className={id} id={id + "*"} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                                        </div>
+                                                    :
+                                                    <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                         <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                     </div>
                                                 }
-                                                <div className='row empty-space' ></div>
+                                                <div className='row empty-space'></div>
                                             </div>
-                                            : <div>
-                                                <div key={idcluster + 1} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                            :
+                                            <div key={fila.cluster.IdTarea.Orden + '_' + terr + '_0'} style={{ display: clusterToggle.find(x=> x.id === fila.cluster.IdTarea.Orden).abierto ? 'block' : 'none'}}>
+                                                <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                     <Body tituloTerreno={terr} datos={datosV} idCluster={fila.cluster.Orden} />
                                                 </div>
                                             </div>
                                     })}
+                                    <div className='row empty-space' style={{ display: clusterToggle.find(x=> x.id === fila.cluster.IdTarea.Orden).abierto ? 'none' : 'block'}}></div>
                                 </div>
                             )
                         }
                     });
                     filaCluster = filaCluster.filter(x=> x !== undefined)
-                    return <div style={{ bottom: 20, height: '80%', position: "fixed", overflowX: 'hidden', overflowY: 'scroll', width: '99%' }} key={0} className="row justify-content-end">{filaCluster.length > 0 ? filaCluster : <h2 className="col-sm-12 text-center align-self-center">No tiene actividades asignadas en esta ventana</h2>}</div>
+                    return  <div style={{ top: '17%', display:'block', height: '80%', position: "fixed", overflowX: 'hidden', overflowY: 'scroll', width: '99%' }} key={0} className="row justify-content-end">
+                                {filaCluster.length > 0 ? filaCluster : <h2 className="col-sm-12 text-center align-self-center">No tiene actividades asignadas en esta ventana</h2>}
+                            </div>
                 } else {
                     //Ventana de estrategia de gestión
-                    const filaCluster = props.titulos.map((fila) => {
-                        let average = 0;
-                        let idcluster = fila.cluster.ID * 0.16;
-                        let idEG = "bodyEg" + idcluster;
-                        let arrow = "expandirEG" + idcluster;
-                        return (
-                            <div key={fila.cluster.OrdenEG} style={{ width: "98%" }}>
-                                <div className="row" >
-                                    <input id={fila.cluster.OrdenEG} name={fila.cluster.OrdenEG} onClick={() => util.toggleCheck(fila.cluster.OrdenEG, props.datos)} style={{ marginTop: "1%" }} type='checkbox' className='checkBox'></input>
-                                    <div className='titulo'>
-                                        <div className="row" name={fila.cluster.OrdenEG}>
-                                            <div className="col-sm-10">
-                                                <p style={{ paddingLeft: "10px" }} onClick={() => util.toggle(idEG, arrow, 6)}>
-                                                    <img style={{ paddingRight: "1%" }} id={arrow} src={arrow_up_icon} alt='arrow_up_icon'></img>
-                                                    {fila.cluster.TxtCluster}
-                                                </p>
-                                            </div>
-                                            <div className="col-sm-1" style={{ paddingLeft: "30px" }}>
-                                                <p className="numberCircleEG pad"><img src={attach_icon} alt='attach_icon'></img></p>
-                                            </div>
-                                            <div className="col-sm-1">
-                                                {average === 100 ? <p className="numberCircleEG pad100">{average}%</p> : <p className="numberCircleEG pad">{average}%</p>}
+                    let filaCluster = props.titulos.map((fila) => {
+                        if(props.datos.some(x=> x.Tarea.OrdenEG === fila.cluster.OrdenEG)){
+                            return (
+                                <div key={fila.cluster.OrdenEG} style={{ width: "98%" }}>
+                                    <div className="row">
+                                        <input id={fila.cluster.OrdenEG} name={fila.cluster.OrdenEG} onClick={() => util.toggleCheck(fila.cluster.OrdenEG, props.datos)} style={{ marginTop: "1%" }} type='checkbox' className='checkBox'></input>
+                                        <div className='titulo'>
+                                            <div className="row" name={fila.cluster.OrdenEG}>
+                                                <div className="col-sm-12">
+                                                    <p style={{ paddingLeft: "10px" }} onClick={() => this.onTogggleCluster(fila.cluster.OrdenEG)}>
+                                                        <img style={{ paddingRight: "1%" }} src={clusterToggle.find(x=> x.id === fila.cluster.OrdenEG).abierto ? arrow_up_icon : arrow_down_icon} alt='arrow_up_icon'></img>
+                                                        {fila.cluster.TxtCluster}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                {this.state.terrenos.map((terr) => {
-                                    return (util.bodyFunEG(terr, props, fila).length > 0 ?
-                                        <div key={idcluster}>
-                                            {terr !== "" ?
-                                                util.bodyFunEG(terr, props, fila).length > 2 ?
-                                                    <div id={idEG.substring(0, 6) + idcluster++} tag={idEG.substring(0, 6) + idcluster++}
-                                                        style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                    {this.state.terrenos.map((terr) => {
+                                        return (util.bodyFunEG(terr, props, fila).length > 0 ?
+                                            <div key={fila.cluster.OrdenEG + '_' + terr } style={{ display: clusterToggle.find(x=> x.id === fila.cluster.OrdenEG).abierto ? 'block' : 'none'}}>
+                                                {terr !== "" ?
+                                                    util.bodyFunEG(terr, props, fila).length > 2 ?
+                                                        <div style={{ paddingLeft: "3%", width: "97%" }}>
+                                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
+                                                        </div>
+                                                        :
+                                                        <div style={{ paddingLeft: "3%", width: "97%" }}>
+                                                            <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
+                                                        </div>
+                                                    :
+                                                    <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                         <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
-                                                    </div> :
-                                                    <div id={idEG} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                        <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
-                                                    </div> :
-                                                <div className={idEG} id={idEG + "*"} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
+                                                    </div>
+                                                }
+                                                <div className='row empty-space'></div>
+                                            </div>
+                                            :
+                                            <div key={fila.cluster.OrdenEG + '_' + terr + '_0'}>
+                                                <div style={{ paddingLeft: "3%", width: "97%" }}>
                                                     <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                                 </div>
-                                            }
-                                            <div className='row empty-space'></div>
-                                        </div>
-                                        : <div key={idcluster}>
-                                            <div key={idcluster + 1} style={{ display: "block", paddingLeft: "3%", width: "97%" }} >
-                                                <Body tituloTerreno={terr} datos={props.datos} idCluster={fila.cluster.OrdenEG} esCheckable={fila.cluster.Checkable} />
                                             </div>
-                                        </div>
-                                    )
-                                })}
-                            </div >
-                        )
+                                        )
+                                    })}
+                                    <div className='row empty-space' style={{ display: clusterToggle.find(x=> x.id === fila.cluster.OrdenEG).abierto ? 'none' : 'block'}}></div>
+                                </div>
+                            )
+                        }
                     });
-                    return <div style={{ bottom: 20, height: '80%', position: "fixed", overflowX: 'hidden', overflowY: 'scroll', width: '99%' }} key={0} className="row justify-content-end">
+                    filaCluster = filaCluster.filter(x=> x !== undefined)
+                    return <div style={{ paddingLeft: '1%', top: '17%', display:'block', height: '80%', position: "fixed", overflowX: 'hidden', overflowY: 'scroll', width: '99%' }} key={0} className="row justify-content-end">
                         {filaCluster}
                         <div className='row' style={{ backgroundColor: 'whitesmoke', bottom: 0, margin: 0, position: "fixed", width: '100%' }}>
                             <div className='col-sm-12 derecha'>
@@ -1894,7 +1942,7 @@ class Generico extends Component {
                             </div>
                         )
                     case 'Asignado a':
-                        let valores = []
+                        /*let valores = []
                         fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
                         const arregloAsignados = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
                         let valoreAsignadoA = arregloAsignados.map((valor) => {
@@ -1905,7 +1953,8 @@ class Generico extends Component {
                                     (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
                                 : null)
                         })
-                        valoreAsignadoA = [...new Set(valores)]
+                        valoreAsignadoA = [...new Set(valores)]*/
+                        const valoreAsignadoA = this.state.opcionesFiltrosEncabezado[fila.interN.toLowerCase()]
                         const valuesAsignados = filtrosTabla[fila.titulo.toLowerCase().trim().replace('.', '').replace(' ', '')]
                         return (
                             <div key={index} className={fila.estilo} style={{ textAlign: "center" }}>
@@ -1936,7 +1985,7 @@ class Generico extends Component {
                     case 'Estatus':
                     case 'Linea base':
                     case 'F. estimada':
-                        const arregloRespEst = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
+                        /*const arregloRespEst = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
                         let valoresRespEst = arregloRespEst.map((valor) => {
                             return idVentana === 4 ?
                                 fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
@@ -1956,7 +2005,8 @@ class Generico extends Component {
                                 : null)
                         })
                         valoresRespEst = valoresRespEst.filter(x => x !== null && x !== undefined)
-                        valoresRespEst = [...new Set(valoresRespEst)]
+                        valoresRespEst = [...new Set(valoresRespEst)]*/
+                        const valoresRespEst = this.state.opcionesFiltrosEncabezado[fila.interN.toLowerCase()]
                         const valuesRespEst = filtrosTabla[fila.titulo.toLowerCase().trim().replace('.', '').replace(' ', '')]
                         return (
                             <div key={index} className={fila.estilo} style={{ textAlign: "center" }}>
@@ -2121,7 +2171,8 @@ class Generico extends Component {
                 filaBody = filaBody.filter(x => x !== undefined && x !== null);
                 return filaBody.length > 0 ?
                     (props.tituloTerreno !== '' ?
-                        <div><div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div>
+                        <div>
+                            <div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div>
                             {filaBody}
                             <div key={filaBody.length} style={{ paddingLeft: "4%" }} onClick={() => { this.onAbrirModal(nombreTerreno, 271, false, null, null, { Tarea: { ID: 271 }, info: datosPITerr }, this.state.idVentana, "lg", "550px") }} >
                                 <div className="row">
@@ -2132,7 +2183,8 @@ class Generico extends Component {
                             </div>
                         </div>
                         :
-                        <div> {filaBody}
+                        <div>
+                            {filaBody}
                             {props.idCluster !== 4.11 ?
                                 <div key={0} style={{ paddingLeft: "4%" }} onClick={() => { this.onAbrirModal(nombreTerreno, 271, false, null, null, { Tarea: { ID: 271 }, info: datosPITerr }, this.state.idVentana, "lg", "550px") }} >
                                     <div className="row">
@@ -2143,7 +2195,8 @@ class Generico extends Component {
                                 </div>
                             :null}
                         </div>
-                    ) : null
+                    )
+                    : null
 
             } else {
                 //Otras ventanas
@@ -2205,22 +2258,22 @@ class Generico extends Component {
                                                                 </div>
                                                             </div>
                                                             {this.state.bitacorasInfo.map((num) => {
-                                                                const thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                                const date = thisDate.length > 0 ? thisDate[0].FechaCompSol : null;
-
-                                                                const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
+                                                                const urlIncident = webUrl + "/sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
                                                                 switch (fila.IdTarea.ID) {
                                                                     case 273:
-                                                                        return  <div key={fila.ID} style={{ paddingLeft: "5%" }}>
-                                                                                    <div className="row">
-                                                                                        {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
-                                                                                    </div>
-                                                                                </div>
-                                                                    case 274:
-                                                                        return (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) ?
+                                                                        return ((num.BitacoraInc.Title.includes('BIT.ADU.') && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
+                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosEncabezado.includes('ver'))?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
                                                                                 <div className="row">
-                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
+                                                                                </div>
+                                                                            </div> :null)
+                                                                    case 274:
+                                                                        return ((num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
+                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosEncabezado.includes('ver')) ?
+                                                                            <div key={fila.ID} style={{ paddingLeft: "5%" }}>
+                                                                                <div className="row">
+                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
                                                                                 </div>
                                                                             </div> : null)
                                                                     default:
@@ -2324,23 +2377,22 @@ class Generico extends Component {
                                                                 </div>
                                                             </div>
                                                             {this.state.bitacorasInfo.map((num) => {
-                                                                const thisDate = this.state.solucionInfo.filter(x => x.IncidenciaSol.ID === num.ID);
-                                                                const date = thisDate.length > 0 ? thisDate[0].FechaCompSol : null;
-
-                                                                const urlIncident = webUrlBit + "sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
+                                                                const urlIncident = webUrl + "/sitepages/Bitacora.aspx?b=" + num.BitacoraInc.ID + "#" + num.Title;
                                                                 switch (fila.IdTarea.ID) {
                                                                     case 273:
-                                                                        return (num.MotivoCausaInc.Title === "Arquitectura" ?
+                                                                        return ((num.BitacoraInc.Title.includes('BIT.ADU.') && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
+                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosEncabezado.includes('ver'))?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
-                                                                                <div className="row" >
-                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                                <div className="row">
+                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
                                                                                 </div>
-                                                                            </div> : null)
+                                                                            </div> :null)
                                                                     case 274:
-                                                                        return (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) ?
+                                                                        return ((num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
+                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosEncabezado.includes('ver')) ?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
-                                                                                <div className="row" >
-                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, date, urlIncident)}
+                                                                                <div className="row">
+                                                                                    {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
                                                                                 </div>
                                                                             </div> : null)
                                                                     default:
@@ -2398,8 +2450,8 @@ class Generico extends Component {
                 return filaBody.length > 0 ?
                     (props.tituloTerreno !== '' ?
                         <div>
-                            <div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}
-                            </div> {filaBody}
+                            <div className='terreno'>{props.tituloTerreno + ': ' + nombreTerreno}</div>
+                            {filaBody}
                             <div key={filaBody.length} style={{ paddingLeft: "4%" }} onClick={() => { this.onAbrirModal(nombreTerreno, 271, false, null, null, { Tarea: { ID: 271 }, info: datosPITerr }, this.state.idVentana, "lg", "500px") }}>
                                 <div className="row" >
                                     <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
@@ -2407,9 +2459,10 @@ class Generico extends Component {
                                     </div>
                                 </div>
                             </div>
-                        </div> :
-
-                        <div> {filaBody}
+                        </div>
+                        :
+                        <div>
+                            {filaBody}
                             <div key={0} style={{ paddingLeft: "4%" }} onClick={() => { this.onAbrirModal(nombreTerreno, 271, false, null, null, { Tarea: { ID: 271 }, info: datosPITerr }, this.state.idVentana, "lg", "500px") }}>
                                 <div className="row" >
                                     <div className="row item-personal" style={{ width: "99%", backgroundColor: "#F8F8F8" }} >
@@ -2418,12 +2471,13 @@ class Generico extends Component {
                                 </div>
                             </div>
                         </div>
-                    ) : null
+                    )
+                    : null
             }
         }
 
         return (
-            <div>
+            <div style={{display: 'flex', flexDirection: 'column'}}>
                 <div className='col-sm-12'>
                     <Backdrop abierto={!this.state.backdrop.cargado} mensaje={this.state.backdrop.mensaje} />
                     {this.state.cargado ?

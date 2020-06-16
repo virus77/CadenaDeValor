@@ -38,10 +38,10 @@ class ActividadFicticia extends Component {
     //#region Métodos de ciclo de vida
     async componentDidMount() {
         //Obtiene los datos del usuario actual
-        usuarioActual = await sp.web.currentUser.get();
-        const listaUsuarios = await sp.web.siteUsers()
+        usuarioActual = await currentWeb.currentUser.get();
+        const listaUsuarios = await currentWeb.siteUsers()
         if(this.props.datos.info === undefined){
-            await sp.web.lists.getByTitle('Flujo Tareas').items
+            await currentWeb.lists.getByTitle('Flujo Tareas').items
                 .select('ID', 'NombreActividad', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name',
                     'LineaBase', 'FechaEstimada', 'Estatus/ID', 'Estatus/Title')
                 .filter('ID eq ' + (this.props.datos.IdFlujoTareasId !== undefined ? this.props.datos.IdFlujoTareasId : this.props.datos.Id))
@@ -99,7 +99,7 @@ class ActividadFicticia extends Component {
 
     actualizarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) =>{
         if(lineaBase !== '' && fechaEstimada !== ''){
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -110,7 +110,7 @@ class ActividadFicticia extends Component {
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
             })
         }else if(lineaBase !== '' && fechaEstimada === ''){
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -120,7 +120,7 @@ class ActividadFicticia extends Component {
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
             })
         }else if(lineaBase === '' && fechaEstimada !== ''){
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -129,7 +129,7 @@ class ActividadFicticia extends Component {
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
             })
         }else if(lineaBase === '' && fechaEstimada === ''){
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -142,7 +142,7 @@ class ActividadFicticia extends Component {
     guardarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) =>{
         let result
         if(lineaBase !== '' && fechaEstimada !== ''){
-            result = await sp.web.lists.getByTitle('Flujo Tareas').items.add({
+            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
@@ -160,7 +160,7 @@ class ActividadFicticia extends Component {
                 alert('Error al guardar en flujo tareas: ' + error)
             })
         }else if(lineaBase !== '' && fechaEstimada === ''){
-            result = await sp.web.lists.getByTitle('Flujo Tareas').items.add({
+            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
@@ -177,7 +177,7 @@ class ActividadFicticia extends Component {
                 alert('Error al guardar en flujo tareas: ' + error)
             })
         }else if(lineaBase === '' && fechaEstimada !== ''){
-            result = await sp.web.lists.getByTitle('Flujo Tareas').items.add({
+            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
@@ -193,7 +193,7 @@ class ActividadFicticia extends Component {
                 alert('Error al guardar en flujo tareas: ' + error)
             })
         }else if(lineaBase === '' && fechaEstimada === ''){
-            result = await sp.web.lists.getByTitle('Flujo Tareas').items.add({
+            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1: 2,
@@ -213,7 +213,7 @@ class ActividadFicticia extends Component {
 
     obtenerIdEG = async (IdFlujoTareas) =>{
         let resultados
-        resultados = await sp.web.lists.getByTitle('EstrategiaGestion').items
+        resultados = await currentWeb.lists.getByTitle('EstrategiaGestion').items
                     .select('ID')
                     .filter('IdFlujoTareasId eq ' + IdFlujoTareas)
                     .get()
@@ -238,16 +238,16 @@ class ActividadFicticia extends Component {
     onEliminar = async () =>{
         if(window.confirm('¿Está seguro de eliminar esta actividad?')){
             this.setState({backdrop: {abierto: true, mensaje: 'Borrando la actividad...'}})
-            await sp.web.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).delete()
+            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).delete()
             .then(async()=>{
-                await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).delete()
-                .then(async ()=>{
-                    this.props.datosRetorno(this.state)
-                    this.onCerrar()
-                })
-                .catch(error=>{
-                    alert('Error al eliminar en Estrategia de gestión: ' + error)
-                })
+                if(this.state.IDEG > 0){
+                    await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).delete()
+                    .catch(error=>{
+                        alert('Error al eliminar en Estrategia de gestión: ' + error)
+                    })
+                }
+                this.props.datosRetorno(this.state)
+                this.onCerrar()
             })
             .catch(error=>{
                 alert('Error al eliminar en Flujo Tareas: ' + error)
@@ -263,7 +263,7 @@ class ActividadFicticia extends Component {
                     const usuariosAsignados = util.obtenerIdAsignados(this.state.usuarioAsignados)
                     const fta = await this.guardarFlujoTareas(this.state.LineaBase, this.state.FechaEstimada, usuariosAsignados)
                     if(this.state.OrdenEG !== undefined){
-                        await sp.web.lists.getByTitle('EstrategiaGestion').items.add({
+                        await currentWeb.lists.getByTitle('EstrategiaGestion').items.add({
                             ProyectoInversionId: this.props.datos.info.idPI,
                             TerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                             TareaId: this.props.datos.Tarea.ID,
@@ -296,7 +296,7 @@ class ActividadFicticia extends Component {
                 .then(async ()=>{
                     if(this.state.OrdenEG !== undefined){
                         if(this.state.IDEG >0){
-                            await sp.web.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).update({
+                            await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).update({
                                 NombreActividad: this.state.NombreActividad,
                                 AsignadoAId: usuariosAsignados,
                                 GrupoResponsableId: this.state.GrupoResponsable.ID,

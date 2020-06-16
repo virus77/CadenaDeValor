@@ -27,7 +27,7 @@ class Detalle extends Component{
     onGuardar = async () =>{
         const {idElemento, estatusActual, estatus, lista} = this.state
         if(estatusActual.ID !== estatus.ID){
-            await sp.web.lists.getByTitle(lista).items.getById(idElemento).update({
+            await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update({
                 EstatusId: estatus.ID
               })
               .then(()=>{

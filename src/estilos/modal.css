@@ -140,3 +140,6 @@ label {
 .nombreArchivo{
     border: 0!important
 }
+.file-width{
+    width: 85%!important;
+}
