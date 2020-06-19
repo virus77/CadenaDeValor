@@ -42,7 +42,6 @@ import moment from 'moment'
 var checkedItems = []
 var webUrl = ''
 var webCdT = ''
-var webUrlBit = ''
 
 const useStyles = makeStyles(theme => ({
     formControl: {
@@ -68,7 +67,6 @@ class Generico extends Component {
             totalAdmin: 0,
             totalNorm: 0,
             totalProy: 0,
-            idVentanaAnterior: 3,
             datosOriginalVentanaEG: [],
             datosVentanaEG: [],
             datosOriginalVentana: [],
@@ -87,18 +85,26 @@ class Generico extends Component {
             },
             backdrop: { cargado: false, mensaje: 'Cargando contenido...' },
             terrenos: [],
+            bitacorasInfoOriginales: [],
             bitacorasInfo: [],
             solucionInfo: [],
             opcionesFiltrosEncabezado: [],
+            opcionesFiltrosEncabezadoOriginal: [],
             filtrosEncabezado: [],
             Mkt: [],
+            MktOriginal: [],
             filtrosTabla: {
                 responsable: [],
                 asignadoa: [],
                 lineabase: [],
                 festimada: [],
-                estatus: []
+                estatus: [],
+                favs: [],
+                gantt: [],
+                ver: []
             },
+            filtrosTablaOrden: [],
+            datosOriginalesFPT: [],
             datosFPT: [],
             usuarioActual: [],
             gruposUsuarioActual: [],
@@ -166,8 +172,6 @@ class Generico extends Component {
 
             let datosEG = util.inicializarArregloDatos(4, datos)
 
-            let ventanas = [actividades.reduce((a, c) => (a[c.IdTarea.TxtVentana] = (a[c.IdTarea.TxtVentana] || []).concat(c), a), {})];
-
             datosEG.datos = datos;
             let result = [];
             result = Array.from(new Set(datosEG.datos.map(s => s.Tarea.TxtCluster)))
@@ -184,17 +188,23 @@ class Generico extends Component {
 
             const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
             
+            let datosFPT = await util.generarConsultaFPT(actividades)
+            const datosBit = await util.obtenerBitacorasInfo(this.state.proyectoTitulo,terrenoTitulo)
+            const bitacorasInfo = util.establecerLineaBaseBit(datosBit.solucion, datosBit.bitacoras)
+
+            const totalAdmin = util.obtenerTotalPorVentana(1, actividades, datosFPT, [])
+            const totalNorm = util.obtenerTotalPorVentana(2, actividades, datosFPT, bitacorasInfo)
+            const totalProy = util.obtenerTotalPorVentana(3, actividades, datosFPT, bitacorasInfo)
+
             //let d =util.generarArregloEG(result, datos)
             const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(4, datosEG, [], [], [], 0, [])
             this.setState({
                 cargado: true, datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, clustersVentana: result,
-                totalAdmin: ventanas[0].Administración !== undefined ? ventanas[0].Administración.length : 0,
-                totalNorm: ventanas[0].Normativo !== undefined ? ventanas[0].Normativo.length : 0,
-                totalProy: ventanas[0].Proyectos !== undefined ? ventanas[0].Proyectos.length : 0,
-                idVentanaAnterior: this.state.idVentanaSeleccionada, tieneRFS: tieneRFS,
-                terrenos: terrenos, terrenoTitulo: terrenoTitulo, backdrop: { cargado: true, mensaje: '' },
+                totalAdmin: totalAdmin, totalNorm: totalNorm, totalProy: totalProy,
+                tieneRFS: tieneRFS, terrenos: terrenos, terrenoTitulo: terrenoTitulo, backdrop: { cargado: true, mensaje: '' },
                 gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, seguridad: seguridad,
-                clusterToggle: clusterToggle, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado
+                clusterToggle: clusterToggle, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado,
+                opcionesFiltrosEncabezadoOriginal : opcionesFiltrosEncabezado
             });
 
         } else {
@@ -204,13 +214,12 @@ class Generico extends Component {
     }
 
     onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS, nuevoTerreno, usuarioActual, gruposUsuarioActual, seguridad) => {
-        const { idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
-        let { filtrosTabla, filtrosEncabezado, orden, clusterToggle } = this.state
+        const { idVentana, idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
+        let { filtrosTabla, filtrosEncabezado, orden, clusterToggle, opcionesFiltrosEncabezado, datosOriginalesFPT, bitacorasInfoOriginales, Mkt, MktOriginal, datosOriginalVentanaEG, datosOriginalVentana, opcionesFiltrosEncabezadoOriginal, filtrosTablaOrden } = this.state
         const datosOriginalesVEG = this.state.datosOriginalVentanaEG
         const datosOriginalesV = this.state.datosOriginalVentana
         let result = [];
         let actividades = [];
-        let Mkt = [];
         let bitacorasInfo = []
         let solucionInfo = []
 
@@ -243,21 +252,20 @@ class Generico extends Component {
 
                     result = result.filter(x => x.cluster !== undefined && x.cluster.TxtCluster !== 'Dummy')
 
-                    let clusterToggle = result.map((x=>{ return { id: x.cluster.OrdenEG, abierto: true}}))
+                    clusterToggle = result.map((x=>{ return { id: x.cluster.OrdenEG, abierto: true}}))
                     clusterToggle = clusterToggle.filter(x => x.id !== null)
-
 
                     const tieneRFS = datosEG.datos.some(x=> x.Tarea.ID === 24 && x.Estatus.ID === 3)
 
                     //let d =util.generarArregloEG(result, datosEG)
-                    //const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(4, datosEG, [], [], [], 0, [])
+                    opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(4, datosEG, [], [], [], 0, [])
                     
                     this.setState({
                         backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result,
                         datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true,
                         idTerreno: nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno, MACO: nuevoTerreno !== '' ? nuevoTerreno.MACO : this.state.MACO,
                         terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true,
-                        tieneRFS: tieneRFS
+                        tieneRFS: tieneRFS, clusterToggle: clusterToggle, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado
                     });
                     //#endregion
                     break;
@@ -307,6 +315,7 @@ class Generico extends Component {
                     });
 
                     Mkt = actividades
+                    MktOriginal = actividades
                     .filter(x => x.IdTarea.Orden === 3.14 && x.IdTarea.Subcluster !== null)
                     .sort(function (a, b) { return a.ID - b.ID })
 
@@ -336,15 +345,16 @@ class Generico extends Component {
 
                     const hayRFS = actividades.some(x=> x.IdTarea.ID === 24 && x.Estatus.ID === 3)
 
-                    const opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentanaSeleccionada, datosActs, datosFPT, bitacorasInfo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
+                    opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentanaSeleccionada, datosActs, datosFPT, bitacorasInfo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
                     //let d =util.generarArregloActs('Flujo Tareas', result, datosActs)
                     this.setState({
                         idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, datosOriginalVentana: datosActs,
                         totalAdmin: totalAdmin, totalNorm: totalNorm, totalProy: totalProy, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado,
-                        idVentanaAnterior: idVentanaSeleccionada, tieneRFS: hayRFS, orden: orden, clusterToggle: clusterToggle,
+                        tieneRFS: hayRFS, orden: orden, clusterToggle: clusterToggle, datosOriginalesFPT: datosFPT, bitacorasInfoOriginales :bitacorasInfo,
                         terrenos: terrenos, terrenoTitulo: terrenoTitulo,  disabled: false, backdrop: { cargado: true, mensaje: '' },
                         filtrosTabla: filtrosTabla, datosFPT: datosFPT, Mkt: Mkt, bitacorasInfo: bitacorasInfo, seguridad: seguridad,
-                        solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true
+                        solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true,
+                        opcionesFiltrosEncabezadoOriginal : opcionesFiltrosEncabezado, MktOriginal: MktOriginal
                     })
                     //#endregion
                     break;
@@ -362,13 +372,14 @@ class Generico extends Component {
                                     else
                                         filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'favs')
 
-                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
+                                    const datosOriginales = idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
+                                    let datosFiltrados = util.filtrarEncabezado(filtrosEncabezado, datosOriginales, usuarioActual, idVentana)
 
-                                    if (this.state.idVentana === 4) {
+                                    if (idVentana === 4) {
                                         this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
                                     } else {
-                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                        opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosFiltrados, datosOriginalesFPT, bitacorasInfoOriginales, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                                     }
                                 }
                                 break;
@@ -380,13 +391,16 @@ class Generico extends Component {
                                     else
                                         filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'gantt')
 
-                                    const datosOriginales = this.state.idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-                                    let datosFiltrados = this.filtrarEncabezado(filtrosEncabezado, datosOriginales)
+                                    const datosOriginales = idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
 
-                                    if (this.state.idVentana === 4)
-                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                    else
-                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
+                                    const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, 'gantt', true, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                                    
+
+                                    if(idVentana === 4){
+                                        this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+                                    }else{
+                                        this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFiltradosFPT, Mkt: filtrado.datosFiltradosMkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+                                    }
                                 }
                                 break;
                             case 7:
@@ -397,10 +411,13 @@ class Generico extends Component {
                                     else
                                         filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'ver')
 
-                                    if (this.state.idVentana === 4)
+                                    if (idVentana === 4){
                                         this.setState({ filtrosEncabezado: filtrosEncabezado })
-                                    else
-                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
+                                    }
+                                    else{
+                                        opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalesV, datosOriginalesFPT, bitacorasInfoOriginales, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                                        this.setState({ filtrosEncabezado: filtrosEncabezado, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })   
+                                    }
                                 }
                                 break;
                             default:
@@ -421,36 +438,6 @@ class Generico extends Component {
             this.setState({ backdrop: { cargado: true, mensaje: '' } });
             alert('Se crearon los terrenos nuevos y su estrategia de gestión. Vuelva al menú principal para consultarlos.')
         }
-    }
-
-    //Realiza la acción generica del filtrado del encabezado en base a un datasource de entrada
-    filtrarEncabezado = (filtrosEncabezado, datosOriginales) => {
-        let datosFiltrados = datosOriginales.datos
-        filtrosEncabezado.forEach(filtroActual => {
-            switch (filtroActual) {
-                case 'favs':
-                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
-                        return datoFiltrado.Favoritos !== undefined ?
-                            (datoFiltrado.Favoritos.some(x => x.ID === this.state.usuarioActual.Id) ? datoFiltrado : null)
-                            : null
-                    })
-                    break;
-                case 'gantt':
-                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
-                        return this.state.idVentana === 4 ? (datoFiltrado.Tarea.ExisteEnGantt === '1' ? datoFiltrado : null) : datoFiltrado.IdTarea.ExisteEnGantt === '1' ? datoFiltrado : null
-                    })
-                    break;
-                case 'ver':
-                    break;
-                default:
-                    break;
-            }
-        });
-        let nuevosDatos = []
-        nuevosDatos.columnas = datosOriginales.columnas
-        nuevosDatos.datos = datosFiltrados.datos === undefined ? datosFiltrados : datosFiltrados.datos
-
-        return nuevosDatos
     }
 
     //#region Métodos de modal
@@ -477,40 +464,18 @@ class Generico extends Component {
     };
     //#endregion
 
-    obtenerDatosTramite = async (idFlujoTareas) => {
-        const datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
-            .filter('IdFlujoId eq ' + idFlujoTareas)
-            .get()
-        return datosFPT
-    }
-
     onHandleChange = (event) => {
-        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, idVentana } = this.state
+        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, idVentana, datosOriginalesFPT, bitacorasInfoOriginales, MktOriginal, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado, filtrosTablaOrden } = this.state
         const { id, name } = event.target
 
-        const datosOriginales = this.state.idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
-        let dataSource = this.filtrarEncabezado(this.state.filtrosEncabezado, datosOriginales)
-        
-        const filtroIndice = filtrosTabla[name].findIndex(x => x === id)
-        if (filtroIndice === -1) {
-            filtrosTabla[name].push(id)
-        }
-        else {
-            filtrosTabla[name] = filtrosTabla[name].filter(x=> x !== id)
-        }
+        const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
 
-        let datosFiltrados = dataSource.datos
-        
-        datosFiltrados = util.filtrarDatosPorColumna(name, filtrosTabla, datosFiltrados)
-
-        let nuevosDatos = []
-        nuevosDatos.columnas = datosOriginales.columnas
-        nuevosDatos.datos = datosFiltrados.datos === undefined ? datosFiltrados : datosFiltrados.datos
+        const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, name, id, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
 
         if(idVentana === 4){
-            this.setState({ datosVentanaEG: nuevosDatos, filtrosTabla: filtrosTabla })
+            this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
         }else{
-            this.setState({ datosVentana: nuevosDatos, filtrosTabla: filtrosTabla })
+            this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFiltradosFPT, Mkt: filtrado.datosFiltradosMkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
         }
     }
 
@@ -639,9 +604,9 @@ class Generico extends Component {
     }
 
     onLimpiarFiltros = () =>{
-        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, filtrosEncabezado, idVentana } = this.state
+        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, filtrosEncabezado, usuarioActual, idVentana } = this.state
         const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
-        let dataSource = this.filtrarEncabezado(this.state.filtrosEncabezado, datosOriginales)
+        let dataSource = util.filtrarEncabezado(this.state.filtrosEncabezado, datosOriginales, usuarioActual, idVentana)
 
         filtrosTabla = util.limpiarFiltrosTabla()
 
@@ -666,8 +631,8 @@ class Generico extends Component {
         let val = { results: [] }
         let favoritos = []
         const user = this.state.usuarioActual
-        const { idVentana } = this.state
-        if (util.IsNullOrEmpty(fila.Favoritos) === false) {
+        let { datosVentana, datosOriginalVentana, datosFPT, datosOriginalesFPT, bitacorasInfo, bitacorasInfoOriginales } = this.state
+        if (!util.IsNullOrEmpty(fila.Favoritos)) {
             const exists = fila.Favoritos.filter(x => x.ID === user.Id)
             if (exists.length === 0) {
                 fila.Favoritos.map((favorito) => {
@@ -689,29 +654,43 @@ class Generico extends Component {
             favoritos.push({ ID: user.Id, Name: user.LoginName })
         }
 
-        await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
-            FavoritosId: val,
-        }).then(() => {
-            if (fila.Lista === 'Flujo Tareas') {
-                const filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
-                const filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === fila.ID)
-                let newData = this.state.datosVentana.datos[filaIndice]
-                let newDataO = this.state.datosOriginalVentana.datos[filaIndiceO]
-                newData.Favoritos = favoritos
-                newDataO.Favoritos = favoritos
-                let datosActualizados = util.inicializarArregloDatos(idVentana, this.state.datosVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-                let datosActualizadosO = util.inicializarArregloDatos(idVentana, this.state.datosOriginalVentana.datos.filter(x=> x.Orden >= idVentana && x.Orden <= idVentana + 1))
-                datosActualizados.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
-                this.setState({ datosVentana: datosActualizados, datosOriginalVentana: datosActualizadosO })
-            } else {
-                const filaIndice = this.state.datosFPT.findIndex(datos => datos.ID === fila.ID)
-                let newData = this.state.datosFPT[filaIndice]
-                newData.Favoritos = favoritos
-                let datosActualizados = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-                this.setState({ datosFPT: datosActualizados })
-            }
-        })
+        if(fila.Lista !== 'Incidencia'){
+            await currentWeb.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                FavoritosId: val,
+            }).then(() => {
+                if (fila.Lista === 'Flujo Tareas') {
+                    let data = util.actualizarPropiedadesEstatus(datosVentana.datos, 'ID', fila.ID, 'Favoritos', favoritos)
+                    let dataO = util.actualizarPropiedadesEstatus(datosOriginalVentana.datos, 'ID', fila.ID, 'Favoritos', favoritos)
+    
+                    datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[data.indice, 1, data.dato]] })
+                    datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
+                    this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana })
+                } else if (fila.Lista === 'Fechas paquete de trámites') {
+                    let data = util.actualizarPropiedadesEstatus(datosFPT, 'ID', fila.ID, 'Favoritos', favoritos)
+                    let dataO = util.actualizarPropiedadesEstatus(datosOriginalesFPT, 'ID', fila.ID, 'Favoritos', favoritos)
+                    
+                    datosFPT = update(this.state.datosFPT, { $splice: [[data.indice, 1, data.dato]] })
+                    datosOriginalesFPT = update(this.state.datosOriginalesFPT, { $splice: [[dataO.indice, 1, dataO.dato]] })
+                    this.setState({ datosFPT: datosFPT, datosOriginalesFPT: datosOriginalesFPT })
+                }
+            })
+        }else{
+            const rootweb = await currentWeb.getParentWeb()
+            let websCdV = await rootweb.web.webs()
+            let webBitacoras = websCdV[2]
+            webBitacoras = await sp.site.openWebById(webBitacoras.Id)
+
+            await webBitacoras.web.lists.getByTitle(fila.Lista).items.getById(fila.ID).update({
+                FavoritosId: val,
+            }).then(()=>{
+                let data = util.actualizarPropiedadesEstatus(bitacorasInfo, 'ID', fila.ID, 'Favoritos', favoritos)
+                let dataO = util.actualizarPropiedadesEstatus(bitacorasInfoOriginales, 'ID', fila.ID, 'Favoritos', favoritos)
+                
+                bitacorasInfo = update(this.state.bitacorasInfo, { $splice: [[data.indice, 1, data.dato]] })
+                bitacorasInfoOriginales = update(this.state.bitacorasInfoOriginales, { $splice: [[dataO.indice, 1, dataO.dato]] })
+                this.setState({ bitacorasInfo: bitacorasInfo, bitacorasInfoOriginales: bitacorasInfoOriginales })
+            })
+        }
     }
 
     //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
@@ -960,7 +939,6 @@ class Generico extends Component {
         webUrl = await sp.web()
         webCdT = webUrl.Url
         webUrl = webUrl.Url.replace('/CompraDeTerreno', '')
-        webUrlBit = webCdT.replace('CompraDeTerreno', '')
 
         //Obtiene los grupos y sus usuarios de la lista de GanttPersonColab
         const seguridad = await util.obtenerSeguridad()
@@ -1363,22 +1341,18 @@ class Generico extends Component {
                         }
     
                         if (arregloDatos.dato.lista === 'Flujo Tareas') {
-                            let filaIndice = datosVentana.datos.findIndex(datos => datos.ID === idElemento)
-                            let filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === idElemento)
-                            let newData = datosVentana.datos[filaIndice]
-                            let newDataO = datosOriginalVentana.datos[filaIndiceO]
-                            newData.AsignadoA = arregloDatos.dato.usuarioAsignados
-                            newDataO.AsignadoA = arregloDatos.dato.usuarioAsignados
+                            let data = util.actualizarPropiedadesEstatus(datosVentana.datos, 'ID', idElemento, 'AsignadoA', arregloDatos.dato.usuarioAsignados)
+                            let dataO = util.actualizarPropiedadesEstatus(datosOriginalVentana.datos, 'ID', idElemento, 'AsignadoA', arregloDatos.dato.usuarioAsignados)
     
-                            datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                            datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                            datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[data.indice, 1, data.dato]] })
+                            datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
                             
                             if(filaSeleccionada.IdTarea.Subcluster !== null){
-                                filaIndice = datosVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
-                                filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+                                let filaIndice = datosVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
+                                let filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.IdTarea.Title === filaSeleccionada.IdTarea.Subcluster)
 
-                                newData = datosVentana.datos[filaIndice]
-                                newDataO = datosOriginalVentana.datos[filaIndiceO]
+                                let newData = datosVentana.datos[filaIndice]
+                                let newDataO = datosOriginalVentana.datos[filaIndiceO]
                                 
                                 usuariosAsignados = util.combinarIdAsignados(newData.AsignadoA, arregloDatos.dato.usuarioAsignados)
                                 const newAsignados = util.combinarAsignados(newData.AsignadoA, arregloDatos.dato.usuarioAsignados)
@@ -1395,15 +1369,37 @@ class Generico extends Component {
 
                             opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
                             this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
-                        } else {
-                            const filaIndice = datosFPT.findIndex(datos => datos.ID === idElemento)
-                            let newData = datosFPT[filaIndice]
-                            newData.AsignadoA = arregloDatos.dato.usuarioAsignados
-    
-                            datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+                        } else if (arregloDatos.dato.lista === 'Fechas paquete de trámites') {
+                            //Actualiza el dataSource de trámites del trámite guardado
+                            const dataFPT = util.actualizarPropiedadesEstatus(datosFPT, 'ID', idElemento, 'AsignadoA', arregloDatos.dato.usuarioAsignados)
+                            datosFPT = update(this.state.datosFPT, { $splice: [[dataFPT.indice, 1, dataFPT.dato]] })
+                            
+                            //Obtiene los Asignados de los trámites pertenecientes al IdFlujo
+                            let AsignadoAFPT = []
+                            datosFPT.map((x)=>{
+                                if(x.IdFlujoId === filaSeleccionada.IdFlujoId && x.AsignadoA !== undefined)
+                                    x.AsignadoA.forEach((item)=>{
+                                        AsignadoAFPT.push(item)
+                                    })
+                                    return x
+                            })
+
+                            const nuevoAsignadosId = util.combinarIdAsignados(AsignadoAFPT, arregloDatos.dato.usuarioAsignados)
+                            const nuevoAsignados =  util.combinarAsignados(AsignadoAFPT, arregloDatos.dato.usuarioAsignados)
+                            //Guarda los asignados en la tarea
+                            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(filaSeleccionada.IdFlujoId).update({
+                                AsignadoAId: nuevoAsignadosId
+                            }).then(()=>{
+                                //Asigna los asignados al state de datos y datos originales
+                                const data = util.actualizarPropiedadesEstatus(datosVentana.datos, 'ID', filaSeleccionada.IdFlujoId, 'AsignadoA', nuevoAsignados)
+                                const dataO = util.actualizarPropiedadesEstatus(datosOriginalVentana.datos, 'ID', filaSeleccionada.IdFlujoId, 'AsignadoA', nuevoAsignados)
+
+                                datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[data.indice, 1, data.dato]] })
+                                datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
+                            })
 
                             opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
-                            this.setState({ datosFPT: datosFPT, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
+                            this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                         }
                     }).catch(error => {
                         alert('Error al actualizar Flujo Tareas: ' + error)
@@ -1413,22 +1409,16 @@ class Generico extends Component {
                     this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
                 } else if (arregloDatos.tarea === 272) {
                     if (arregloDatos.dato.lista === 'Flujo Tareas') {
-                        const filaIndice = datosVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        const filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        let newData = datosVentana.datos[filaIndice]
-                        let newDataO = datosOriginalVentana.datos[filaIndiceO]
-                        newData.Estatus = arregloDatos.dato.estatus
-                        newDataO.Estatus = arregloDatos.dato.estatus
+                        const data = util.actualizarPropiedadesEstatus(datosVentana.datos, 'ID', arregloDatos.dato.idElemento, 'Estatus', arregloDatos.dato.estatus)
+                        const dataO = util.actualizarPropiedadesEstatus(datosOriginalVentana.datos, 'ID', arregloDatos.dato.idElemento, 'Estatus', arregloDatos.dato.estatus)
     
-                        datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
-                        datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
+                        datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[data.indice, 1, data.dato]] })
+                        datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
                         this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana })
                     } else {
-                        const filaIndice = datosFPT.findIndex(datos => datos.ID === arregloDatos.dato.idElemento)
-                        let newData = datosFPT[filaIndice]
-                        newData.Estatus = arregloDatos.dato.estatus
+                        const data = util.actualizarPropiedadesEstatus(datosFPT, 'ID', arregloDatos.dato.idElemento, 'Estatus', arregloDatos.dato.estatus)
     
-                        datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
+                        datosFPT = update(this.state.datosFPT, { $splice: [[data.indice, 1, data.dato]] })
                         this.setState({ datosFPT: datosFPT })
                     }
                 } else if (arregloDatos.tarea === 289) {
@@ -1693,7 +1683,7 @@ class Generico extends Component {
                     <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon_disabled} alt='more_details_icon' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={util.onShowStar(num, usuarioActual)} alt='favoritos_icon' onClick={(e) => { this.onEstablecerFavorito(num) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
         )
@@ -2485,7 +2475,7 @@ class Generico extends Component {
                             <Encabezado rfs={tieneRFS} idPITerr={!tieneRFS ? idProyecto : idTerreno} terreno={nombreTerreno}
                                 maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
                                 totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} usuarioActual = {usuarioActual} gruposUsuarioActual = {gruposUsuarioActual}
-                                filtros={filtrosEncabezado} seguridad= {seguridad} />
+                                filtros={filtrosTabla} seguridad= {seguridad} />
                             <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
                             <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
                             {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} /> : null}
