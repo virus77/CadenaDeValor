@@ -45,8 +45,7 @@ var webCdT = ''
 
 const useStyles = makeStyles(theme => ({
     formControl: {
-        margin: theme.spacing(1),
-        minWidth: 120,
+        minWidth: '100%',
         textAlign: "left",
     },
 }));
@@ -90,7 +89,6 @@ class Generico extends Component {
             solucionInfo: [],
             opcionesFiltrosEncabezado: [],
             opcionesFiltrosEncabezadoOriginal: [],
-            filtrosEncabezado: [],
             Mkt: [],
             MktOriginal: [],
             filtrosTabla: {
@@ -215,9 +213,9 @@ class Generico extends Component {
 
     onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS, nuevoTerreno, usuarioActual, gruposUsuarioActual, seguridad) => {
         const { idVentana, idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
-        let { filtrosTabla, filtrosEncabezado, orden, clusterToggle, opcionesFiltrosEncabezado, datosOriginalesFPT, bitacorasInfoOriginales, Mkt, MktOriginal, datosOriginalVentanaEG, datosOriginalVentana, opcionesFiltrosEncabezadoOriginal, filtrosTablaOrden } = this.state
-        const datosOriginalesVEG = this.state.datosOriginalVentanaEG
-        const datosOriginalesV = this.state.datosOriginalVentana
+        let { filtrosTabla, orden, clusterToggle, opcionesFiltrosEncabezado, datosOriginalesFPT, bitacorasInfoOriginales, Mkt, MktOriginal, datosOriginalVentanaEG, datosOriginalVentana, opcionesFiltrosEncabezadoOriginal, filtrosTablaOrden } = this.state
+        const datosOriginalesVEG = datosOriginalVentanaEG
+        const datosOriginalesV = datosOriginalVentana
         let result = [];
         let actividades = [];
         let bitacorasInfo = []
@@ -345,7 +343,7 @@ class Generico extends Component {
 
                     const hayRFS = actividades.some(x=> x.IdTarea.ID === 24 && x.Estatus.ID === 3)
 
-                    opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentanaSeleccionada, datosActs, datosFPT, bitacorasInfo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
+                    opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentanaSeleccionada, datosActs, datosFPT, bitacorasInfo, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
                     //let d =util.generarArregloActs('Flujo Tareas', result, datosActs)
                     this.setState({
                         idVentana: idVentanaSeleccionada, clustersVentana: result, datosVentana: datosActs, datosOriginalVentana: datosActs,
@@ -367,56 +365,39 @@ class Generico extends Component {
                             case 5:
                                 //Se hizo clic en el filtro de Favoritos
                                 {
-                                    if (!filtrosEncabezado.includes('favs'))
-                                        filtrosEncabezado.push('favs')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'favs')
-
-                                    const datosOriginales = idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-                                    let datosFiltrados = util.filtrarEncabezado(filtrosEncabezado, datosOriginales, usuarioActual, idVentana)
-
-                                    if (idVentana === 4) {
-                                        this.setState({ datosVentanaEG: datosFiltrados, filtrosEncabezado: filtrosEncabezado })
-                                    } else {
-                                        opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosFiltrados, datosOriginalesFPT, bitacorasInfoOriginales, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
-                                        this.setState({ datosVentana: datosFiltrados, filtrosEncabezado: filtrosEncabezado, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
+                                    const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
+                                    const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, 'favs', true, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual)
+                                    
+                                    if(idVentana === 4){
+                                        this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+                                    }else{
+                                        this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFPT, Mkt: filtrado.Mkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
                                     }
                                 }
                                 break;
                             case 6:
                                 //Se hizo clic en el filtro de Tareas de Gantt
                                 {
-                                    if (!filtrosEncabezado.includes('gantt'))
-                                        filtrosEncabezado.push('gantt')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'gantt')
-
-                                    const datosOriginales = idVentana === 4 ? (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 ? datosOriginalesVEG : datosVentanaEG) : (filtrosTabla.responsable.length === 0 && filtrosTabla.asignadoa.length === 0 && filtrosTabla.lineabase.length === 0 && filtrosTabla.festimada.length === 0 && filtrosTabla.estatus.length === 0 ? datosOriginalesV : datosVentana)
-
-                                    const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, 'gantt', true, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                                    const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
+                                    const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, 'gantt', true, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual)
                                     
-
                                     if(idVentana === 4){
                                         this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
                                     }else{
-                                        this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFiltradosFPT, Mkt: filtrado.datosFiltradosMkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+                                        this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFPT, Mkt: filtrado.Mkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
                                     }
                                 }
                                 break;
                             case 7:
                                 //Se hizo clic en el filtro de Ver todos
                                 {
-                                    if (!filtrosEncabezado.includes('ver'))
-                                        filtrosEncabezado.push('ver')
-                                    else
-                                        filtrosEncabezado = filtrosEncabezado.filter(x => x !== 'ver')
-
-                                    if (idVentana === 4){
-                                        this.setState({ filtrosEncabezado: filtrosEncabezado })
-                                    }
-                                    else{
-                                        opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalesV, datosOriginalesFPT, bitacorasInfoOriginales, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
-                                        this.setState({ filtrosEncabezado: filtrosEncabezado, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })   
+                                    const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
+                                    const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, 'ver', true, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual)
+                                    
+                                    if(idVentana === 4){
+                                        this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+                                    }else{
+                                        this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFPT, Mkt: filtrado.Mkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
                                     }
                                 }
                                 break;
@@ -465,17 +446,17 @@ class Generico extends Component {
     //#endregion
 
     onHandleChange = (event) => {
-        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, idVentana, datosOriginalesFPT, bitacorasInfoOriginales, MktOriginal, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado, filtrosTablaOrden } = this.state
+        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, idVentana, datosOriginalesFPT, bitacorasInfoOriginales, MktOriginal, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosTablaOrden } = this.state
         const { id, name } = event.target
 
         const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
 
-        const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, name, id, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+        const filtrado = util.accionFiltrado(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, name, id, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual)
 
         if(idVentana === 4){
             this.setState({ datosVentanaEG: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
         }else{
-            this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFiltradosFPT, Mkt: filtrado.datosFiltradosMkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
+            this.setState({ datosVentana: filtrado.datosVentana, filtrosTabla: filtrado.filtrosTabla, datosFPT : filtrado.datosFPT, Mkt: filtrado.Mkt, opcionesFiltrosEncabezado: filtrado.opcionesFiltrosEncabezado, filtrosTablaOrden: filtrado.filtrosTablaOrden })
         }
     }
 
@@ -604,21 +585,15 @@ class Generico extends Component {
     }
 
     onLimpiarFiltros = () =>{
-        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, filtrosEncabezado, usuarioActual, idVentana } = this.state
+        let { filtrosTabla, datosOriginalVentanaEG, datosOriginalVentana, idVentana } = this.state
+        
         const datosOriginales = idVentana === 4 ? datosOriginalVentanaEG : datosOriginalVentana
-        let dataSource = util.filtrarEncabezado(this.state.filtrosEncabezado, datosOriginales, usuarioActual, idVentana)
-
         filtrosTabla = util.limpiarFiltrosTabla()
 
-        let datosFiltrados = dataSource.datos
-        let nuevosDatos = []
-        nuevosDatos.columnas = datosOriginales.columnas
-        nuevosDatos.datos = datosFiltrados.datos === undefined ? datosFiltrados : datosFiltrados.datos
-
         if(idVentana === 4){
-            this.setState({ datosVentanaEG: nuevosDatos, filtrosTabla: filtrosTabla })
+            this.setState({ datosVentanaEG: datosOriginales, filtrosTabla: filtrosTabla })
         }else{
-            this.setState({ datosVentana: nuevosDatos, filtrosTabla: filtrosTabla })
+            this.setState({ datosVentana: datosOriginales, filtrosTabla: filtrosTabla })
         }
     }
 
@@ -695,8 +670,8 @@ class Generico extends Component {
 
     //Establece la fecha seleccionada en el campo de Linea base y Fecha estimada
     onSeleccionarFecha = async (fecha, fila, campo) => {
-        const { idVentana, gruposUsuarioActual, usuarioActual, filtrosEncabezado } = this.state
-        let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT } = this.state
+        const { idVentana, gruposUsuarioActual, usuarioActual } = this.state
+        let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT, filtrosTabla } = this.state
         if (fila.Lista === 'Flujo Tareas') {
             const filaIndice = datosVentana.datos.findIndex(datos => datos.ID === fila.ID)
             const filaIndiceO = datosOriginalVentana.datos.findIndex(datos => datos.ID === fila.ID)
@@ -728,7 +703,7 @@ class Generico extends Component {
             }
             datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
             datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
-            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosTabla)
             this.setState({ datosVentana: datosVentana, datosOriginalVentan: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
         } else {
             const filaIndice = datosFPT.findIndex(datos => datos.ID === fila.ID)
@@ -755,7 +730,7 @@ class Generico extends Component {
             }
 
             datosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosTabla)
             this.setState({ datosFPT: datosFPT, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
         }
     }
@@ -963,7 +938,7 @@ class Generico extends Component {
     //#endregion
 
     onActualizarDatos = async arregloDatos => {
-        const { idVentana, MACO, idProyecto, tipo , usuarioActual, gruposUsuarioActual, seguridad, filtrosEncabezado } = this.state
+        const { idVentana, MACO, idProyecto, tipo , usuarioActual, gruposUsuarioActual, seguridad, filtrosTabla } = this.state
         let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT } = this.state
         if (idVentana === 4) {
             //Si el evento viene desde un modal que no es tarea
@@ -1367,7 +1342,7 @@ class Generico extends Component {
                                 })
                             }
 
-                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosTabla)
                             this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                         } else if (arregloDatos.dato.lista === 'Fechas paquete de trámites') {
                             //Actualiza el dataSource de trámites del trámite guardado
@@ -1398,7 +1373,7 @@ class Generico extends Component {
                                 datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
                             })
 
-                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+                            opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual, filtrosTabla)
                             this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado })
                         }
                     }).catch(error => {
@@ -1731,17 +1706,16 @@ class Generico extends Component {
     }
 
     render() {
-        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, filtrosEncabezado, seguridad, tieneRFS, clusterToggle } = this.state
+        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, seguridad, tieneRFS, clusterToggle } = this.state
         
         const Cluster = (props) => {
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
                     //Otras ventanas
-                    let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado)
+                    let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
                     
                     let filaCluster = props.titulos.map((fila) => {
                         if (fila.cluster.IdTarea.TxtCluster !== 'Dummy' && datosV.some(x=> x.IdTarea.TxtCluster === fila.cluster.IdTarea.TxtCluster)) {
-                        //if (datosV.some(x=> x.IdTarea.TxtCluster  === fila.cluster.IdTarea.TxtCluster)) {
                             const existeAFActiva = datosV.some(x=>x.Orden === fila.cluster.Orden && x.IdTarea.ID === 271 && x.Estatus.ID !== 3)
                             let average = fila.cluster.IdTarea.EsCluster === '0' ? (fila.cluster.IdTarea.Orden !== 3.14 ? util.average(props, fila.cluster.IdTarea.Orden) : util.averageMkt(props.datos)) : util.averageFPT(this.state.datosFPT, fila.cluster.ID);
                             return (
@@ -1907,7 +1881,7 @@ class Generico extends Component {
                         if (fila.titulo === "Favoritos") {
                             return (
                                 <div key={index} className={fila.estilo}>
-                                    <p style={{ marginTop: "26px", paddingRight: "30px", textAlign: "center" }}>
+                                    <p style={{ marginTop: "5%", paddingRight: "30px", textAlign: "center" }}>
                                     <img src={clear_icon} alt='clear_icon_icon' onClick={() => { this.onLimpiarFiltros()}} />
                                     </p>
                                 </div>
@@ -1916,7 +1890,7 @@ class Generico extends Component {
                         else {
                             return (
                                 <div key={index} className={fila.estilo} >
-                                    <p style={{ marginTop: "30px", paddingLeft: "10px" }}>
+                                    <p style={{ marginTop: "5%" }}>
                                         {fila.titulo}
                                     </p>
                                 </div>
@@ -1925,25 +1899,13 @@ class Generico extends Component {
                     case 'E. de G. autorizada':
                         return (
                             <div key={index} className={fila.estilo} >
-                                <p style={{ marginTop: "30px", textAlign: "center" }}>
+                                <p style={{ marginTop: "5%", textAlign: "center" }}>
                                     <img style={{ marginRight: "5px" }} id='CargaEG' src={egupload_icon} alt='egupload_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 269, false, null, null, { Tarea: { ID: 269 }, esRFS: this.props.rfs, ProyectoInversion: { id: this.state.idProyecto, title: this.state.proyectoTitulo }, Terreno: { id: this.state.idTerreno, title: this.state.terrenoTitulo } }, null, "", "115px") }}></img>
                                     {fila.titulo}
                                 </p>
                             </div>
                         )
                     case 'Asignado a':
-                        /*let valores = []
-                        fila.Arreglo.sort((a, b) => a.AsignadoA - b.AsignadoA).sort((a, b) => a.Title - b.Title);
-                        const arregloAsignados = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
-                        let valoreAsignadoA = arregloAsignados.map((valor) => {
-                            return idVentana === 4 ?
-                                (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
-                                :
-                                (valor.IdTarea !== undefined ?
-                                    (valor.AsignadoA !== undefined ? valor.AsignadoA.map((x) => { valores.push(x.Title) }) : null)
-                                : null)
-                        })
-                        valoreAsignadoA = [...new Set(valores)]*/
                         const valoreAsignadoA = this.state.opcionesFiltrosEncabezado[fila.interN.toLowerCase()]
                         const valuesAsignados = filtrosTabla[fila.titulo.toLowerCase().trim().replace('.', '').replace(' ', '')]
                         return (
@@ -1975,27 +1937,6 @@ class Generico extends Component {
                     case 'Estatus':
                     case 'Linea base':
                     case 'F. estimada':
-                        /*const arregloRespEst = idVentana !== 4 ? util.filtrarDatosVentana(idVentana, fila.Arreglo, gruposUsuarioActual, usuarioActual.Id, filtrosEncabezado) : fila.Arreglo
-                        let valoresRespEst = arregloRespEst.map((valor) => {
-                            return idVentana === 4 ?
-                                fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
-                                    : (fila.titulo === 'Estatus' ? valor.Estatus.Title
-                                        : (fila.titulo === 'Linea base' ? util.spDate(valor.LineaBase)
-                                            : (fila.titulo === 'F. estimada' ? util.spDate(valor.FechaEstimada) : null)
-                                        )
-                                    )
-                                :
-                                (valor.IdTarea !== undefined ?
-                                    fila.titulo === 'Responsable' ? valor.GrupoResponsable.NombreCortoGantt
-                                    : (fila.titulo === 'Estatus' ? valor.Estatus.Title
-                                        : (fila.titulo === 'Linea base' ? util.spDate(valor.LineaBase)
-                                            : (fila.titulo === 'F. estimada' ? util.spDate(valor.FechaEstimada) : null)
-                                        )
-                                    )
-                                : null)
-                        })
-                        valoresRespEst = valoresRespEst.filter(x => x !== null && x !== undefined)
-                        valoresRespEst = [...new Set(valoresRespEst)]*/
                         const valoresRespEst = this.state.opcionesFiltrosEncabezado[fila.interN.toLowerCase()]
                         const valuesRespEst = filtrosTabla[fila.titulo.toLowerCase().trim().replace('.', '').replace(' ', '')]
                         return (
@@ -2031,9 +1972,9 @@ class Generico extends Component {
             return (
                 <div key={0} className="row justify-content-end">
                     <div style={{ padding: "8px", position: 'fixed', top: '7%', width: "98%" }}>
-                        <div style={{ paddingLeft: "3%", width: "97%" }}>
+                        <div style={{ paddingLeft: "3%", width: "96%" }}>
                             <div>
-                                <div className="row" style={{ paddingLeft: "5%" }}>
+                                <div className="row" style= {{ paddingLeft: idVentana === 4 ? '5%' : '0'}}>
                                     {filaHeader}
                                 </div>
                             </div>
@@ -2252,7 +2193,7 @@ class Generico extends Component {
                                                                 switch (fila.IdTarea.ID) {
                                                                     case 273:
                                                                         return ((num.BitacoraInc.Title.includes('BIT.ADU.') && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
-                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosEncabezado.includes('ver'))?
+                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosTabla.ver.length > 0)?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
                                                                                 <div className="row">
                                                                                     {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
@@ -2260,7 +2201,7 @@ class Generico extends Component {
                                                                             </div> :null)
                                                                     case 274:
                                                                         return ((num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
-                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosEncabezado.includes('ver')) ?
+                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosTabla.ver.length > 0) ?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
                                                                                 <div className="row">
                                                                                     {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
@@ -2371,7 +2312,7 @@ class Generico extends Component {
                                                                 switch (fila.IdTarea.ID) {
                                                                     case 273:
                                                                         return ((num.BitacoraInc.Title.includes('BIT.ADU.') && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
-                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosEncabezado.includes('ver'))?
+                                                                        || (num.BitacoraInc.Title.includes('BIT.ADU.') && filtrosTabla.ver.length > 0)?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
                                                                                 <div className="row">
                                                                                     {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}
@@ -2379,7 +2320,7 @@ class Generico extends Component {
                                                                             </div> :null)
                                                                     case 274:
                                                                         return ((num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && (gruposUsuarioActual.some(x=> x.NombreCortoGantt === num.AreaAsignadaInc.NombreCorto) || util.contieneAsignadoA(num.AsignadoAInc, usuarioActual.Id)))
-                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosEncabezado.includes('ver')) ?
+                                                                        || (num.AreaAsignadaInc.NombreCorto === 'DT' && (num.MotivoCausaInc.ID === 3 || num.MotivoCausaInc.ID === 4 || num.MotivoCausaInc.ID === 5) && filtrosTabla.ver.length > 0) ?
                                                                             <div key={fila.ID} style={{ paddingLeft: "5%" }}>
                                                                                 <div className="row">
                                                                                     {this.filaIncidencia(fila, num, hyperlink_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, urlIncident)}

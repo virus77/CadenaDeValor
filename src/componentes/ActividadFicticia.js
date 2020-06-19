@@ -334,27 +334,27 @@ class ActividadFicticia extends Component {
                         <div className='form-row'>
                             <div className='col-sm-8 borde'>
                                 <h6 className='texto'><span className='obligatorio'>*</span>Nombre de la actividad</h6>
-                                <input type="text" name='NombreActividad' className='form-control' value={NombreActividad} onChange={this.onCambiar} maxLength={255} required disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <input type="text" name='NombreActividad' className='form-control' value={NombreActividad} onChange={this.onCambiar} maxLength={255} required disabled = {ID === 0 || esCreador || (esCreador && !esAsignado) ? false : true} />
                                 <br />
                                 <h6 className='texto'>Grupo responsable</h6>
                                 <input type="text" name='GrupoResponsable' className='form-control' value={GrupoResponsable.NombreCortoGantt} readOnly />
                                 <br />
                                 <h6 className='texto'><span className='obligatorio'>*</span>Asignado(s) a</h6>
-                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={usuarioAsignados} seleccionarItems={this.onSeleccionarItems} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <PeoplePicker usuarios={this.state.usuarios} itemsSeleccionados={usuarioAsignados} seleccionarItems={this.onSeleccionarItems} disabled = {ID === 0 || esCreador || (esCreador && !esAsignado) ? false : true} />
                                 <br />
                                 <h6 className='texto'>Fecha compromiso</h6>
-                                <input type="date" name='LineaBase' className='form-control' value={LineaBase} onChange={this.onCambiar} disabled = {ID === 0 ? false : (esCreador || esAsignado ? false : true)} />
+                                <input type="date" name='LineaBase' className='form-control' value={LineaBase} onChange={this.onCambiar} disabled = {ID === 0 || esCreador || (esCreador && !esAsignado) ? false : true} />
                                 <br />
                                 <h6 className='texto'>Fecha estimada de entrega</h6>
-                                <input type="date" name='FechaEstimada' className='form-control' value={FechaEstimada} onChange={this.onCambiar} />
+                                <input type="date" name='FechaEstimada' className='form-control' value={FechaEstimada} onChange={this.onCambiar} disabled = {esCreador || esAsignado ? false : true} />
                             </div>
                             <div className='col-sm-4 centro'>
                                 <h5 className='texto'>Estatus</h5>
-                                <input type='button' name='3' className={Estatus === 3 ? "concluido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Concluido' onClick={this.onCambiarEstatus} /><br /><br />
-                                <input type='button' name='1' className={Estatus === 1 ? "pendiente btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Pendiente' onClick={this.onCambiarEstatus} /><br /><br />
-                                <input type='button' name='5' className={Estatus === 5 ? "vencido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Vencido' onClick={this.onCambiarEstatus} /><br /><br />
-                                <input type='button' name='4' className={Estatus === 4 ? "rechazado btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Rechazado' onClick={this.onCambiarEstatus} /><br /><br />
-                                <input type='button' name='6' className={Estatus === 6 ? "detenido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Detenido' onClick={this.onCambiarEstatus} />
+                                <input type='button' name='3' className={Estatus === 3 ? "concluido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Concluido' onClick={this.onCambiarEstatus} disabled = {esCreador || esAsignado ? false : true} /><br /><br />
+                                <input type='button' name='1' className={Estatus === 1 ? "pendiente btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Pendiente' onClick={this.onCambiarEstatus} disabled = {esCreador || esAsignado ? false : true} /><br /><br />
+                                <input type='button' name='5' className={Estatus === 5 ? "vencido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Vencido' onClick={this.onCambiarEstatus} disabled = {esCreador || esAsignado ? false : true} /><br /><br />
+                                <input type='button' name='4' className={Estatus === 4 ? "rechazado btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Rechazado' onClick={this.onCambiarEstatus} disabled = {esCreador || esAsignado ? false : true} /><br /><br />
+                                <input type='button' name='6' className={Estatus === 6 ? "detenido btn-sm anchoBoton" : "btn btn-secondary btn-sm anchoBoton"} value='Detenido' onClick={this.onCambiarEstatus} disabled = {esCreador || esAsignado ? false : true} />
                             </div>
                         </div>
                         <hr />
@@ -363,7 +363,7 @@ class ActividadFicticia extends Component {
                                 { ID > 0 && esCreador ? <input type="button" className="btn btn-secondary btn-md" value='Eliminar' onClick={this.onEliminar} /> : null }
                             </div>
                             <div className='col-sm-6 derecha'>
-                                <input type="button" className="btn btn-info btn-md" value='Guardar' onClick={this.onGuardar} />
+                                {esCreador || esAsignado ? <input type="button" className="btn btn-info btn-md" value='Guardar' onClick={this.onGuardar} /> : null}
                             </div>
                         </div>
                     </div>

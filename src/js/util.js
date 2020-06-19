@@ -336,10 +336,10 @@ const util = {
                     });
         return val
     },
-    filtrarDatosVentana: function(idVentana, datosVentana, gruposUsuarioActual, usuarioActual, filtrosEncabezado){
+    filtrarDatosVentana: function(idVentana, datosVentana, gruposUsuarioActual, usuarioActual, filtrosTabla){
         datosVentana = datosVentana.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
         let values
-        if (!filtrosEncabezado.includes('ver')){
+        if (filtrosTabla.ver.length === 0){
             const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
         
             values = datosVentana.map((registro) => {
@@ -369,7 +369,7 @@ const util = {
 
             datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
                 .filter(filtroFPT)
-                .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'AsignadoA/ID',
+                .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'IdDocTramite/ExisteEnGantt', 'AsignadoA/ID',
                     'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
                     'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada', 'Title',
                     'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified',
@@ -989,7 +989,7 @@ const util = {
 
         return {indice: filaIndice, dato: newData}
     },
-    generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosEncabezado){
+    generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosTabla){
         if(idVentana !== 4){
             const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
             let datosVentana = datosCdT.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
@@ -1001,9 +1001,9 @@ const util = {
                 estatus: []
             }
             datosVentana.forEach((item)=>{
-                const permitido = filtrosEncabezado.includes('ver') ? true : (strGruposUsuarioActual.includes(item.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(item.AsignadoA).results.includes(usuarioActual) ? true : false)
+                const permitido = filtrosTabla.ver.length > 0 ? true : (strGruposUsuarioActual.includes(item.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(item.AsignadoA).results.includes(usuarioActual) ? true : false)
                 if(item.GrupoResponsable !== undefined){
-                    if (filtrosEncabezado.includes('ver')){
+                    if (filtrosTabla.ver.length > 0){
                         if(!filtros.responsable.includes(item.GrupoResponsable.NombreCortoGantt)){
                             filtros.responsable.push(item.GrupoResponsable.NombreCortoGantt)
                         }
@@ -1016,7 +1016,7 @@ const util = {
                 
                 if(item.AsignadoA !== undefined){
                     const asignados = this.obtenerAsignados(item.AsignadoA)
-                    if (filtrosEncabezado.includes('ver')){
+                    if (filtrosTabla.ver.length > 0){
                         asignados.forEach((itemAsignado)=>{
                             if(!filtros.asignadoa.includes(itemAsignado)){
                                 filtros.asignadoa.push(itemAsignado)
@@ -1031,7 +1031,7 @@ const util = {
                     }
                 }
                 if(item.LineaBase !== null){
-                    if (filtrosEncabezado.includes('ver')){
+                    if (filtrosTabla.ver.length > 0){
                         if(!filtros.lineabase.includes(this.spDate(item.LineaBase))){
                             filtros.lineabase.push(this.spDate(item.LineaBase))
                         }
@@ -1042,7 +1042,7 @@ const util = {
                     }
                 }
                 if(item.FechaEstimada !== null){
-                    if (filtrosEncabezado.includes('ver')){
+                    if (filtrosTabla.ver.length > 0){
                         if(!filtros.festimada.includes(this.spDate(item.FechaEstimada))){
                             filtros.festimada.push(this.spDate(item.FechaEstimada))
                         }
@@ -1053,7 +1053,7 @@ const util = {
                     }
                 }
                 if(item.Estatus !== undefined){
-                    if (filtrosEncabezado.includes('ver')){
+                    if (filtrosTabla.ver.length > 0){
                         if(!filtros.estatus.includes(item.Estatus.Title)){
                             filtros.estatus.push(item.Estatus.Title)
                         }
@@ -1067,7 +1067,7 @@ const util = {
                 const datosFPTPorId = datosFPT.filter(x=> x.IdFlujoId === item.ID)
                 datosFPTPorId.forEach((datoFPT) =>{
                     if(datoFPT.GrupoResponsable !== undefined){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.responsable.includes(datoFPT.GrupoResponsable.NombreCortoGantt)){
                                 filtros.responsable.push(datoFPT.GrupoResponsable.NombreCortoGantt)
                             }
@@ -1079,7 +1079,7 @@ const util = {
                     }
                     if(datoFPT.AsignadoA !== undefined){
                         const asignados = this.obtenerAsignados(datoFPT.AsignadoA)
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             asignados.forEach((itemAsignado)=>{
                                 if(!filtros.asignadoa.includes(itemAsignado)){
                                     filtros.asignadoa.push(itemAsignado)
@@ -1094,7 +1094,7 @@ const util = {
                         }
                     }
                     if(datoFPT.LineaBase !== null){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.lineabase.includes(this.spDate(datoFPT.LineaBase))){
                                 filtros.lineabase.push(this.spDate(datoFPT.LineaBase))
                             }
@@ -1105,7 +1105,7 @@ const util = {
                         }
                     }
                     if(datoFPT.FechaEstimada !== null){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.festimada.includes(this.spDate(datoFPT.FechaEstimada))){
                                 filtros.festimada.push(this.spDate(datoFPT.FechaEstimada))
                             }
@@ -1116,7 +1116,7 @@ const util = {
                         }
                     }
                     if(datoFPT.Estatus !== undefined){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.estatus.includes(datoFPT.Estatus.Title)){
                                 filtros.estatus.push(datoFPT.Estatus.Title)
                             }
@@ -1133,7 +1133,7 @@ const util = {
                 datosBit.forEach((itemBit) =>{
                     const permitido = strGruposUsuarioActual.includes(itemBit.AreaAsignadaInc.NombreCorto) || this.obtenerIdAsignados(itemBit.AsignadoAInc).results.includes(usuarioActual) ? true : false
                     if(itemBit.AreaAsignadaInc !== undefined){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.responsable.includes(itemBit.AreaAsignadaInc.NombreCorto)){
                                 filtros.responsable.push(itemBit.AreaAsignadaInc.NombreCorto)
                             }
@@ -1146,7 +1146,7 @@ const util = {
                         
                     if(itemBit.AsignadoA !== undefined){
                         const asignados = this.obtenerAsignados(itemBit.AsignadoAInc)
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             asignados.forEach((itemAsignado)=>{
                                 if(!filtros.asignadoa.includes(itemAsignado)){
                                     filtros.asignadoa.push(itemAsignado)
@@ -1161,7 +1161,7 @@ const util = {
                         }
                     }
                     if(itemBit.LineaBase !== null){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.lineabase.includes(this.spDate(itemBit.LineaBase))){
                                 filtros.lineabase.push(this.spDate(itemBit.LineaBase))
                             }
@@ -1172,7 +1172,7 @@ const util = {
                         }
                     }
                     if(itemBit.EdoInc !== null){
-                        if (filtrosEncabezado.includes('ver')){
+                        if (filtrosTabla.ver.length > 0){
                             if(!filtros.estatus.includes(itemBit.EdoInc)){
                                 filtros.estatus.push(itemBit.EdoInc)
                             }
@@ -1356,62 +1356,40 @@ const util = {
             return filtros
         }
     },
-    filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual){
+    filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual, gruposUsuarioActual, filtrosTabla){
+        const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
         let datosFiltrados = []
         switch(filtro){
             case 'favs':
-                datosFiltrados = datos.map((x)=> {this.contieneAsignadoA(x.Favoritos, usuarioActual)})
+                if(tipo !== 'B'){
+                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                }else{
+                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.AreaAsignadaInc.NombreCorto) || this.obtenerIdAsignados(x.AsignadoAInc).results.includes(usuarioActual))))
+                }
                 break;
             case 'gantt':
                 if(idVentana === 4){
                     datosFiltrados = datos.filter(x=> x.Tarea.ExisteEnGantt === '1')
                 }else{
                     if(tipo === 'N'){
-                        datosFiltrados = datos.filter(x=> x.IdTarea.ExisteEnGantt === '1')
-                    } else if(tipo === 'M'){
-                        datosFiltrados = datos.filter(x=> x.Visible)
+                        datosFiltrados = datos.filter(x=> x.IdTarea.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                    }else if(tipo === 'T'){
+                        datosFiltrados = datos.filter(x=> x.IdDocTramite.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                    }else if(tipo === 'M'){
+                        datosFiltrados = datos.filter(x=> x.Visible && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
                     }
                 }
                 break;
             case 'ver':
+                datosFiltrados = datos
                 break;
             default:
                 break;
         }
         return datosFiltrados
     },
-    //Filtra el dataSource especificado por los filtros seleccionados del encabezado (Favoritos, Gantt y/o Ver todos)
-    filtrarEncabezado: function (filtrosEncabezado, datosOriginales, usuarioActual, idVentana) {
-        let datosFiltrados = datosOriginales.datos !== undefined ? datosOriginales.datos : datosOriginales
-        filtrosEncabezado.forEach(filtroActual => {
-            switch (filtroActual) {
-                case 'favs':
-                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
-                        return datoFiltrado.Favoritos !== undefined ?
-                            (datoFiltrado.Favoritos.some(x => x.ID === usuarioActual.Id) ? datoFiltrado : null)
-                            : null
-                    })
-                    break;
-                case 'gantt':
-                    datosFiltrados = datosFiltrados.filter((datoFiltrado) => {
-                        return idVentana === 4 ? (datoFiltrado.Tarea.ExisteEnGantt === '1' ? datoFiltrado : null) : datoFiltrado.IdTarea.ExisteEnGantt === '1' ? datoFiltrado : null
-                    })
-                    break;
-                case 'ver':
-                    datosFiltrados = datosFiltrados.filter(x=> x.Orden >= idVentana && x.Orden < this.state.idVentana +1)
-                    break;
-                default:
-                    break;
-            }
-        });
-        let nuevosDatos = []
-        nuevosDatos.columnas = datosOriginales.columnas
-        nuevosDatos.datos = datosFiltrados.datos === undefined ? datosFiltrados : datosFiltrados.datos
-
-        return nuevosDatos
-    },
-    accionFiltrado: function(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, columna, valor, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual, filtrosEncabezado){
-        let dataSourceCdT = datosOriginales
+    accionFiltrado: function(idVentana, datosOriginales, MktOriginal, datosOriginalesFPT, bitacorasInfoOriginales, filtrosTabla, columna, valor, filtrosTablaOrden, opcionesFiltrosEncabezado, opcionesFiltrosEncabezadoOriginal, gruposUsuarioActual, usuarioActual){
+        let dataSourceCdT = idVentana === 4 ? datosOriginales : { columnas: datosOriginales.columnas, datos: datosOriginales.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)}
         let dataSourceMkt = idVentana !== 4 ? MktOriginal : []
         let dataSourceFPT = idVentana !== 4 ? datosOriginalesFPT : []
         let dataSourceBit = idVentana === 3 ? bitacorasInfoOriginales : []
@@ -1419,7 +1397,11 @@ const util = {
         const filtroIndice = filtrosTabla[columna].findIndex(x => x === valor)
         if (filtroIndice === -1) {
             filtrosTabla[columna].push(valor)
-            filtrosTablaOrden.push({ id: columna + ':' + valor, columna: columna, valor: valor })
+            if(columna !== 'ver'){
+                filtrosTablaOrden.push({ id: columna + ':' + valor, columna: columna, valor: valor })
+            }else{
+                filtrosTablaOrden.splice(0, 0, { id: columna + ':' + valor, columna: columna, valor: valor })
+            }
         }
         else {
             filtrosTabla[columna] = filtrosTabla[columna].filter(x=> x !== valor)
@@ -1435,10 +1417,10 @@ const util = {
             filtrosTablaOrden.forEach((filtroTabla, index)=>{
                 if(index === 0){
                     if(filtroTabla.columna === 'favs' || filtroTabla.columna === 'gantt' || filtroTabla.columna === 'ver'){
-                        datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual))
-                        datosFiltradosMkt = datosFiltradosMkt.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceMkt, filtroTabla.columna, 'M', usuarioActual))
-                        datosFiltradosFPT = datosFiltradosFPT.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceFPT, filtroTabla.columna, 'N', usuarioActual))
-                        datosFiltradosBit = datosFiltradosBit.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceBit, filtroTabla.columna, 'B', usuarioActual))
+                        datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                        datosFiltradosMkt = datosFiltradosMkt.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceMkt, filtroTabla.columna, 'M', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                        datosFiltradosFPT = datosFiltradosFPT.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceFPT, filtroTabla.columna, 'T', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                        datosFiltradosBit = datosFiltradosBit.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceBit, filtroTabla.columna, 'B', usuarioActual, gruposUsuarioActual, filtrosTabla))
                         opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezadoOriginal)
                     }else{
                         datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarDatos(dataSourceCdT.datos, filtroTabla.columna, filtroTabla.valor, 'N'))
@@ -1450,10 +1432,10 @@ const util = {
                 }else{
                     if(filtroTabla.columna === filtrosTablaOrden[index -1].columna && !cambioFiltro){
                         if(filtroTabla.columna === 'favs' || filtroTabla.columna === 'gantt' || filtroTabla.columna === 'ver'){
-                            datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual))
-                            datosFiltradosMkt = datosFiltradosMkt.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceMkt, filtroTabla.columna, 'M', usuarioActual))
-                            datosFiltradosFPT = datosFiltradosFPT.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceFPT, filtroTabla.columna, 'N', usuarioActual))
-                            datosFiltradosBit = datosFiltradosBit.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceBit, filtroTabla.columna, 'B', usuarioActual))
+                            datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                            datosFiltradosMkt = datosFiltradosMkt.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceMkt, filtroTabla.columna, 'M', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                            datosFiltradosFPT = datosFiltradosFPT.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceFPT, filtroTabla.columna, 'T', usuarioActual, gruposUsuarioActual, filtrosTabla))
+                            datosFiltradosBit = datosFiltradosBit.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceBit, filtroTabla.columna, 'B', usuarioActual, gruposUsuarioActual, filtrosTabla))
                             opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezadoOriginal)
                         }else{
                             datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarDatos(dataSourceCdT.datos, filtroTabla.columna, filtroTabla.valor, 'N'))
@@ -1478,7 +1460,7 @@ const util = {
             datosFiltradosBit = dataSourceBit
             datosFiltradosMkt = dataSourceMkt
 
-            opcionesFiltrosEncabezado = this.generarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, gruposUsuarioActual, usuarioActual, filtrosEncabezado)
+            opcionesFiltrosEncabezado = this.generarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, gruposUsuarioActual, usuarioActual, filtrosTabla)
         }
         
         return { datosVentana: datosFiltrados, filtrosTabla: filtrosTabla, datosFPT : datosFiltradosFPT, Mkt: datosFiltradosMkt, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado, filtrosTablaOrden: filtrosTablaOrden }

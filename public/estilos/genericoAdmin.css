@@ -316,3 +316,16 @@
 .fixedPadding{
   padding-left: 2%!important;
 }
+.MuiInputLabel-formControl{
+  top: 30%;
+  left: 0;
+  position: absolute;
+  transform: inherit;
+}
+label + .MuiInput-formControl {
+  margin-top: 0!important;
+}
+.MuiFormLabel-root{
+  padding: 1pt!important;
+  font-size: 9pt!important;
+}

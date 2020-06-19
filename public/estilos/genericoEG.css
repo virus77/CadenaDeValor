@@ -317,3 +317,17 @@
   font-weight: 0px;
   color: #75E7BC!important;
 }
+
+.MuiInputLabel-formControl{
+  top: 30%;
+  left: 0;
+  position: absolute;
+  transform: inherit;
+}
+label + .MuiInput-formControl {
+  margin-top: 0!important;
+}
+.MuiFormLabel-root{
+  padding: 1pt!important;
+  font-size: 10pt!important;
+}
