@@ -1,0 +1,275 @@
+.itemPersonal {
+    border: white;
+    border-style: solid;
+    border-width: 8pt;
+    font-weight: normal !important;
+    color: black;
+    font-size: 10pt;
+    padding-left: 15px !important;
+    border-bottom: gray;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    border-left: gray;
+    border-left-style: solid;
+    border-left-width: 8px;
+    cursor: pointer !important;
+    width: 99%;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+.itemInPersonal {
+    border: white;
+    border-style: solid;
+    border-width: 8pt;
+    font-weight: normal !important;
+    color: black;
+    font-size: 10pt;
+    padding-left: 20px !important;
+    border-bottom: gray;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    border-left: gray;
+    border-left-style: solid;
+    border-left-width: 8px;
+    cursor: pointer !important;
+    width: 99%;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+  .table td,
+  .table th {
+    border-top: 1px solid transparent !important;
+  }
+  
+  .myTable {
+    width: 100%;
+    margin-bottom: 0px;
+    color: #212529;
+  }
+  
+  .item-personal {
+    border: white;
+    border-style: solid;
+    border-width: 1pt;
+    font-weight: normal !important;
+    color: black;
+    font-size: 8pt;
+    font-style: italic;
+    padding-left: 4% !important;
+    border-left: gray;
+    border-left-style: solid;
+    border-left-width: 7px;
+    cursor: pointer;
+    height: 25px;
+  }
+  
+  .empty-space {
+    background-color: white !important;
+    height: 10pt;
+  }
+  
+  .checkBox {
+    width: 25px;
+    height: 25px;
+    background-image: url(gray_Icon.png);
+    background-repeat: no-repeat;
+    border-radius: 50%;
+    vertical-align: middle;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+    padding-left: 20px;
+  }
+  
+  .checkBox:hover {
+    transform: scale(1.2);
+  }
+  
+  .checkBox:checked {
+    width: 25px;
+    height: 25px;
+    background-image: url(green_Icon.png);
+  }
+  
+  .checkBox-sm {
+    width: 25px;
+    height: 25px;
+    background-image: url(gray_Icon.png);
+    border-radius: 50%;
+    vertical-align: middle;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  .checkBox-sm:hover {
+    transform: scale(1.2);
+  }
+  
+  .checkBox-sm:checked {
+    width: 25px;
+    height: 25px;
+    background-image: url(green_Icon.png);
+  }
+  
+  .ok {
+    text-align: right;
+  }
+  
+  .numberCircle {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+  
+    background: #fff;
+    border: 1px solid #666;
+    color: #666;
+    text-align: center;
+    font-size: 12px !important;
+  }
+  
+  .numberCircleEG {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+  
+    background: #fff;
+    border: 1px solid #666;
+    color: #666;
+    text-align: center;
+    font-size: 12px !important;
+    visibility: hidden;
+  }
+  
+  .pad {
+    padding-left: 5px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+    padding-right: 6px;
+  }
+  
+  .pad100 {
+    padding-left: 2px;
+    padding-top: 7px;
+    padding-bottom: 5px;
+    padding-right: 2px;
+  }
+  
+  .fecha {
+    width: 100% !important;
+  }
+  
+  .concluido,
+  .enviada,
+  .cerrada,
+  .Con-solucion {
+    background-color: #1ee8a8;
+    box-shadow: 1px 1px #888888;
+    color: black;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .pendiente,
+  .por-capturar {
+    background-color: #fff17e;
+    box-shadow: 1px 1px #888888;
+    color: black;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .guardado,
+  .guardada,
+  .Abierto,
+  .Abierta {
+    background-color: blue;
+    box-shadow: 1px 1px #888888;
+    color: white;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .vencido {
+    background-color: #ffb061;
+    box-shadow: 1px 1px #888888;
+    color: black;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .rechazado,
+  .rechazada {
+    background-color: #ff6f61;
+    box-shadow: 1px 1px #888888;
+    color: black;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .detenido {
+    background-color: #adb0b6;
+    box-shadow: 1px 1px #888888;
+    color: black;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .cancelado {
+    background-color: #5b5c5e;
+    box-shadow: 1px 1px #888888;
+    color: white;
+    font-size: 90% !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  #FiltroFavoritos {
+    content: url("../estilos/favNorm_icon.png") !important;
+  }
+  
+  #FiltroVerTodo {
+    content: url("../estilos/viewAllNorm.png") !important;
+  }
+  
+  #FiltroGantt {
+    content: url("../estilos/ganttNorm.png") !important;
+  }
+  
+  .fixedPadding{
+    padding-left: 2%!important;
+  }
+  .MuiInputLabel-formControl{
+    top: 30%;
+    left: 0;
+    position: absolute;
+    transform: inherit;
+  }
+  label + .MuiInput-formControl {
+    margin-top: 0!important;
+  }
+  .MuiFormLabel-root{
+    padding: 1pt!important;
+    font-size: 9pt!important;
+  }
+  .MuiInputBase-root {
+    color: rgba(0, 0, 0, 0.87);
+    cursor: text;
+    display: inline-flex;
+    position: relative;
+    font-size: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.00938em;
+  }

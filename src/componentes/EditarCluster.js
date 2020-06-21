@@ -168,7 +168,7 @@ class EditarCluster extends Component{
                                     return dato.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' ?
                                     <div key={dato.ID}>
                                         {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
-                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
+                                        <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
                                         <label htmlFor={dato.ID} className='textoActividad'>{dato.IdTarea.Title}</label>
                                     </div>
                                     : null
@@ -180,7 +180,7 @@ class EditarCluster extends Component{
                                     return dato.IdTarea.Subcluster === 'Material de ventas fabricado' ?
                                     <div key={dato.ID}>
                                         {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
-                                        <input type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
+                                        <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked = {dato.Visible} onChange={this.onSeleccionar} />
                                         <label htmlFor={dato.ID} className='textoActividad'>{dato.IdTarea.Title}</label>
                                     </div>
                                     : null

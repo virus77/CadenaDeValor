@@ -4,6 +4,7 @@ import ActividadFicticia from './ActividadFicticia'
 import Detalle from './Detalle.js'
 import EditarCluster from './EditarCluster.js'
 import PeoplePicker from './UserPicker'
+import Backdrop from '../componentes/Backdrop';
 import update from 'immutability-helper';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { sp } from "@pnp/sp";
@@ -39,6 +40,7 @@ class Ventana extends Component {
         this.form = createRef()
         this.validate = this.validate.bind(this)
         this.initialState = {
+            backdrop: {abierto: true, mensaje: 'Cargando...'},
             idTarea: this.props.abrir.filaSeleccionada.Tarea !== undefined ? this.props.abrir.filaSeleccionada.Tarea.ID : (this.props.abrir.filaSeleccionada.IdTarea !== undefined ? this.props.abrir.filaSeleccionada.IdTarea.ID: this.props.abrir.filaSeleccionada.ID),
             campos: [],
             catalogoEstatus: [],
@@ -62,6 +64,7 @@ class Ventana extends Component {
     }
     //#region Eventos de botones
     async onGuardar(datos) {
+        this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
         //Si los datos de la ventana no son de una tarea de Flujo tareas...
         if(!this.props.abrir.esTarea){
             switch (this.props.abrir.id) {
@@ -135,7 +138,6 @@ class Ventana extends Component {
 
     async onEnviar(datos) {
         const { idTarea, radioChecked } = this.state
-        //switch (this.props.abrir.filaSeleccionada.Tarea.ID) {
         switch (idTarea) {
             case 24:
                 if (radioChecked !== null) {
@@ -174,6 +176,7 @@ class Ventana extends Component {
                             break;
                     }
                     if (guardar) {
+                        this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
                         //Guarda el tipo de RFSN seleccionado
                         await currentWeb.lists.getByTitle(this.state.campos[0].ListaDeGuardado).items.add({
                             IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
@@ -247,6 +250,7 @@ class Ventana extends Component {
             case 25:
             case 30:
             case 35:
+                this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
                 //Actualiza el estatus del elemento de la EG
                 await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(this.props.abrir.filaSeleccionada.ID).update({
                     EstatusId: 3
@@ -259,6 +263,7 @@ class Ventana extends Component {
             default:
                 const valido = this.form.current.reportValidity()
                 if(valido){
+                    this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
                     let {camposLista} = this.state
                     const listas = []
                     for(let prop in camposLista){
@@ -466,7 +471,7 @@ class Ventana extends Component {
                     .filter('(TareaId eq ' + id + ') and (Activo eq 1)')
                     .expand('Tarea')
                     .orderBy('Ordenamiento', true).get()
-                this.setState({ campos: campos, catalogoEstatus: catalogoEstatus })
+                this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, backdrop: {abierto : false, mensaje: ''}})
             }
         } else {
             const filtroConsulta = this.props.abrir.filaSeleccionada.Lista === undefined ? '(TareaId eq ' + this.props.abrir.filaSeleccionada.Tarea.ID + ') and (Activo eq 1)'
@@ -618,13 +623,15 @@ class Ventana extends Component {
                         })
                     }
                     if(idTarea === 24 || idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 || idTarea === 289){
-                        this.setState({ campos: campos, catalogoEstatus: catalogoEstatus })
+                        this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, backdrop: {abierto : false, mensaje: ''} })
                     }else{
                         await obtenerDatos().then(()=>{
                             const existeGrupo = this.props.abrir.gruposUsuarioActual.some(x=> x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID)
                             const idsAsignados = util.obtenerIdAsignados(this.props.abrir.filaSeleccionada.AsignadoA)
                             const existeAsignado = idsAsignados.results.includes(this.props.abrir.usuarioActual.Id)
-                            this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs, camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite, editablePorUsuario: (existeGrupo || existeAsignado) })
+                            this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs,
+                                camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite,
+                                editablePorUsuario: (existeGrupo || existeAsignado), backdrop: {abierto : false, mensaje: ''} })
                         })
                     }
                 })
@@ -1118,7 +1125,7 @@ class Ventana extends Component {
         const closeBtn = <button className="close" onClick={this.onCerrar}>X</button>
         return (
             <div>
-                {this.state.campos.length > 0 ?
+                {this.state.campos.length > 0 && !this.state.backdrop.abierto ?
                     <Modal isOpen={this.props.abrir.abierto} size={this.props.abrir.size}>
                         <ModalHeader className='encabezado' close={closeBtn}>{this.state.campos[0].Tarea.Title}</ModalHeader>
                         <form action='' className= {idTarea !== 24 && idTarea !== 25 && idTarea !== 30 && idTarea !== 35 && idTarea !== 268 && idTarea !== 271 && idTarea !== 272 && idTarea !== 289 ? 'was-validated' : ''} ref={this.form} onSubmit={e => e.preventDefault()}>
@@ -1142,7 +1149,8 @@ class Ventana extends Component {
                             </fieldset>
                         </form>
                     </Modal>
-                    : null
+                    :
+                    <Backdrop abierto={this.state.backdrop.abierto} mensaje={this.state.backdrop.mensaje} />
                 }
             </div>
         );

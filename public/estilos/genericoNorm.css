@@ -221,7 +221,7 @@
   background-color: #1ee8a8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 90% !important;
+  font-size: 80%!important;
   width: 100%;
   text-align: center;
 }
@@ -231,7 +231,7 @@
   background-color: #fff17e;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 90% !important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -243,7 +243,7 @@
   background-color: blue;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 90% !important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -252,7 +252,7 @@
   background-color: #ffb061;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 90% !important;
+  font-size: 80%!important;
   width: 100%;
   text-align: center;
 }
@@ -262,7 +262,7 @@
   background-color: #ff6f61;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 90% !important;
+  font-size: 80%!important;
   width: 100%;
   text-align: center;
 }
@@ -271,7 +271,7 @@
   background-color: #adb0b6;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 90% !important;
+  font-size: 80%!important;
   width: 100%;
   text-align: center;
 }
@@ -280,7 +280,7 @@
   background-color: #5b5c5e;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 90% !important;
+  font-size: 80%!important;
   width: 100%;
   text-align: center;
 }
@@ -328,4 +328,18 @@ label + .MuiInput-formControl {
 .MuiFormLabel-root{
   padding: 1pt!important;
   font-size: 9pt!important;
+}
+
+.MuiInputBase-root {
+  color: rgba(0, 0, 0, 0.87);
+  cursor: text;
+  display: inline-flex;
+  position: relative;
+  font-size: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.00938em;
 }
