@@ -1,0 +1,94 @@
+/*Botón Generar*/
+#xeroGenerate {
+  background-color: #232c51;
+  cursor: pointer;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9em;
+  width: 110px;
+  color: white;
+}
+
+#xeroGenerate:hover {
+  background-color: #7158e2; /* Change the value to with anchors hover color*/
+  color: white;
+}
+
+/*DropDown de los periodos*/
+#ddlPeriodo {
+  width: 200px;
+  height: 30px;
+  border-radius: 7px;
+  border-color: #7158e2;
+  color: #232c51;
+}
+
+/*txtDate de los periodos*/
+.calendar {
+  width: 200px;
+  height: 30px;
+  border-radius: 7px;
+  border-color: #7158e2;
+  color: #232c51;
+  cursor: pointer;
+}
+
+/*Color selected date in calendar*/
+.react-datepicker__day--selected,
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range,
+.react-datepicker__month-text--selected,
+.react-datepicker__month-text--in-selecting-range,
+.react-datepicker__month-text--in-range,
+.react-datepicker__quarter-text--selected,
+.react-datepicker__quarter-text--in-selecting-range,
+.react-datepicker__quarter-text--in-range {
+  border-color: #7158e2 !important;
+  background-color: #e6defd !important;
+  color: #212529 !important;
+  border-style: ridge !important;
+  border-width: thin;
+  font-weight: lighter;
+  border-radius: 3px !important;
+  padding: 2px 6px 2px 6px;
+  width: 30px;
+}
+
+/*Color selected date in calendar on load*/
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__month-text--keyboard-selected,
+.react-datepicker__quarter-text--keyboard-selected {
+  border-color: #7158e2 !important;
+  background-color: #e6defd !important;
+  color: #212529 !important;
+  border-style: ridge !important;
+  border-width: thin;
+  font-weight: lighter;
+  border-width: thin;
+  border-radius: 3px !important;
+  padding: 2px 6px 2px 6px;
+  width: 30px;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  border-color: #f2f2f2;
+  background: #fcfcfc;
+  border-radius: 3px;
+  color: #6c757d;
+  font-weight: lighter;
+  padding: 2px 6px 2px 6px;
+  width: 30px;
+}
+
+.react-datepicker__header {
+  border-color: #f2f2f2;
+  background: #FCFCFC;
+  border-radius: 3px;
+  color: #6c757d;
+  font-weight: lighter;
+  padding: 2px 6px 2px 6px;
+  font-size: 13px;
+}

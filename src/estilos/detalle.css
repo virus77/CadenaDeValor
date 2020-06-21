@@ -46,3 +46,10 @@
 .anchoBoton{
     width: 50%!important;
 }
+
+label {
+    font-weight: bold;
+    color: #40B9C7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
