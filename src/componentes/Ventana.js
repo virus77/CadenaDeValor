@@ -56,7 +56,8 @@ class Ventana extends Component {
             camposLista:[],
             refs: {},
             datosTramite: [],
-            editablePorUsuario: true
+            editablePorUsuario: true,
+            contieneAdjunto : false
         }
         this.onGuardar = this.onGuardar.bind(this);
         this.onEnviar = this.onEnviar.bind(this);
@@ -127,9 +128,9 @@ class Ventana extends Component {
 
             await this.guardarDatos(listas, camposLista).then(()=>{
                 if(this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas'){
-                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.IdTarea.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 2) })
+                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.IdTarea.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 2), contieneAdjunto: this.state.contieneAdjunto })
                 }else{
-                    this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 2) })
+                    this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 2), contieneAdjunto: this.state.contieneAdjunto })
                 }
                 this.onCerrar()
             })
@@ -273,9 +274,9 @@ class Ventana extends Component {
                     await this.guardarDatos(listas, camposLista).then(async()=>{
                         if(this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas'){
                             await util.crearBitacoras(this.props.abrir.filaSeleccionada.IdTarea.ID, this.props.abrir.filaSeleccionada.IdTerreno, this.props.abrir.filaSeleccionada.IdProyectoInversion, this.props.abrir.filaSeleccionada.IdTarea.TareaCrear)
-                            this.props.evento({ tarea: this.props.abrir.filaSeleccionada.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 3) })
+                            this.props.evento({ tarea: this.props.abrir.filaSeleccionada.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 3), contieneAdjunto: this.state.contieneAdjunto })
                         }else{
-                            this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 3) })
+                            this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 3), contieneAdjunto: this.state.contieneAdjunto })
                         }
                         this.onCerrar()
                     })
@@ -320,10 +321,12 @@ class Ventana extends Component {
                                 })
                             }
                         }else{
-                            await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update(json)
-                            .catch(error=>{
-                                alert('Error al actualizar la lista ' + lista + ': ' + error)
-                            })
+                            if(Object.keys(json).length > 0){
+                                await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update(json)
+                                .catch(error=>{
+                                    alert('Error al actualizar la lista ' + lista + ': ' + error)
+                                })
+                            }
                         }
                     })
                 }else if(lista === 'Fechas paquete de trámites'){
@@ -337,9 +340,11 @@ class Ventana extends Component {
                         await util.asyncForEach(camposFPT, async campoFPT =>{
                             const campoRef = this.state.refs[campoFPT.campo]
                             json[util.obtenerNodoJSON(campoFPT.campo, 'IN')] = campoFPT.campo
-                            const valor = util.returnDataByFieldType(campoFPT.tipo !== 'CheckBox' ? campoRef.current.value : campoRef.current.checked , campoFPT.tipo)
-                            if(valor !== ''){
-                                json[util.obtenerNodoJSON(campoFPT.campo, 'Fecha')] = valor
+                            if(campoRef.current != null){
+                                const valor = util.returnDataByFieldType(campoFPT.tipo !== 'CheckBox' ? campoRef.current.value : campoRef.current.checked , campoFPT.tipo)
+                                if(valor !== ''){
+                                    json[util.obtenerNodoJSON(campoFPT.campo, 'Fecha')] = valor
+                                }
                             }
                         })
 
@@ -349,34 +354,6 @@ class Ventana extends Component {
                         .filter('IdFlujoId eq ' + idElemento + ' and IdDocTaskId eq ' + tramite.IdRTD + ' and IdDocTramiteId eq ' + tramite.IdTramite).get()
 
                         if(datos.length === 0){
-                            await currentWeb.lists.getByTitle(lista).items.add(json)
-                            .catch(error=>{
-                                alert('Error al insertar en la lista ' + lista + ': ' + error)
-                            })
-                        }else{
-                            await currentWeb.lists.getByTitle(lista).items.getById(datos[0].ID).update(json)
-                            .catch(error=>{
-                                alert('Error al actualizar la lista ' + lista + ': ' + error)
-                            })
-                        }
-                    })
-                }else if(lista === 'Relación DRO´s Proyectos deptos'){
-                    await util.asyncForEach(newCamposLista, async campoLista =>{
-                        json = {}
-                        const campoRef = this.state.refs[campoLista.campo]
-                        campoLista.valor = campoRef.current.value
-                        const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
-                        if(valor >0){
-                            json.Title = this.props.abrir.filaSeleccionada.IdTerreno.Title
-                            json.CategoriaId = valor
-                            json.IdResponsable = campoLista.campo
-                        }
-                        const datos = await currentWeb.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "' and IdResponsable eq '" + campoLista.campo + "'")
-                        .get()
-                        .catch(error=>{
-                            alert('Error al consultar datos en la lista ' + lista + ': ' + error)
-                        })
-                        if(datos.length === 0){
                             if(Object.keys(json).length > 0){
                                 await currentWeb.lists.getByTitle(lista).items.add(json)
                                 .catch(error=>{
@@ -384,10 +361,46 @@ class Ventana extends Component {
                                 })
                             }
                         }else{
-                            await currentWeb.lists.getByTitle(lista).items.getById(datos[0].ID).update(json)
+                            if(Object.keys(json).length > 0){
+                                await currentWeb.lists.getByTitle(lista).items.getById(datos[0].ID).update(json)
+                                .catch(error=>{
+                                    alert('Error al actualizar la lista ' + lista + ': ' + error)
+                                })
+                            }
+                        }
+                    })
+                }else if(lista === 'Relación DRO´s Proyectos deptos'){
+                    await util.asyncForEach(newCamposLista, async campoLista =>{
+                        json = {}
+                        const campoRef = this.state.refs[campoLista.campo]
+                        if(campoRef.current !== null){
+                            campoLista.valor = campoRef.current.value
+                            const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                            if(valor >0){
+                                json.Title = this.props.abrir.filaSeleccionada.IdTerreno.Title
+                                json.CategoriaId = valor
+                                json.IdResponsable = campoLista.campo
+                            }
+                            const datos = await currentWeb.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "' and IdResponsable eq '" + campoLista.campo + "'")
+                            .get()
                             .catch(error=>{
-                                alert('Error al actualizar la lista ' + lista + ': ' + error)
+                                alert('Error al consultar datos en la lista ' + lista + ': ' + error)
                             })
+                            if(datos.length === 0){
+                                if(Object.keys(json).length > 0){
+                                    await currentWeb.lists.getByTitle(lista).items.add(json)
+                                    .catch(error=>{
+                                        alert('Error al insertar en la lista ' + lista + ': ' + error)
+                                    })
+                                }
+                            }else{
+                                if(Object.keys(json).length > 0){
+                                    await currentWeb.lists.getByTitle(lista).items.getById(datos[0].ID).update(json)
+                                    .catch(error=>{
+                                        alert('Error al actualizar la lista ' + lista + ': ' + error)
+                                    })
+                                }
+                            }
                         }
                     })
                 }else if(lista === 'Relación Bancos Proyectos Deptos'){
@@ -398,9 +411,11 @@ class Ventana extends Component {
                     })
 
                     if(datos.length > 0){
-                        await util.asyncForEach(datos, async dato =>{
-                            await currentWeb.lists.getByTitle(lista).items.getById(dato.Id).delete()
-                        })
+                        if(Object.keys(json).length > 0){
+                            await util.asyncForEach(datos, async dato =>{
+                                await currentWeb.lists.getByTitle(lista).items.getById(dato.Id).delete()
+                            })
+                        }
                     }
                     await util.asyncForEach(newCamposLista, async (campoLista) =>{
                         campoLista.valor = this.state.campos.find(x=> x.TituloInternoDelCampo === campoLista.campo).valor
@@ -422,23 +437,29 @@ class Ventana extends Component {
                 }else{
                     newCamposLista.map((campoLista)=>{
                         const campoRef = this.state.refs[campoLista.campo]
-                        campoLista.valor = campoRef.current.value
-                        if(campoLista.valor != ''){
-                            json[campoLista.campo] = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                        if(campoRef.current !== null){
+                            campoLista.valor = campoRef.current.value
+                            if(campoLista.valor != ''){
+                                json[campoLista.campo] = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                            }
+                            return campoLista
                         }
-                        return campoLista
                     })
                     if((this.state.idTarea === 20 || this.state.idTarea === 28 || this.state.idTarea === 33 || this.state.idTarea === 38) && lista === 'Terrenos'){
-                        json.NombredelTerreno2 = json.Calle + ' - ' + json.NoExterior
+                        if(json.Calle !== undefined && json.NoExterior !== undefined){
+                            json.NombredelTerreno2 = json.Calle + ' - ' + json.NoExterior
+                        }
                     }else if(this.state.idTarea === 98){
                         json.LinkFichasVenta = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Fichas de venta'
                         json.LinkMemoriaAcabados = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Memoria de acabados'
                         json.LinkFichasDesarrollo = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Fichas del desarrollo'
                     }
-                    await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update(json)
-                    .catch(error=>{
-                        alert('Error al actualizar la lista ' + lista + ': ' + error)
-                    })
+                    if(Object.keys(json).length > 0){
+                        await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update(json)
+                        .catch(error=>{
+                            alert('Error al actualizar la lista ' + lista + ': ' + error)
+                        })
+                    }
                 }
             }
         })
@@ -629,9 +650,12 @@ class Ventana extends Component {
                             const existeGrupo = this.props.abrir.gruposUsuarioActual.some(x=> x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID)
                             const idsAsignados = util.obtenerIdAsignados(this.props.abrir.filaSeleccionada.AsignadoA)
                             const existeAsignado = idsAsignados.results.includes(this.props.abrir.usuarioActual.Id)
+                            
                             this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs,
                                 camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite,
-                                editablePorUsuario: (existeGrupo || existeAsignado), backdrop: {abierto : false, mensaje: ''} })
+                                editablePorUsuario: (existeGrupo || existeAsignado), backdrop: {abierto : false, mensaje: ''},
+                                contieneAdjunto: archivosCargados.length > 0 ? true : false
+                            })
                         })
                     }
                 })
@@ -926,9 +950,9 @@ class Ventana extends Component {
                 }
             })
             if(datosActualizados.length>0)
-            {this.setState({archivosCargados: archivosCargados, campos: datosActualizados })}
+            {this.setState({archivosCargados: archivosCargados, campos: datosActualizados, contieneAdjunto : true })}
             else
-            {this.setState({archivosCargados: archivosCargados })}
+            {this.setState({archivosCargados: archivosCargados, contieneAdjunto : true })}
         }
     }
     

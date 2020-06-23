@@ -338,14 +338,17 @@ const util = {
     },
     filtrarDatosVentana: function(idVentana, datosVentana, gruposUsuarioActual, usuarioActual, filtrosTabla){
         datosVentana = datosVentana.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
-        let values
+        let values = []
         if (filtrosTabla.ver.length === 0){
-            const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
-        
-            values = datosVentana.map((registro) => {
-                if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){ return '' }
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
+            datosVentana.forEach(registro => {
+                console.log(registro.IdTarea.ID)
+                if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
+                    values.push('')
+                }
                 else if(strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(registro.AsignadoA).results.includes(usuarioActual))
-                { return registro }
+                { values.push(registro) }
             })
         }else{ values = datosVentana }
         return values.filter(x=> x !== '' && x !== undefined && x !== null)
@@ -373,7 +376,7 @@ const util = {
                     'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
                     'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada', 'Title',
                     'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified',
-                    'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt')
+                    'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'ContieneAdjunto')
                 .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos', 'GrupoResponsable')
                 .get()
         }
@@ -391,7 +394,6 @@ const util = {
         return datos.map((dato) => {
             dato.Lista = lista
             dato.PI = proyectoInversion
-
             let urlLink = dato.UrlDocumentos !== null && dato.UrlDocumentos !== undefined ? dato.UrlDocumentos.substring(dato.UrlDocumentos.indexOf('<a')) : ''
             urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
             const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html")
@@ -991,7 +993,8 @@ const util = {
     },
     generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosTabla){
         if(idVentana !== 4){
-            const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             let datosVentana = datosCdT.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
             let filtros = {
                 responsable: [],
@@ -1357,7 +1360,8 @@ const util = {
         }
     },
     filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual, gruposUsuarioActual, filtrosTabla){
-        const strGruposUsuarioActual = gruposUsuarioActual.map((grupoUsuarioActual) =>{ return grupoUsuarioActual.NombreCortoGantt}).join(',')
+        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+        strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
         let datosFiltrados = []
         switch(filtro){
             case 'favs':
@@ -1454,16 +1458,69 @@ const util = {
                     }
                 }
             })
+
+            datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosMkt, dataSourceCdT.datos, 'M'))
+            datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosFPT, dataSourceCdT.datos, 'T'))
+            datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosBit, dataSourceCdT.datos, 'B'))
         }else{
             datosFiltrados = dataSourceCdT
             datosFiltradosFPT = dataSourceFPT
             datosFiltradosBit = dataSourceBit
             datosFiltradosMkt = dataSourceMkt
 
-            opcionesFiltrosEncabezado = this.generarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, gruposUsuarioActual, usuarioActual, filtrosTabla)
+            opcionesFiltrosEncabezado = this.generarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
         }
         
         return { datosVentana: datosFiltrados, filtrosTabla: filtrosTabla, datosFPT : datosFiltradosFPT, Mkt: datosFiltradosMkt, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado, filtrosTablaOrden: filtrosTablaOrden }
+    },
+    agregarTareasCluster: function(dataSourceOrigen, datosCdT, tipo){
+        let datos = []
+        dataSourceOrigen.forEach((item)=>{
+            if(tipo === 'T'){
+                const dato = datosCdT.find(x=> x.ID === item.IdFlujoId)
+                if(dato !== undefined){
+                    if(!datos.some(x=> x.ID === dato.ID)){
+                        datos.push(dato)
+                    }
+                }
+            }
+            else if(tipo === 'M'){
+                if(dataSourceOrigen.some(x=> x.IdTarea.Subcluster === 'Entrega para diseño de material de ventas')){
+                    const dato = datosCdT.find(x=> x.IdTarea.ID === 287)
+                    if(dato !== undefined){
+                        if(!datos.some(x=> x.ID === dato.ID)){
+                            datos.push(dato)
+                        }
+                    }
+                }
+                if(dataSourceOrigen.some(x=> x.IdTarea.Subcluster === 'Material de ventas fabricado	')){
+                    const dato = datosCdT.find(x=> x.IdTarea.ID === 288)
+                    if(dato !== undefined){
+                        if(!datos.some(x=> x.ID === dato.ID)){
+                            datos.push(dato)
+                        }
+                    }
+                }
+            }else if(tipo === 'B'){
+                if(dataSourceOrigen.some(x=> x.BitacoraInc.Title.includes('BIT.ADU.'))){
+                    const dato = datosCdT.find(x=> x.IdTarea.ID === 273)
+                    if(dato !== undefined){
+                        if(!datos.some(x=> x.ID === dato.ID)){
+                            datos.push(dato)
+                        }
+                    }
+                }
+                if(dataSourceOrigen.some(x=> x.BitacoraInc.Title.includes('BIT.ADT.'))){
+                    const dato = datosCdT.find(x=> x.IdTarea.ID === 274)
+                    if(dato !== undefined){
+                        if(!datos.some(x=> x.ID === dato.ID)){
+                            datos.push(dato)
+                        }
+                    }
+                }
+            }
+        })
+        return datos
     }
 }
 export default util;

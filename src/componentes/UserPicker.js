@@ -6,19 +6,19 @@ export default function ComboBox(props) {
 
   return (
     <Autocomplete
-      id="combo-box-demo"
-      options={props.usuarios}
-      disabled = {props.disabled}
-      defaultValue={props.itemsSeleccionados}
-      size="small"
-      onChange = {function(event,value,reason){
-          props.seleccionarItems(value)
+        id="combo-box-demo"
+        options={props.usuarios}
+        disabled = {props.disabled}
+        defaultValue={props.itemsSeleccionados}
+        size="small"
+        onChange = {function(event,value,reason){
+            props.seleccionarItems(value)
+          }
         }
-      }
-      getOptionLabel={option => option.Title}
-      multiple= {true}
-      freeSolo
-      renderInput={params => <TextField {...params} label="Especifique o seleccione un nombre " variant="outlined" />}
-    />
+        getOptionLabel={option => option.Title}
+        multiple
+        freeSolo
+        renderInput={params => <TextField {...params} variant="outlined" />}
+      />
   );
 }
