@@ -19,3 +19,10 @@
     border-right-style: solid!important;
     box-shadow: 2px 0px #888888!important;
 }
+
+label {
+    font-weight: bold;
+    color: #40B9C7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
