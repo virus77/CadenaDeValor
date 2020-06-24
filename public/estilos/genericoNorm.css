@@ -205,7 +205,14 @@
 
 .pad100 {
   padding-left: 2px;
-  padding-top: 7px;
+  padding-top: 8px;
+  padding-bottom: 5px;
+  padding-right: 2px;
+}
+
+.padDisk {
+  padding-left: 2px;
+  padding-top: 5px;
   padding-bottom: 5px;
   padding-right: 2px;
 }
@@ -216,23 +223,39 @@
 
 .concluido,
 .enviada,
-.cerrada,
-.Con-solucion {
+.cerrada {
   background-color: #1ee8a8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
+  font-size: 73% !important;
   width: 100%;
   text-align: center;
 }
 
-.pendiente,
-.por-capturar {
+.Con-solucion {
+  background-color: #1ee8a8;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 70% !important;
+  /*width: 100%;*/
+  text-align: center;
+}
+
+.pendiente {
   background-color: #fff17e;
   box-shadow: 1px 1px #888888;
   color: black;
   font-size: 80% !important;
   width: 100%;
+  text-align: center;
+}
+
+.por-capturar {
+  background-color: #fff17e;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 80% !important;
+  /*width: 100%;*/
   text-align: center;
 }
 
@@ -252,7 +275,7 @@
   background-color: #ffb061;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -262,7 +285,7 @@
   background-color: #ff6f61;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -271,7 +294,7 @@
   background-color: #adb0b6;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -280,7 +303,7 @@
   background-color: #5b5c5e;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 80%!important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -308,26 +331,26 @@
 .nombreTerreno {
   width: 35%;
   padding-top: 7px;
-  font-size: 15pt;
+  font-size: 14pt;
   font-weight: 0px;
   color: #40b9c7 !important;
 }
 
-.fixedPadding{
-  padding-left: 2%!important;
+.fixedPadding {
+  padding-left: 2% !important;
 }
-.MuiInputLabel-formControl{
+.MuiInputLabel-formControl {
   top: 30%;
   left: 0;
   position: absolute;
   transform: inherit;
 }
 label + .MuiInput-formControl {
-  margin-top: 0!important;
+  margin-top: 0 !important;
 }
-.MuiFormLabel-root{
-  padding: 1pt!important;
-  font-size: 9pt!important;
+.MuiFormLabel-root {
+  padding: 1pt !important;
+  font-size: 9pt !important;
 }
 
 .MuiInputBase-root {
@@ -342,4 +365,9 @@ label + .MuiInput-formControl {
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.00938em;
+}
+
+.MuiBadge-badge {
+  height: 17px !important;
+  min-width: 17px !important;
 }

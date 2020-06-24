@@ -30,7 +30,8 @@ class ActividadFicticia extends Component {
             FechaEstimada: '',
             Estatus: 0,
             Orden: '',
-            OrdenEG: ''
+            OrdenEG: '',
+            Creador: ''
         }
         this.state = this.initialState
     }
@@ -43,9 +44,9 @@ class ActividadFicticia extends Component {
         if (this.props.datos.info === undefined) {
             await currentWeb.lists.getByTitle('Flujo Tareas').items
                 .select('ID', 'NombreActividad', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name',
-                    'LineaBase', 'FechaEstimada', 'Estatus/ID', 'Estatus/Title')
+                    'LineaBase', 'FechaEstimada', 'Estatus/ID', 'Estatus/Title', 'Author/ID', 'Author/Name')
                 .filter('ID eq ' + (this.props.datos.IdFlujoTareasId !== undefined ? this.props.datos.IdFlujoTareasId : this.props.datos.Id))
-                .expand('GrupoResponsable', 'AsignadoA', 'Estatus')
+                .expand('GrupoResponsable', 'AsignadoA', 'Estatus', 'Author')
                 .get()
                 .then(async (fts) => {
                     const asignados = this.obtenerPosiciones(listaUsuarios, fts[0].AsignadoA)
@@ -61,6 +62,7 @@ class ActividadFicticia extends Component {
                         LineaBase: fts[0].LineaBase !== null ? moment(fts[0].LineaBase).format(moment.HTML5_FMT.DATE) : '',
                         FechaEstimada: fts[0].FechaEstimada !== null ? moment(fts[0].FechaEstimada).format(moment.HTML5_FMT.DATE) : '',
                         Estatus: fts[0].Estatus.ID,
+                        Creador: fts[0].Author,
                         backdrop: { abierto: false, mensaje: '' }
                     })
                 })
@@ -325,8 +327,8 @@ class ActividadFicticia extends Component {
     //#endregion
 
     render() {
-        const { NombreActividad, GrupoResponsable, LineaBase, FechaEstimada, Estatus, usuarioAsignados, ID } = this.state
-        const esCreador = this.props.gruposUsuarioActual.filter(x => x.ID === GrupoResponsable.ID).length > 0 ? true : false
+        const { NombreActividad, GrupoResponsable, LineaBase, FechaEstimada, Estatus, usuarioAsignados, ID, Creador } = this.state
+        const esCreador = Creador.ID === this.props.usuarioActual.Id ? true : false
         const esAsignado = usuarioAsignados.filter(x => x.Id === this.props.usuarioActual.Id).length > 0 ? true : false
         return (
             <div className='col-sm-12'>

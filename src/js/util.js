@@ -343,7 +343,6 @@ const util = {
             let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             datosVentana.forEach(registro => {
-                console.log(registro.IdTarea.ID)
                 if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
                     values.push('')
                 }
@@ -1462,6 +1461,11 @@ const util = {
             datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosMkt, dataSourceCdT.datos, 'M'))
             datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosFPT, dataSourceCdT.datos, 'T'))
             datosFiltrados.datos = datosFiltrados.datos.concat(this.agregarTareasCluster(datosFiltradosBit, dataSourceCdT.datos, 'B'))
+
+            datosFiltrados.datos = this.reduceArreglo(datosFiltrados.datos)
+            datosFiltradosMkt = this.reduceArreglo(datosFiltradosMkt)
+            datosFiltradosFPT = this.reduceArreglo(datosFiltradosFPT)
+            datosFiltradosBit = this.reduceArreglo(datosFiltradosBit)
         }else{
             datosFiltrados = dataSourceCdT
             datosFiltradosFPT = dataSourceFPT
@@ -1521,6 +1525,26 @@ const util = {
             }
         })
         return datos
+    },
+    reduceArreglo: function(dataSource){
+        const uniqByProp = prop => arr =>
+        Object.values(
+            arr.reduce(
+            (acc, item) => item && item[prop] ? { ...acc, [item[prop]]: item } : acc, {})
+        );
+
+        const uniqueById = uniqByProp("ID");
+        return uniqueById(dataSource);
+        /*dataSource.reduce((acc, current) => {
+            const x = acc.find(item => item.ID === current.ID);
+            if (!x) {
+              return acc.concat([current]);
+            } else {
+              return acc;
+            }
+          }, []);
+          
+        return dataSource*/
     }
 }
 export default util;

@@ -62,10 +62,10 @@ class Detalle extends Component {
                         <h5 className='textoEncabezado'>Sobre la tarea</h5>
                         <h6 className='textoAgrupador'>Estatus manual</h6>
                         <input style={{ height: '15px', width: '15px' }} type="checkbox" name="Detenido" id="detenido" value={6} checked={estatus.Title.toLowerCase() === 'detenido' ? true : false} onChange={this.onSeleccionarEstatus} />
-                        <label htmlFor='cancelado'> Actividad detenida </label>
+                        <label style={{ paddingLeft: "5px" }} htmlFor='cancelado'> Actividad detenida </label>
                         <br />
                         <input style={{ height: '15px', width: '15px' }} type="checkbox" id='cancelado' name='Cancelado' value={7} checked={estatus.Title.toLowerCase() === 'cancelado' ? true : false} onChange={this.onSeleccionarEstatus} />
-                        <label htmlFor='cancelado'> Actividad cancelada </label>
+                        <label style={{ paddingLeft: "5px" }} htmlFor='cancelado'> Actividad cancelada </label>
                     </div>
                     <div className='col-sm-6 bordeL' style={{ height: '220px' }}>
                         <h5 className='textoEncabezado'>Informativo</h5>

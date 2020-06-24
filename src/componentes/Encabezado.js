@@ -7,7 +7,9 @@ import viewAll from '../imagenes/viewAll.png';
 import fav_icon from '../imagenes/fav_icon.png';
 import viewAllDis from '../imagenes/viewAllDis.png';
 import macob from '../imagenes/macoB.png';
+import macob_eg from '../imagenes/macoB_EG.png';
 import macoc from '../imagenes/macoC.png';
+import macoc_eg from '../imagenes/macoC_EG.png';
 import macox from '../imagenes/macoX.png';
 import toGantt from '../imagenes/toGantt.png';
 import '../estilos/encabezado.css';
@@ -68,36 +70,36 @@ class Encabezado extends Component {
                 <div className='container-fluid' style={{ paddingTop: "1%" }}>
                     <div className='row'>
                         <div className='col-sm-2 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
-                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' className={this.props.filtros.favs.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(5, disabled)} src={idVentana !== 4 ? fav_icon : favDis_icon} alt='favoritos_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroGantt' className={this.props.filtros.gantt.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(6, false)} src={idVentana !== 4 ? gantt_icon : gantt_icon} alt='gantt_icon' disabled={false} ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' className={this.props.filtros.ver.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (this.props.maco === 'B' ? macob : macoc)} alt='macob' onClick={idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' className={this.props.filtros.favs.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(5, disabled)} src={idVentana !== 4 ? fav_icon : favDis_icon} alt='favoritos_icon' disabled={disabled} title='Favoritos' ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroGantt' className={this.props.filtros.gantt.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(6, false)} src={idVentana !== 4 ? gantt_icon : gantt_icon} alt='gantt_icon' disabled={false} title='Acts. Gantt' ></img></div>
+                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' className={this.props.filtros.ver.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} title='Todas' ></img></div>
+                        <div className='col-sm-1 columna'><img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (idVentana === 4 ? (this.props.maco === 'B' ? macob_eg : macoc_eg) : (this.props.maco === 'B' ? macob : macoc))} alt='maco' onClick={idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img></div>
                         <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img></div>
                         <div className='col-sm-5 menu'>
                             <nav className="navbar navbar-expand-sm bg-light navbar-light" style={{ padding: '0' }}>
                                 <ul className="navbar-nav" style={{ borderBottomStyle: "solid", borderBottomColor: "#3C8891", textAlign: 'center' }}>
-                                    <li name='admin' style={{ height: '35px', padding: "0px 15px 0px 0px", textAlign: "center" }} className={idVentana === 1 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(1, 'Cargando contenido...', "genericoAdmin.css", "../estilos/genericoAdmin.css")}>
+                                    <li name='admin' style={{ height: '35px', textAlign: "center" }} className={idVentana === 1 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(1, 'Cargando contenido...', "genericoAdmin.css", "../estilos/genericoAdmin.css")}>
                                         {idVentana === 1 ?
-                                            <label className="nav-link colorWhite">Administración <br /><Badge color="secondary"> {totalAdmin}</Badge></label> :
-                                            <a className="nav-link disabled" href="#">Administración <br /> <Badge color="secondary">{totalAdmin}</Badge></a>
+                                            <label className="nav-link colorWhite">Administración <Badge color={idVentana === 1 ? "secondary" : ""}> {totalAdmin}</Badge></label> :
+                                            <a className="nav-link disabled" href="#">Administración <Badge color={idVentana === 1 ? "secondary" : ""}>{totalAdmin}</Badge></a>
                                         }
                                     </li>
-                                    <li name='norm' style={{ height: '35px', padding: "0px 15px 0px 15px", textAlign: "center" }} className={idVentana === 2 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(2, 'Cargando contenido...', "genericoNorm.css", "../estilos/genericoNorm.css")}>
+                                    <li name='norm' style={{ height: '35px', textAlign: "center" }} className={idVentana === 2 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(2, 'Cargando contenido...', "genericoNorm.css", "../estilos/genericoNorm.css")}>
                                         {idVentana === 2 ?
-                                            <label className="nav-link colorWhite">Normativo <br /><Badge color="secondary">{totalNorm}</Badge></label> :
-                                            <a className="nav-link disabled" href="#">Normativo <br /> <Badge color="secondary">{totalNorm}</Badge></a>
+                                            <label className="nav-link colorWhite">Normativo <Badge color={idVentana === 1 ? "secondary" : ""}>{totalNorm}</Badge></label> :
+                                            <a className="nav-link disabled" href="#">Normativo <Badge color={idVentana === 1 ? "secondary" : ""}>{totalNorm}</Badge></a>
                                         }
                                     </li>
-                                    <li name='proy' style={{ height: '35px', padding: "0px 15px 0px 15px", textAlign: "center" }} className={idVentana === 3 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(3, 'Cargando contenido...', "genericoProy.css", "../estilos/genericoProy.css")}>
+                                    <li name='proy' style={{ height: '35px', textAlign: "center" }} className={idVentana === 3 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => this.onCambiarVentana(3, 'Cargando contenido...', "genericoProy.css", "../estilos/genericoProy.css")}>
                                         {idVentana === 3 ?
-                                            <label className="nav-link colorWhite">Proyectos  <br /><Badge color="secondary">{totalProy}</Badge></label> :
-                                            <a className="nav-link disabled" href="#">Proyectos <br /> <Badge color="secondary">{totalProy}</Badge></a>
+                                            <label className="nav-link colorWhite">Proyectos <Badge color={idVentana === 1 ? "secondary" : ""}>{totalProy}</Badge></label> :
+                                            <a className="nav-link disabled" href="#">Proyectos <Badge color={idVentana === 1 ? "secondary" : ""}>{totalProy}</Badge></a>
                                         }
                                     </li>
-                                    <li name='eg' style={{ height: '35px', padding: "0px 15px 0px 15px", textAlign: "center" }} className={idVentana === 4 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => esAdministrador ? this.onCambiarVentana(4, 'Cargando contenido...', "genericoEG.css", "../estilos/genericoEG.css") : null}>
+                                    <li name='eg' style={{ height: '35px', textAlign: "center" }} className={idVentana === 4 ? "nav-item active colorBlueMenu" : "bg-light nav-item colorNoMenu"} onClick={() => esAdministrador ? this.onCambiarVentana(4, 'Cargando contenido...', "genericoEG.css", "../estilos/genericoEG.css") : null}>
                                         {idVentana === 4 ?
-                                            <label className="nav-link colorWhite">Estrategia <br />de gestión</label> :
-                                            <a className="nav-link disabled" href="#">Estrategia <br />de gestión</a>
+                                            <label className="nav-link colorWhite">Estrategia de gestión</label> :
+                                            <a className="nav-link disabled" href="#">Estrategia de gestión</a>
                                         }
                                     </li>
                                 </ul>

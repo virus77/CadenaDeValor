@@ -202,7 +202,14 @@
 
 .pad100 {
   padding-left: 2px;
-  padding-top: 7px;
+  padding-top: 8px;
+  padding-bottom: 5px;
+  padding-right: 2px;
+}
+
+.padDisk {
+  padding-left: 2px;
+  padding-top: 5px;
   padding-bottom: 5px;
   padding-right: 2px;
 }
@@ -213,26 +220,42 @@
 
 .concluido,
 .enviada,
-.cerrada,
+.cerrada {
+  background-color: #1ee8a8;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 72% !important;
+  width: 100%;
+  text-align: center;
+}
+
 .Con-solucion {
   background-color: #1ee8a8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
+  font-size: 70% !important;
+ /*width: 100%;*/
+  text-align: center;
+}
+
+.pendiente
+{
+  background-color: #fff17e;
+  box-shadow: 1px 1px #888888;
+  color: black;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
 
-.pendiente,
 .por-capturar {
   background-color: #fff17e;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 80%!important;
-  width: 100%;
+  font-size: 80% !important;
+  /*width: 100%;*/
   text-align: center;
 }
-
 .guardado,
 .guardada,
 .Abierto,
@@ -305,7 +328,7 @@
 .nombreTerreno {
   width: 35%;
   padding-top: 7px;
-  font-size: 15pt;
+  font-size: 14pt;
   font-weight: 0px;
   color: #30be8f !important;
 }
@@ -325,4 +348,9 @@ label + .MuiInput-formControl {
 .MuiFormLabel-root{
   padding: 1pt!important;
   font-size: 10pt!important;
+}
+
+.MuiBadge-badge {
+  height: 17px !important;
+  min-width: 17px !important;
 }

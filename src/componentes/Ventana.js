@@ -978,7 +978,7 @@ class Ventana extends Component {
                                         </div>
                                     case 'CheckBox':
                                         return <div key={campo.ID} className="form-group">
-                                            <label htmlFor='cancelado' className='texto'>{campo.Title}</label><br /><br />
+                                            <label style={{ paddingLeft: "5px" }} htmlFor='cancelado' className='texto'>{campo.Title}</label><br /><br />
                                             <input style={{ height: '15px', width: '15px' }} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} checked={campo.valor} disabled={!campo.Editable} onChange={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />
                                         </div>
                                     case 'Date':

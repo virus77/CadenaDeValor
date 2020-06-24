@@ -4,21 +4,23 @@
 }
 
 .colorBlueMenu {
-    background-color: #3C8891!important;
-    width: 25%!important;
-    cursor: pointer!important;
-    color: white!important;
+    background-color: #3c8891 !important;
+    cursor: pointer !important;
+    color: white !important;
     line-height: 1;
+    font-size: 10pt;
+    padding: 5px 5px 0px 5px;
 }
 
 .colorNoMenu {
-    width: 25%!important;
-    cursor: pointer!important;
-    line-height: 1;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    font-size: 10pt;
+    padding: 5px 5px 0px 5px;
 }
 
 .colorWhite {
-    color: white!important;
+    color: white !important;
     text-align: center;
 }
 
@@ -80,18 +82,22 @@ p {
 }
 
 .nombreTerreno {
-  width: 35%;
-  padding-top: 7px;
-  font-size: 15pt;
-  font-weight: 0px;
-  color: #75E7BC!important;
+    width: 35%;
+    padding-top: 7px;
+    font-size: 12pt;
+    font-weight: 0px;
+    color: #75e7bc !important;
 }
 
-.presionado{
-    border-style: outset!important;
-    border-radius: 2em/2em!important;
+.presionado {
+    border-style: outset !important;
+    border-radius: 2em/2em !important;
 }
 
-.normal{
-    border-radius: 2em/2em!important;
+.normal {
+    border-radius: 2em/2em !important;
+}
+
+.badge-secondary {
+    background-color: transparent !important;
 }
