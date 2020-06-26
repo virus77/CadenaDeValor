@@ -502,11 +502,11 @@ const util = {
         switch (tipo) {
             case 'Text':
             case 'TextArea':
-                return valor !== null ? valor.toString() : ''
+                return valor !== null && valor !== undefined ? valor.toString() : ''
             case 'Select':
-                return valor !== null ? parseInt(valor.toString()) : 0
+                return valor !== null && valor !== undefined ? parseInt(valor.toString()) : 0
             case 'SelectMultiple':
-                return valor !== null ? valor : 0
+                return valor !== null && valor !== undefined ? valor : 0
             case 'SelectYesNo':
                 return valor !== 0 ? valor : ''
             case 'SelectText':
@@ -514,7 +514,7 @@ const util = {
             case 'SelectYN':
                 return valor !== 0 ? Boolean(valor) : ''
             case 'Date':
-                return valor !== '' ? moment(valor).format('YYYY-MM-DD') : ''
+                return valor !== '' && valor !== null && valor !== undefined ? moment(valor).format('YYYY-MM-DD') : null
             case 'Number':
                 return valor !== '' ? parseFloat(valor) : 0
             case 'CheckBox':

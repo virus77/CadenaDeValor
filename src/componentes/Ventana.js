@@ -304,9 +304,13 @@ class Ventana extends Component {
                 if (lista === 'Relación Fechas Aprobación Terreno') {
                     await util.asyncForEach(newCamposLista, async campoLista => {
                         json = {}
-                        const campoRef = this.state.refs[campoLista.campo]
-                        campoLista.valor = campoRef.current.value
-                        const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                        //const campoRef = this.state.refs[campoLista.campo]
+                        const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoLista.campo)
+                        let campoRef = this.state.campos[filaIndice]
+                        //campoLista.valor = campoRef.current.value
+                        campoLista.valor = campoRef.valor
+                        //const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                        const valor = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                         if (valor !== '') {
                             json.Title = idElemento.toString()
                             json.Fecha = valor
@@ -336,10 +340,14 @@ class Ventana extends Component {
                         else if (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites') { json = { 'IdFlujoId': idElemento, 'Title': this.state.datosTramite[0].IdTerreno.Title, 'IdDocTaskId': tramite.IdRTD, 'IdDocTramiteId': tramite.IdTramite } }
                         const camposFPT = newCamposLista.filter(x => x.campo.includes(tramite.TituloInternoDelCampo))
                         await util.asyncForEach(camposFPT, async campoFPT => {
-                            const campoRef = this.state.refs[campoFPT.campo]
+                            //const campoRef = this.state.refs[campoFPT.campo]
+                            const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoFPT.campo)
+                            let campoRef = this.state.campos[filaIndice]
                             json[util.obtenerNodoJSON(campoFPT.campo, 'IN')] = campoFPT.campo
-                            if(campoRef.current != null){
-                                const valor = util.returnDataByFieldType(campoFPT.tipo !== 'CheckBox' ? campoRef.current.value : campoRef.current.checked , campoFPT.tipo)
+                            //if(campoRef.current != null){
+                            if(campoRef.valor !== null && campoRef.valor !== undefined){
+                                //const valor = util.returnDataByFieldType(campoFPT.tipo !== 'CheckBox' ? campoRef.current.value : campoRef.current.checked , campoFPT.tipo)
+                                const valor = util.returnDataByFieldType(campoRef.valor , campoFPT.tipo)
                                 if(valor !== ''){
                                     json[util.obtenerNodoJSON(campoFPT.campo, 'Fecha')] = valor
                                 }
@@ -370,10 +378,15 @@ class Ventana extends Component {
                 } else if (lista === 'Relación DRO´s Proyectos deptos') {
                     await util.asyncForEach(newCamposLista, async campoLista => {
                         json = {}
-                        const campoRef = this.state.refs[campoLista.campo]
-                        if(campoRef.current !== null){
-                            campoLista.valor = campoRef.current.value
-                            const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                        //const campoRef = this.state.refs[campoLista.campo]
+                        const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoLista.campo)
+                        let campoRef = this.state.campos[filaIndice]
+                        //if(campoRef.current !== null){
+                            if(campoRef.valor !== null && campoRef.valor !== undefined){    
+                            //campoLista.valor = campoRef.current.value
+                            campoLista.valor = campoRef.valor
+                            //const valor = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                            const valor = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                             if(valor >0){
                                 json.Title = this.props.abrir.filaSeleccionada.IdTerreno.Title
                                 json.CategoriaId = valor
@@ -434,11 +447,16 @@ class Ventana extends Component {
                     })
                 } else {
                     newCamposLista.map((campoLista) => {
-                        const campoRef = this.state.refs[campoLista.campo]
-                        if(campoRef.current !== null){
-                            campoLista.valor = campoRef.current.value
+                        //const campoRef = this.state.refs[campoLista.campo]
+                        const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoLista.campo)
+                        let campoRef = this.state.campos[filaIndice]
+                        //if(campoRef.current !== null){
+                        if(campoRef.valor !== null && campoRef.valor !== undefined){
+                            //campoLista.valor = campoRef.current.value
+                            campoLista.valor = campoRef.valor
                             if(campoLista.valor != ''){
-                                json[campoLista.campo] = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                                //json[campoLista.campo] = util.returnDataByFieldType(campoRef.current.value, campoLista.tipo)
+                                json[campoLista.campo] = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                             }
                             return campoLista
                         }
@@ -817,7 +835,7 @@ class Ventana extends Component {
         this.setState({ campos: datosActualizados })
     }
 
-    sumarVigencia = (parametros) => {
+    /*sumarVigencia = (parametros) => {
         let datosActualizados = this.respaldarValores()
         const newParametros = parametros.split(',')
 
@@ -832,6 +850,38 @@ class Ventana extends Component {
         datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
 
         this.setState({ campos: datosActualizados })
+    }*/
+
+    sumarVigencia = (parametros) => {
+        let {campos} = this.state
+        //let datosActualizados = this.respaldarValores()
+        const newParametros = parametros.split(',')
+
+        const campoRef = campos.findIndex(campo => campo.TituloInternoDelCampo === newParametros[0])
+        let FdeR = campos[campoRef]
+        let FdeV = moment(FdeR.valor).add(parseInt(newParametros[2]), 'M')
+        FdeV = moment(FdeV._d).format('YYYY-MM-DD')
+
+        const filaIndice = campos.findIndex(campo => campo.TituloInternoDelCampo === newParametros[1])
+        let campoActual = campos[filaIndice]
+        campoActual.valor = FdeV
+        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+
+        this.setState({ campos: datosActualizados })
+    }
+
+    onCambiar = (e) =>{
+        let {campos} = this.state
+
+        const filaIndice = campos.findIndex(campo => campo.TituloInternoDelCampo === e.target.id)
+        let campoActual = campos[filaIndice]
+        campoActual.valor = e.target.value
+        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+
+        this.setState({ campos: datosActualizados })
+        if(campoActual.Accion !== null){
+            this[campoActual.Accion](campoActual.Parametros)
+        }
     }
 
     calcularEficiencia = (parametros) => {
@@ -984,7 +1034,8 @@ class Ventana extends Component {
                                     case 'Date':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onChange={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />
+                                            {/*<input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onChange={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />*/}
+                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onBlur= {this.onCambiar} />
                                         </div>
                                     case 'File':
                                         return <div key={campo.ID} className="form-group">
@@ -1018,7 +1069,8 @@ class Ventana extends Component {
                                     case 'Number':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} step='.01' type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onBlur={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />
+                                            {/*<input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} step='.01' type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onBlur={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />*/}
+                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} step='.01' type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} onBlur={this.onCambiar} />
                                         </div>
                                     case 'PeoplePicker':
                                         return <div key={campo.ID} className="form-group">
@@ -1033,7 +1085,8 @@ class Ventana extends Component {
                                     case 'Select':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
+                                            {/*<select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>*/}
+                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
                                                 <option key={0} value={0}>Selecione...</option>
                                                 {cat[0].datos.map((item) => {
                                                     return <option key={item.Id} value={item.Id}>{idTarea !== 45 && idTarea !== 152 ? item.Title : item.Responsable}</option>
@@ -1043,7 +1096,8 @@ class Ventana extends Component {
                                     case 'SelectText':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
+                                            {/*<select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>*/}
+                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
                                                 <option key={0} value={0}>Selecione...</option>
                                                 {cat[0].datos.map((item) => {
                                                     return <option key={item.Id} value={item.Title}>{item.Title}</option>
@@ -1079,7 +1133,8 @@ class Ventana extends Component {
                                     case 'SelectYesNo':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
+                                            {/*<select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>*/}
+                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
                                                 <option key={0} value={'0'}>Selecione...</option>
                                                 <option key={1} value={'1'}>Sí</option>
                                                 <option key={2} value={'2'}>No</option>
@@ -1088,7 +1143,8 @@ class Ventana extends Component {
                                     case 'SelectYN':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
+                                            {/*<select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>*/}
+                                            <select className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}>
                                                 <option key={0} value={0}>Selecione...</option>
                                                 <option key={1} value={true}>Sí</option>
                                                 <option key={2} value={false}>No</option>
@@ -1097,12 +1153,14 @@ class Ventana extends Component {
                                     case 'Text':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} />
+                                            {/*<input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} />*/}
+                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} />
                                         </div>
                                     case 'TextArea':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <textarea className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} rows={1} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}></textarea>
+                                            {/*<textarea className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} rows={1} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}></textarea>*/}
+                                            <textarea className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} rows={1} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable}></textarea>
                                         </div>
                                     default:
                                         break;

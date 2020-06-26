@@ -163,73 +163,81 @@
 
 .concluido,
 .enviada,
-.cerrada,
+.cerrada {
+background-color: #1ee8a8;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
+}
+
 .Con-solucion {
-  background-color: #1ee8a8;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #1ee8a8;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 70% !important;
+/*width: 100%;*/
+text-align: center;
 }
 
 .pendiente,
 .por-capturar {
-  background-color: #fff17e;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #fff17e;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 .guardado,
 .guardada,
 .Abierto,
 .Abierta {
-  background-color: blue;
-  box-shadow: 1px 1px #888888;
-  color: white;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: blue;
+box-shadow: 1px 1px #888888;
+color: white;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 .vencido {
-  background-color: #ffb061;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #ffb061;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 .rechazado,
 .rechazada {
-  background-color: #ff6f61;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #ff6f61;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 .detenido {
-  background-color: #adb0b6;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #adb0b6;
+box-shadow: 1px 1px #888888;
+color: black;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 .cancelado {
-  background-color: #5b5c5e;
-  box-shadow: 1px 1px #888888;
-  color: white;
-  font-size: 90% !important;
-  width: 100%;
-  text-align: center;
+background-color: #5b5c5e;
+box-shadow: 1px 1px #888888;
+color: white;
+font-size: 80% !important;
+width: 100%;
+text-align: center;
 }
 
 #FiltroFavoritos {

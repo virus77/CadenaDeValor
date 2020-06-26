@@ -211,7 +211,7 @@
 }
 
 .padDisk {
-  padding-left: 2px;
+  padding-left: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
   padding-right: 2px;
@@ -227,7 +227,7 @@
   background-color: #1ee8a8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 73% !important;
+  font-size: 80% !important;
   width: 100%;
   text-align: center;
 }
@@ -241,21 +241,13 @@
   text-align: center;
 }
 
-.pendiente {
-  background-color: #fff17e;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 80% !important;
-  width: 100%;
-  text-align: center;
-}
-
+.pendiente,
 .por-capturar {
   background-color: #fff17e;
   box-shadow: 1px 1px #888888;
   color: black;
   font-size: 80% !important;
-  /*width: 100%;*/
+  width: 100%;
   text-align: center;
 }
 

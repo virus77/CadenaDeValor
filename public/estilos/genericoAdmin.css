@@ -201,15 +201,15 @@
   padding-right: 6px;
 }
 
-.padDisk {
+.pad100 {
   padding-left: 2px;
-  padding-top: 5px;
+  padding-top: 8px;
   padding-bottom: 5px;
   padding-right: 2px;
 }
 
-.pad100 {
-  padding-left: 2px;
+.padDisk {
+  padding-left: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
   padding-right: 2px;
@@ -225,7 +225,7 @@
   background-color: #1ee8a8;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 72% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }
@@ -235,25 +235,17 @@
   box-shadow: 1px 1px #888888;
   color: black;
   font-size: 70% !important;
- /*width: 100%;*/
+  /*width: 100%;*/
   text-align: center;
 }
 
-.pendiente {
-  background-color: #fff17e;
-  box-shadow: 1px 1px #888888;
-  color: black;
-  font-size: 80% !important;
-  width: 100%;
-  text-align: center;
-}
-
+.pendiente,
 .por-capturar {
   background-color: #fff17e;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 70% !important;
-  /*width: 100%;*/
+  font-size: 76% !important;
+  width: 100%;
   text-align: center;
 }
 
@@ -264,7 +256,7 @@
   background-color: blue;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 70% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }
@@ -273,7 +265,7 @@
   background-color: #ffb061;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 70% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }
@@ -283,7 +275,7 @@
   background-color: #ff6f61;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 70% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }
@@ -292,7 +284,7 @@
   background-color: #adb0b6;
   box-shadow: 1px 1px #888888;
   color: black;
-  font-size: 70% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }
@@ -301,7 +293,7 @@
   background-color: #5b5c5e;
   box-shadow: 1px 1px #888888;
   color: white;
-  font-size: 70% !important;
+  font-size: 76% !important;
   width: 100%;
   text-align: center;
 }

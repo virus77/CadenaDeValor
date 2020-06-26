@@ -163,7 +163,7 @@ class EditarCluster extends Component {
                     <div>
                         <div className='form-row'>
                             <div className='col-sm-6 borde'>
-                                <label className='texto'>Entrega para diseño de material de ventas</label>
+                                <label style={{ fontSize: "18px" }} className='texto'>Entrega para diseño de material de ventas</label>
                                 {this.state.datos.map((dato) => {
                                     return dato.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' ?
                                         <div key={dato.ID}>
@@ -175,7 +175,7 @@ class EditarCluster extends Component {
                                 })}
                             </div>
                             <div className='col-sm-6'>
-                                <label className='texto'>Material de ventas fabricado</label>
+                                <label style={{ fontSize: "18px" }} className='texto'>Material de ventas fabricado</label>
                                 {this.state.datos.map((dato) => {
                                     return dato.IdTarea.Subcluster === 'Material de ventas fabricado' ?
                                         <div key={dato.ID}>
