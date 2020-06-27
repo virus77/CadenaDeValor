@@ -343,6 +343,9 @@ class Ventana extends Component {
                             //const campoRef = this.state.refs[campoFPT.campo]
                             const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoFPT.campo)
                             let campoRef = this.state.campos[filaIndice]
+                            if(campoFPT.tipo === 'CheckBox' && campoRef.valor === undefined){
+                                campoRef.valor = false
+                            }
                             json[util.obtenerNodoJSON(campoFPT.campo, 'IN')] = campoFPT.campo
                             //if(campoRef.current != null){
                             if(campoRef.valor !== null && campoRef.valor !== undefined){
@@ -664,10 +667,11 @@ class Ventana extends Component {
                             const existeGrupo = this.props.abrir.gruposUsuarioActual.some(x=> x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID)
                             const idsAsignados = util.obtenerIdAsignados(this.props.abrir.filaSeleccionada.AsignadoA)
                             const existeAsignado = idsAsignados.results.includes(this.props.abrir.usuarioActual.Id)
+                            const esAdministrador = this.props.abrir.filaSeleccionada.esAdministrador
                             
                             this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs,
                                 camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite,
-                                editablePorUsuario: (existeGrupo || existeAsignado), backdrop: {abierto : false, mensaje: ''},
+                                editablePorUsuario: (esAdministrador || existeAsignado), backdrop: {abierto : false, mensaje: ''},
                                 contieneAdjunto: archivosCargados.length > 0 ? true : false
                             })
                         })
@@ -1213,8 +1217,8 @@ class Ventana extends Component {
                                         idTarea === 25 || idTarea === 30 || idTarea === 35 ?
                                             <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
                                             : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} esTarea={this.props.abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} usuarioActual={this.props.abrir.usuarioActual} gruposUsuarioActual={this.props.abrir.gruposUsuarioActual} />
-                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
-                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />)))
+                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} esAdministrador={this.props.abrir.filaSeleccionada.esAdministrador} />
+                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} esAdministrador={this.props.abrir.filaSeleccionada.esAdministrador} /> : <Formulario />)))
                                     }
                                 </ModalBody>
                                 <ModalFooter>

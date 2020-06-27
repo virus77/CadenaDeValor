@@ -646,7 +646,7 @@ class Generico extends Component {
 
                     datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[data.indice, 1, data.dato]] })
                     datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[dataO.indice, 1, dataO.dato]] })
-                    this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana })
+                    this.setState({ datosVentana: datosVentana, datosOriginalVentana: datosOriginalVentana, posicionScroll: node.scrollTop })
                 } else if (fila.Lista === 'Fechas paquete de trámites') {
                     let data = util.actualizarPropiedadesEstatus(datosFPT, 'ID', fila.ID, 'Favoritos', favoritos)
                     let dataO = util.actualizarPropiedadesEstatus(datosOriginalesFPT, 'ID', fila.ID, 'Favoritos', favoritos)
@@ -1650,6 +1650,7 @@ class Generico extends Component {
     filaNormal = (fila, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual, editable) => {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
+        fila.esAdministrador = esEditorLB
         return (
             <div className={fila.IdTarea.ID !== 271 ? "item row fixedPadding" : "itemPersonal row fixedPadding"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1658,9 +1659,9 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center", paddingLeft: "9%" }}><Badge color={fila.AsignadoA !== undefined ? "primary" : ""} badgeContent={fila.AsignadoA !== undefined ? fila.AsignadoA.length : ""} ><img title={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (fila.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={(esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, this.state.idVentana, "", "550px") } : null} /></Badge></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorLB && fila.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.LineaBase)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title === "Por Capturar" ? "Pendiente" : (fila.Estatus.Title === "Enviada" ? "Concluida" : fila.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={more_details_icon !== null ? <p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") } : null} /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title === "Por Capturar" ? "Pendiente" : (fila.Estatus.Title === "Enviada" ? "Concluido" : fila.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={fila.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={more_details_icon !== null ? <p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila, esAdministrador: esEditorLB }, this.state.idVentana, "lg", "550px") } : null} /></p> : null} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1679,7 +1680,7 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={fila.AsignadoA !== undefined ? "primary" : ""} badgeContent={fila.AsignadoA !== undefined ? fila.AsignadoA.length : ""} ><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? forbidden : (fila.AsignadoA.length > 0 ? assignedTo_icon : forbidden)} alt='assignedTo_icon' /></Badge></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorLB && fila.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'LineaBase')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.LineaBase)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title === "Por Capturar" ? "Pendiente" : (fila.Estatus.Title === "Enviada" ? "Concluida" : fila.Estatus.Title)}</span>} style={{ paddingLeft: "1.5%" }} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title === "Por Capturar" ? "Pendiente" : (fila.Estatus.Title === "Enviada" ? "Concluido" : fila.Estatus.Title)}</span>} style={{ paddingLeft: "1.5%" }} estilo='col-sm-1' editable={false} />
                     <Columna titulo={''} estilo='col-sm-1' editable={false} />
                     <Columna titulo={''} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
@@ -1697,7 +1698,7 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={num.AsignadoAInc !== undefined ? "primary" : ""} badgeContent={num.AsignadoAInc !== undefined ? num.AsignadoAInc.length  : ""} ><img title={num.AsignadoAInc === undefined ? 'Sin asignar' : (num.AsignadoAInc.length > 0 ? util.obtenerAsignados(num.AsignadoAInc) : 'Sin asignar')} src={num.AsignadoAInc === undefined ? plus_icon : (num.AsignadoAInc.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', num.AsignadoAInc !== undefined ? num.AsignadoAInc : [], fila, this.state.idVentana, "", "550px") }} /></Badge></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "left", fontSize: "12.39px", color: "darkslategray" }}>{util.spDate(num.LineaBase)}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc === "Por Capturar" ? "Pendiente" : (num.EdoInc === "Enviada" ? "Concluida" : num.EdoInc)}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={num.EdoInc.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{num.EdoInc === "Por Capturar" ? "Pendiente" : (num.EdoInc === "Enviada" ? "Concluido" : num.EdoInc)}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={hyperlink_icon} alt='hyperlink_icon' onClick={() => window.open(urlIncident, "_blank")} title='Ir a la incidencia' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center" }}><img src={more_details_icon_disabled} alt='more_details_icon' /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(num, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(num) }} /></p>} estilo='col-sm-1' editable={false} />
@@ -1709,6 +1710,7 @@ class Generico extends Component {
     filaMarketing = (dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual) => {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === dato.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || dato.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === dato.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || dato.GrupoResponsable.NombreCortoGantt === 'TODOS')
+        dato.esAdministrador = esEditorLB
         return (
             <div className={dato.IdTarea.ID !== 271 ? "itemIn row" : "itemInPersonal row"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1717,9 +1719,9 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={dato.AsignadoA !== undefined ? "primary" : ""} badgeContent={dato.AsignadoA !== undefined ? dato.AsignadoA.length : ""} ><img title={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (dato.AsignadoA.length > 0 ? util.obtenerAsignados(dato.AsignadoA) : 'Sin asignar')} src={dato.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (dato.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={(esEditorLB || esEditorFE) && dato.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', dato.AsignadoA !== undefined ? dato.AsignadoA : [], dato, this.state.idVentana, "", "550px") } : null} /></Badge></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorLB && dato.IdTarea.ExisteEnGantt === '0' ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'LineaBase')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(dato.LineaBase)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(dato.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title === "Por Capturar" ? "Pendiente" : (dato.Estatus.Title === "Enviada" ? "Concluida" : dato.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title === "Por Capturar" ? "Pendiente" : (dato.Estatus.Title === "Enviada" ? "Concluido" : dato.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={dato.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato, esAdministrador: esEditorLB }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1730,6 +1732,7 @@ class Generico extends Component {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         fila.Lista = "Fechas paquete de trámites"
+        datoFPT.esAdministrador = esEditorLB
         return (
             <div className={fila.IdTarea.ID !== 271 ? "item row" : "itemPersonal row"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1738,9 +1741,9 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={datoFPT.AsignadoA !== undefined ? "primary" : ""} badgeContent={datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA.length : ""} ><img title={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? 'Sin asignar' : 'Sin permisos para editar') : (datoFPT.AsignadoA.length > 0 ? util.obtenerAsignados(datoFPT.AsignadoA) : 'Sin asignar')} src={datoFPT.AsignadoA === undefined ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled) : (datoFPT.AsignadoA.length > 0 ? ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? assignedTo_icon : assignedTo_icon_disabled) : ((esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? plus_icon : plus_icon_disabled))} alt='assignedTo_icon' onClick={(esEditorLB || esEditorFE) && fila.IdTarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', datoFPT.AsignadoA !== undefined ? datoFPT.AsignadoA : [], datoFPT, this.state.idVentana, "", "550px") } : null} /></Badge></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorLB ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.LineaBase} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'LineaBase')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.LineaBase)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<span style={{ textAlign: "center" }} className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title === "Por Capturar" ? "Pendiente" : (datoFPT.Estatus.Title === "Enviada" ? "Concluida" : datoFPT.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p>} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<span style={{ textAlign: "center" }} className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title === "Por Capturar" ? "Pendiente" : (datoFPT.Estatus.Title === "Enviada" ? "Concluido" : datoFPT.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={datoFPT.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT , esAdministrador: esEditorLB}, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(datoFPT, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(datoFPT) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1761,12 +1764,10 @@ class Generico extends Component {
         const Cluster = (props) => {
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
-
                     //Otras ventanas
+                    const esEditorMkt = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === 'ARQ' && (gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || gpo.RespAreaGanttId.includes(usuarioActual.Id)))
                     let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
-
                     let filaCluster = props.titulos.map((fila) => {
-                        //if (fila.cluster.IdTarea.TxtCluster !== 'Dummy' && datosV.some(x => x.IdTarea.Orden === fila.cluster.IdTarea.Orden)) {
                         if (datosV.some(x => x.Orden === fila.cluster.IdTarea.Orden)) {
                             const existeAFActiva = datosV.some(x => x.Orden === fila.cluster.Orden && x.IdTarea.ID === 271 && x.Estatus.ID !== 3)
                             let average = fila.cluster.IdTarea.EsCluster === '0' ? (fila.cluster.IdTarea.Orden !== 3.14 ? util.average(props, fila.cluster.IdTarea.Orden) : util.averageMkt(props.datos)) : util.averageFPT(this.state.datosFPT, fila.cluster.ID);
@@ -1783,7 +1784,7 @@ class Generico extends Component {
                                                     </p>
                                                 </div>
                                                 <div className="col-sm-1">
-                                                    {fila.cluster.IdTarea.Orden === 3.14 ? <p className="numberCircle padDisk"><img src={pen} alt='pen_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila }, this.state.idVentana, "lg", "550px") }}></img></p> : <p></p>}
+                                                    {fila.cluster.IdTarea.Orden === 3.14 && esEditorMkt ? <p className="numberCircle padDisk"><img src={pen} alt='pen_icon' onClick={() => { this.onAbrirModal(nombreTerreno, 289, false, null, null, { Tarea: { ID: 289 }, info: fila, esAdministrador: esEditorMkt }, this.state.idVentana, "lg", "550px") }}></img></p> : <p></p>}
                                                 </div>
                                                 <div className="col-sm-1">
                                                     {existeAFActiva ? <p className="numberCircle padDisk"><img src={disk} alt='disk_icon'></img></p> : null}
@@ -1794,7 +1795,7 @@ class Generico extends Component {
                                             </div>
                                         </div>
                                     </div>
-                                    {this.state.terrenos.map((terr) => {
+                                    {this.state.terrenos.sort().map((terr) => {
                                         return util.bodyFunAll(terr, props, fila).length > 0 ?
                                             <div key={fila.cluster.IdTarea.Orden + '_' + terr} style={{ display: clusterToggle.find(x => x.id === fila.cluster.IdTarea.Orden).abierto ? 'block' : 'none' }}>
                                                 {terr !== "" ?
@@ -1848,7 +1849,7 @@ class Generico extends Component {
                                             </div>
                                         </div>
                                     </div>
-                                    {this.state.terrenos.map((terr) => {
+                                    {this.state.terrenos.sort().map((terr) => {
                                         return (util.bodyFunEG(terr, props, fila).length > 0 ?
                                             <div key={fila.cluster.OrdenEG + '_' + terr} style={{ display: clusterToggle.find(x => x.id === fila.cluster.OrdenEG).abierto ? 'block' : 'none' }}>
                                                 {terr !== "" ?
@@ -1896,18 +1897,12 @@ class Generico extends Component {
         }
 
         const Columna = (props) => {
-
             //Si abre el modal cuando se da clic
             if (props.editable) {
-
-                //e, terreno, id, esTarea, campo, valor, fila, ventana, size, padding
                 if (props.titulo.length <= 20) {
                     if (util.contains(props.titulo, "RFS")) {
-                        const modal = { abierto: true, id: props.idElemento, terreno: props.terreno, esTarea: props.esTarea, filaSeleccionada: props.datos, size: '', padding: '255px', usuarioActual: this.state.usuarioActual, gruposUsuarioActual: this.state.gruposUsuarioActual, url: webUrl }
-                        const datos = { campo: null, valor: null }
                         return (
                             <div className={props.estilo} onClick={() => { props.abrirExterno === '0' ? this.onAbrirModal(props.terreno, props.idElemento, props.esTarea, null, null, props.datos, this.state.idVentana, "", "255px") : window.open(webUrl + props.url) }} >{props.titulo}</div>
-                            //<div className={props.estilo} onClick={(e) => {props.abrirExterno === '0' ? <Modal abrir={modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={datos} /> : window.open(webUrl + props.url)}} >{props.titulo}</div>
                         );
                     }
                     else {
@@ -2044,25 +2039,21 @@ class Generico extends Component {
 
         const Body = (props) => {
             if (props.idCluster >= 4) {
-
                 //Estrategia de gestión
                 let datosPITerr = { idPI: 0, idTerr: 0, tipo: '', idCluster: props.idCluster, usuario: usuarioActual, grupo: gruposUsuarioActual.length > 0 ? gruposUsuarioActual[0] : '', tarea: 0 }
                 let nombreTerreno = ''
                 let filaBody = props.datos.map((fila) => {
-
                     //Si el registro de EG actual tiene terreno asignado (es decir, es nivel T)
                     if (fila.Terreno !== undefined) {
                         if (fila.Terreno.Title === props.tituloTerreno) {
                             nombreTerreno = fila.Terreno.NombredelTerreno2
                             if (fila.OrdenEG === props.idCluster) {
                                 if (props.esCheckable) {
-
                                     //Agrega al arreglo los datos de la fila que tiene un check para que se identifique los
                                     //checks que se han marcado o desmarcado
                                     checkedItems = checkedItems.concat({ datos: fila, cambio: false })
                                 }
                                 if (datosPITerr.idPI === 0) {
-
                                     //Agrega información necesaria para las actividades personales
                                     datosPITerr.idPI = fila.ProyectoInversion.ID
                                     datosPITerr.idTerr = fila.Terreno !== undefined ? fila.Terreno.ID : 0
@@ -2217,7 +2208,7 @@ class Generico extends Component {
                                             :
                                             (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
-                                                    return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
+                                                    return datoFPT.IdFlujoId === fila.ID && ((gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) || filtrosTabla.ver.length >0) ?
                                                         <div style={{ paddingLeft: "4%" }}>
                                                             <div className="row">
                                                                 {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2234,7 +2225,7 @@ class Generico extends Component {
                                                             </div>
                                                         </div>
                                                         {this.state.datosFPT.map((datoFPT) => {
-                                                            return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
+                                                            return datoFPT.IdFlujoId === fila.ID && ((gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) || filtrosTabla.ver.length >0) ?
                                                                 <div style={{ paddingLeft: "5%" }}>
                                                                     <div className="row">
                                                                         {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual, gruposUsuarioActual)}
@@ -2283,8 +2274,6 @@ class Generico extends Component {
                                                                     </div>
                                                                 </div>
                                                                 {this.state.Mkt.map((dato) => {
-                                                                    //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                                                                    //if (!ocultoA.results.includes(usuarioActual.Id)) {
                                                                     if (dato.Visible) {
                                                                         switch (fila.IdTarea.ID) {
                                                                             case 287:
@@ -2338,7 +2327,7 @@ class Generico extends Component {
                                             </div>
                                             : (fila.IdTarea.EsCluster === '1' && fila.IdTarea.EsSubcluster === '0' ?
                                                 this.state.datosFPT.map((datoFPT) => {
-                                                    return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
+                                                    return datoFPT.IdFlujoId === fila.ID && ((gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) || filtrosTabla.ver.length >0) ?
                                                         <div style={{ paddingLeft: "4%" }}>
                                                             <div className="row">
                                                                 {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2353,7 +2342,7 @@ class Generico extends Component {
                                                             </div>
                                                         </div>
                                                         {this.state.datosFPT.map((datoFPT) => {
-                                                            return datoFPT.IdFlujoId === fila.ID && (gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) ?
+                                                            return datoFPT.IdFlujoId === fila.ID && ((gruposUsuarioActual.some(x => x.ID === fila.GrupoResponsable.ID) || util.contieneAsignadoA(datoFPT.AsignadoA, usuarioActual.Id)) || filtrosTabla.ver.length >0) ?
                                                                 <div style={{ paddingLeft: "5%" }}>
                                                                     <div className="row">
                                                                         {this.filaTramites(fila, datoFPT, attach_icon, more_details_icon, usuarioActual, webUrl, fila.UrlDocumentos, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual)}
@@ -2401,8 +2390,6 @@ class Generico extends Component {
                                                                     </div>
                                                                 </div>
                                                                 {this.state.Mkt.map((dato) => {
-                                                                    //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                                                                    //if(!ocultoA.results.includes(usuarioActual.Id)){
                                                                     if (dato.Visible) {
                                                                         switch (fila.IdTarea.ID) {
                                                                             case 287:

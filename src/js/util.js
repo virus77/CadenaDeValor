@@ -340,7 +340,8 @@ const util = {
         datosVentana = datosVentana.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
         let values = []
         if (filtrosTabla.ver.length === 0){
-            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             datosVentana.forEach(registro => {
                 if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
@@ -992,7 +993,8 @@ const util = {
     },
     generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosTabla){
         if(idVentana !== 4){
-            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             let datosVentana = datosCdT.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
             let filtros = {
@@ -1359,7 +1361,8 @@ const util = {
         }
     },
     filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual, gruposUsuarioActual, filtrosTabla){
-        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+        //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
+        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
         strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
         let datosFiltrados = []
         switch(filtro){
@@ -1433,7 +1436,8 @@ const util = {
                         opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezadoOriginal)
                     }
                 }else{
-                    if(filtroTabla.columna === filtrosTablaOrden[index -1].columna && !cambioFiltro){
+                    //if(filtroTabla.columna === filtrosTablaOrden[index -1].columna && !cambioFiltro){
+                    if(filtroTabla.columna === filtrosTablaOrden[index -1].columna){
                         if(filtroTabla.columna === 'favs' || filtroTabla.columna === 'gantt' || filtroTabla.columna === 'ver'){
                             datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual, gruposUsuarioActual, filtrosTabla))
                             datosFiltradosMkt = datosFiltradosMkt.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceMkt, filtroTabla.columna, 'M', usuarioActual, gruposUsuarioActual, filtrosTabla))

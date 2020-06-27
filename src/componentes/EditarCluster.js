@@ -167,8 +167,7 @@ class EditarCluster extends Component {
                                 {this.state.datos.map((dato) => {
                                     return dato.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' ?
                                         <div key={dato.ID}>
-                                            {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
-                                            <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked={dato.Visible} onChange={this.onSeleccionar} />
+                                            <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked={dato.Visible} onChange={this.onSeleccionar} disabled={!this.props.esAdministrador} />
                                             <label style={{ paddingLeft: "5px" }} htmlFor={dato.ID} >{dato.IdTarea.Title}</label>
                                         </div>
                                         : null
@@ -179,8 +178,7 @@ class EditarCluster extends Component {
                                 {this.state.datos.map((dato) => {
                                     return dato.IdTarea.Subcluster === 'Material de ventas fabricado' ?
                                         <div key={dato.ID}>
-                                            {/*<input type='checkbox' name={dato.ID} id={dato.ID} checked = {!this.contieneUsuarioActual(dato.OcultoA) ? true :false} onChange={this.onSeleccionar} />*/}
-                                            <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked={dato.Visible} onChange={this.onSeleccionar} />
+                                            <input style={{ height: '15px', width: '15px' }} type='checkbox' name={dato.ID} id={dato.ID} checked={dato.Visible} onChange={this.onSeleccionar} disabled={!this.props.esAdministrador} />
                                             <label style={{ paddingLeft: "5px" }} htmlFor={dato.ID} >{dato.IdTarea.Title}</label>
                                         </div>
                                         : null
@@ -190,7 +188,7 @@ class EditarCluster extends Component {
                         <hr />
                         <div className='row'>
                             <div className='col-sm-12 derecha'>
-                                <input type="button" className="btn btn-info btn-md" value='Guardar' onClick={this.onGuardar} />
+                                <input type="button" className="btn btn-info btn-md" value='Guardar' onClick={this.onGuardar} disabled={!this.props.esAdministrador} />
                             </div>
                         </div>
                     </div>
