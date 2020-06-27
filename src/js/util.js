@@ -1362,7 +1362,7 @@ const util = {
     },
     filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual, gruposUsuarioActual, filtrosTabla){
         //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
-        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
+        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual.Id) || x.RespAreaGanttId.includes(usuarioActual.Id)) && x.NombreCortoGantt !== 'EG')
         strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
         let datosFiltrados = []
         switch(filtro){

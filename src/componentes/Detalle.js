@@ -61,10 +61,10 @@ class Detalle extends Component {
                     <div className='col-sm-6' style={{ height: '220px' }}>
                         <h5 className='textoEncabezado'>Sobre la tarea</h5>
                         <h6 className='textoAgrupador'>Estatus manual</h6>
-                        <input style={{ height: '15px', width: '15px' }} type="checkbox" name="Detenido" id="detenido" value={6} checked={estatus.Title.toLowerCase() === 'detenido' ? true : false} onChange={this.onSeleccionarEstatus} disabled={!this.props.esAdministrador} />
+                        <input style={{ height: '15px', width: '15px' }} type="checkbox" name="Detenido" id="detenido" value={6} checked={estatus.Title.toLowerCase() === 'detenido' ? true : false} onChange={this.onSeleccionarEstatus} />
                         <label style={{ paddingLeft: "5px" }} htmlFor='cancelado'> Actividad detenida </label>
                         <br />
-                        <input style={{ height: '15px', width: '15px' }} type="checkbox" id='cancelado' name='Cancelado' value={7} checked={estatus.Title.toLowerCase() === 'cancelado' ? true : false} onChange={this.onSeleccionarEstatus} disabled={!this.props.esAdministrador} />
+                        <input style={{ height: '15px', width: '15px' }} type="checkbox" id='cancelado' name='Cancelado' value={7} checked={estatus.Title.toLowerCase() === 'cancelado' ? true : false} onChange={this.onSeleccionarEstatus} />
                         <label style={{ paddingLeft: "5px" }} htmlFor='cancelado'> Actividad cancelada </label>
                     </div>
                     <div className='col-sm-6 bordeL' style={{ height: '220px' }}>
@@ -88,7 +88,7 @@ class Detalle extends Component {
                 <hr />
                 <div className='row'>
                     <div className='col-sm-12 derecha'>
-                        <input type="button" className="btn btn-primary btn-md" value='Guardar' onClick={this.onGuardar} disabled={!this.props.esAdministrador} />
+                        <input type="button" className="btn btn-primary btn-md" value='Guardar' onClick={this.onGuardar} />
                     </div>
                 </div>
             </div>

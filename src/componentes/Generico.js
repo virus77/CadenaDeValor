@@ -1650,7 +1650,7 @@ class Generico extends Component {
     filaNormal = (fila, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual, editable) => {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
-        fila.esAdministrador = esEditorLB
+        fila.esAdministrador = esEditorLB || esEditorFE
         return (
             <div className={fila.IdTarea.ID !== 271 ? "item row fixedPadding" : "itemPersonal row fixedPadding"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1661,7 +1661,7 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={fila.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, fila, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={fila.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{fila.Estatus.Title === "Por Capturar" ? "Pendiente" : (fila.Estatus.Title === "Enviada" ? "Concluido" : fila.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={fila.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={more_details_icon !== null ? <p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila, esAdministrador: esEditorLB }, this.state.idVentana, "lg", "550px") } : null} /></p> : null} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={more_details_icon !== null ? <p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: fila }, this.state.idVentana, "lg", "550px") } : null} /></p> : null} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(fila, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(fila) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1710,7 +1710,7 @@ class Generico extends Component {
     filaMarketing = (dato, attach_icon, more_details_icon, usuarioActual, webUrl, urlDescargarDocto, Columna, nombreTerreno, plus_icon, assignedTo_icon, DateFnsUtils, es, gruposUsuarioActual) => {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === dato.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || dato.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === dato.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || dato.GrupoResponsable.NombreCortoGantt === 'TODOS')
-        dato.esAdministrador = esEditorLB
+        dato.esAdministrador = esEditorLB || esEditorFE
         return (
             <div className={dato.IdTarea.ID !== 271 ? "itemIn row" : "itemInPersonal row"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1721,7 +1721,7 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={dato.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, dato, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(dato.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={dato.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{dato.Estatus.Title === "Por Capturar" ? "Pendiente" : (dato.Estatus.Title === "Enviada" ? "Concluido" : dato.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={dato.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato, esAdministrador: esEditorLB }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: dato }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(dato, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(dato) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1732,7 +1732,7 @@ class Generico extends Component {
         const esEditorLB = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         const esEditorFE = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === fila.GrupoResponsable.NombreCortoGantt && (gpo.AdminAreaGanttId.includes(usuarioActual.Id) || gpo.RespAreaGanttId.includes(usuarioActual.Id))) || fila.GrupoResponsable.NombreCortoGantt === 'TODOS')
         fila.Lista = "Fechas paquete de trámites"
-        datoFPT.esAdministrador = esEditorLB
+        datoFPT.esAdministrador = esEditorLB || esEditorFE
         return (
             <div className={fila.IdTarea.ID !== 271 ? "item row" : "itemPersonal row"}>
                 <MuiPickersUtilsProvider utils={DateFnsUtils} locale={es}>
@@ -1743,7 +1743,7 @@ class Generico extends Component {
                     <Columna titulo={<p style={{ textAlign: "center", fontSize: "12.39px", color: "darkslategray" }}>{esEditorFE ? <DatePicker variant='dialog' format="dd/MM/yyyy" cancelLabel='Cancelar' okLabel='Aceptar' value={datoFPT.FechaEstimada} onChange={fecha => this.onSeleccionarFecha(fecha, datoFPT, 'FechaEstimada')} /> : <input type="text" className="textboxDate MuiInputBase-input MuiInput-input" value={util.spDate(fila.FechaEstimada)} />}</p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<span style={{ textAlign: "center" }} className={datoFPT.Estatus.Title.toLowerCase().replace(' ', '-') + ' badge badge-pill'}>{datoFPT.Estatus.Title === "Por Capturar" ? "Pendiente" : (datoFPT.Estatus.Title === "Enviada" ? "Concluido" : datoFPT.Estatus.Title)}</span>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={datoFPT.ContieneAdjunto ? <p style={{ textAlign: "center" }}><img src={attach_icon} alt='attach_icon' onClick={() => window.open(webUrl + urlDescargarDocto)} title='Descargar archivos' /></p> : null} estilo='col-sm-1' editable={false} />
-                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT , esAdministrador: esEditorLB}, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
+                    <Columna titulo={<p style={{ textAlign: "center" }}><img src={(esEditorLB || esEditorFE) ? more_details_icon : more_details_icon_disabled} alt='more_details_icon' onClick={esEditorLB || esEditorFE ? () => { this.onAbrirModal(nombreTerreno, 272, false, null, null, { Tarea: { ID: 272 }, info: datoFPT }, this.state.idVentana, "lg", "550px") } : null} /></p>} estilo='col-sm-1' editable={false} />
                     <Columna titulo={<p style={{ textAlign: "right" }}><img src={util.onShowStar(datoFPT, usuarioActual)} alt='favoritos_icon' onClick={() => { this.onEstablecerFavorito(datoFPT) }} /></p>} estilo='col-sm-1' editable={false} />
                 </MuiPickersUtilsProvider>
             </div>
@@ -1765,7 +1765,7 @@ class Generico extends Component {
             if (props.titulos.length > 0) {
                 if (props.idVentana !== 4) {
                     //Otras ventanas
-                    const esEditorMkt = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === 'ARQ' && (gpo.AdminAreaGanttId.includes(usuarioActual.Id)) || gpo.RespAreaGanttId.includes(usuarioActual.Id)))
+                    const esEditorMkt = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === 'ARQ' && (gpo.AdminAreaGanttId.includes(usuarioActual.Id))))
                     let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
                     let filaCluster = props.titulos.map((fila) => {
                         if (datosV.some(x => x.Orden === fila.cluster.IdTarea.Orden)) {

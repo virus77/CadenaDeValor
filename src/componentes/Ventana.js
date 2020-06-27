@@ -1217,8 +1217,8 @@ class Ventana extends Component {
                                         idTarea === 25 || idTarea === 30 || idTarea === 35 ?
                                             <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
                                             : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} esTarea={this.props.abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} usuarioActual={this.props.abrir.usuarioActual} gruposUsuarioActual={this.props.abrir.gruposUsuarioActual} />
-                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} esAdministrador={this.props.abrir.filaSeleccionada.esAdministrador} />
-                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} esAdministrador={this.props.abrir.filaSeleccionada.esAdministrador} /> : <Formulario />)))
+                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
+                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />)))
                                     }
                                 </ModalBody>
                                 <ModalFooter>
