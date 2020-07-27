@@ -6,19 +6,23 @@ export default function ComboBox(props) {
 
   return (
     <Autocomplete
-        id="combo-box-demo"
+        id={props.id}
         options={props.usuarios}
-        disabled = {props.disabled}
+        getOptionLabel={option => option.Title !== undefined ? option.Title : ''}
         defaultValue={props.itemsSeleccionados}
+        disabled = {props.disabled}
         size="small"
         onChange = {function(event,value,reason){
+          if(value !== null){
+            value.idCampo = props.id
+            value.nulo = false
             props.seleccionarItems(value)
+          }else{
+            const emptyValue = {nulo: true, idCampo: props.id }
+            props.seleccionarItems(emptyValue)
           }
-        }
-        getOptionLabel={option => option.Title}
-        multiple
-        freeSolo
-        renderInput={params => <TextField {...params} variant="outlined" />}
+        }}
+        renderInput={(params) => <TextField {...params} variant="outlined" />}
       />
   );
 }

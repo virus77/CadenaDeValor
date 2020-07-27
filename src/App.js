@@ -29,19 +29,10 @@ class App extends Component {
 
   //función utilizada para seleccionar el terreno y abrir los clusters
   onSeleccionTerreno = async (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv) => {
-
-    if (window.confirm('¿Está seguro que desea abrir el detalle del terreno ' + TxtTerreno + "?")) {
-      this.setState({
-        isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
-        Maco: maco, RFS: rfs, TerrenoId, IdProyInv
-      });
-    }
-    else {
-      this.setState({
-        isActive: false, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: '', Maco: maco,
-        RFS: rfs, TerrenoId, IdProyInv
-      })
-    }
+    this.setState({
+      isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
+      Maco: maco, RFS: rfs, TerrenoId, IdProyInv
+    });
   }
 
   onOpenModal = (id, esTarea) => {
@@ -53,20 +44,20 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    var listItemsT = await currentWeb.lists.getByTitle("Terrenos").items
-      .select("ID", "Title", "Modified", "NombredelTerreno", "NombredelTerreno2", "IdProyectoInversion/ID",
-        "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
-      .expand("IdProyectoInversion")
-      .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
-      .orderBy("NombredelTerreno2", true)
-      .top(1000)
-      .get();
+    const listItemsT = await currentWeb.lists.getByTitle("Terrenos").items
+    .select("ID", "Title", "Modified", "NombredelTerreno", "NombredelTerreno2", "IdProyectoInversion/ID",
+      "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
+    .expand("IdProyectoInversion")
+    .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
+    .orderBy("NombredelTerreno2", true)
+    .top(1000)
+    .get()
 
-    var listItemsPI = await currentWeb.lists.getByTitle("Proyecto Inversion").items
-      .select("ID", "NombreProyectoInversion")
-      .orderBy("NombreProyectoInversion", true)
-      .top(1000)
-      .get();
+    const listItemsPI = await currentWeb.lists.getByTitle("Proyecto Inversion").items
+    .select("ID", "NombreProyectoInversion")
+    .orderBy("NombreProyectoInversion", true)
+    .top(1000)
+    .get();
 
     this.setState({ itemsT: listItemsT, itemsPI: listItemsPI });
   }

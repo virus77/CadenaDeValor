@@ -9,6 +9,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import util from '../js/util'
+import CRUD from '../js/CRUD';
 import '../estilos/editarCluster.css';
 
 const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
@@ -34,48 +35,29 @@ class EditarCluster extends Component {
 
     onSeleccionar = (e) => {
         const { name, checked } = e.target
-        const { datos, usuarioActual } = this.state
+        let { datos } = this.state
 
         const index = datos.findIndex(x => x.ID === parseInt(name))
         let newData = datos[index]
 
         newData.Visible = checked
         newData.Cambio = !newData.Cambio
-        /*if(!checked){
-            if(newData.OcultoA === undefined){
-                newData.OcultoA = [{ID: usuarioActual.Id, Name: usuarioActual.LoginName }]
-                newData.Cambio = !newData.Cambio
-            }else if(newData.OcultoA.length === 0){
-                newData.OcultoA = [{ID: usuarioActual.Id, Name: usuarioActual.LoginName }]
-                newData.Cambio = !newData.Cambio
-            }
-            else{
-                newData.OcultoA.push({ID: usuarioActual.Id, Name: usuarioActual.LoginName })
-                newData.Cambio = !newData.Cambio
-            }
-        }else{
-            const indexUsuario = newData.OcultoA.findIndex(x=> x.ID === usuarioActual.Id)
-            newData.OcultoA.splice(indexUsuario, 1)
-            newData.Cambio = !newData.Cambio
-        }*/
 
-        let datosActualizados = update(this.state.datos, { $splice: [[index, 1, newData]] })
-        this.setState({ datos: datosActualizados })
+        datos = update(this.state.datos, { $splice: [[index, 1, newData]] })
+        this.setState({ datos: datos })
     }
 
     obtenerTareas = async () => {
         let usuarioActual = await currentWeb.currentUser.get()
         let tareas = await currentWeb.lists.getByTitle('Flujo Tareas').items
-            .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
-                ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
-            //.select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden',  'OcultoA/ID', 'OcultoA/Name')
-            .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden', 'Visible', 'EstatusId')
-            .expand('IdTarea')
-            //.expand('IdTarea', 'OcultoA')
-            .get()
-            .catch(error => {
-                alert('Error al cargar la ventana: ' + error)
-            })
+        .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
+            ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
+        .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden', 'Visible', 'EstatusId')
+        .expand('IdTarea')
+        .get()
+        .catch(error => {
+            alert('ERROR AL CARGAR LA VENTANA: ' + error)
+        })
         //Se realiza para tener el control de las tareas que se chequean/deschequean
         tareas = tareas.map((tarea) => {
             tarea.Cambio = false
@@ -91,10 +73,13 @@ class EditarCluster extends Component {
             .get()
             .then(async (fts) => {
                 if (fts[0].EstatusId !== 1) {
-                    await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(fts[0].ID).update({
-                        EstatusId: 1
+                    await CRUD.updateListItem(currentWeb, 'Flujo Tareas', fts[0].ID, {EstatusId: 1}).catch(error=>{
+                        alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + fts[0].ID + ' DE LA LISTA FLUJO TAREAS: ' + error)
                     })
                 }
+            })
+            .catch(error => {
+                alert('ERROR AL INTENTAR OBTENER LOS DATOS DE LA TAREA ' + IdTarea + ': ' + error)
             })
     }
     //#endregion
@@ -119,14 +104,9 @@ class EditarCluster extends Component {
             if (datos.length > 0) {
                 this.setState({ backdrop: { abierto: true, mensaje: 'Guardando...' } })
                 await util.asyncForEach(datos, async dato => {
-                    //const ocultoA = util.obtenerIdAsignados(dato.OcultoA)
-                    await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(dato.ID).update({
-                        //OcultoAId: ocultoA
-                        Visible: dato.Visible
+                    await CRUD.updateListItem(currentWeb, 'Flujo Tareas', dato.ID, {Visible: dato.Visible}).catch(error=>{
+                        alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + dato.ID + ' EN FLUJO TAREAS: ' + error)
                     })
-                        .catch(error => {
-                            alert('Error al guardar en Flujo Tareas: ' + error)
-                        })
                 })
 
                 let cluster287 = this.state.datos.filter(x => x.IdTarea.Subcluster === 'Entrega para diseño de material de ventas' && x.Visible);

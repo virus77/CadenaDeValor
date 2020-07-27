@@ -7,6 +7,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import moment from 'moment';
+import CRUD from '../js/CRUD';
 
 const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
 
@@ -44,6 +45,16 @@ const util = {
     asyncForEach: async function (array, callback) {
         for (let index = 0; index < array.length; index++) {
             await callback(array[index], index, array);
+        }
+    },
+    establecerEstatus: function(estatus){
+        switch(estatus.Title){
+            case 'Por Capturar':
+                return { ID: estatus.ID, Title: 'Pendiente'}
+            case 'Enviada':
+                return { ID: estatus.ID, Title: 'Concluido'}
+                default:
+                    return estatus
         }
     },
     //Inicializa el estato filtrosTabla
@@ -230,9 +241,7 @@ const util = {
     },
     //Valida si una cadena contiene algun dato de otra cadena
     contains: function (value, searchFor) {
-        if (Object.prototype.toString.call(value) === '[object Array]') {
-
-        }
+        if (Object.prototype.toString.call(value) === '[object Array]') {}
         else {
             var v = (value || '').toLowerCase();
             var v2 = searchFor;
@@ -341,7 +350,7 @@ const util = {
         let values = []
         if (filtrosTabla.ver.length === 0){
             //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
-            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual) || x.NombreCortoGantt === 'TODOS') && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             datosVentana.forEach(registro => {
                 if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
@@ -367,18 +376,21 @@ const util = {
             idsFPT = idsFPT.filter(x => x > 0)
             let filtroFPT = ''
             idsFPT.forEach(idFPT => {
-                filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ')' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ')'
+                filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ' and Visible eq 1)' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ' and Visible eq 1)'
             })
 
             datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
-                .filter(filtroFPT)
-                .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'IdDocTramite/ExisteEnGantt', 'AsignadoA/ID',
-                    'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
-                    'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada', 'Title',
-                    'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified',
-                    'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'ContieneAdjunto')
-                .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos', 'GrupoResponsable')
-                .get()
+            .filter(filtroFPT)
+            .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'IdDocTramite/ExisteEnGantt', 'AsignadoA/ID',
+                'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
+                'LineaBase', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title', 'FechaEstimada', 'Title',
+                'Editor/ID', 'Editor/Title', 'Favoritos/ID', 'Favoritos/Name', 'Created', 'Modified',
+                'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'ContieneAdjunto')
+            .expand('AsignadoA', 'Estatus', 'EstatusAnterior', 'IdDocTramite', 'LineaBaseModifico', 'Editor', 'Favoritos', 'GrupoResponsable')
+            .get()
+            .catch(error => {
+                alert('ERROR AL INTENTAR OBTENER LOS DATOS DE FECHAS PAQUETE DE TRÁMITES: ' + error)
+            })
         }
         return datosFPT
     },
@@ -387,6 +399,9 @@ const util = {
         .select('ID', 'Title', 'IdActividadId', 'RespAreaGantt/ID', 'RespAreaGantt/Name', 'GrupoRespGantt')
         .expand('RespAreaGantt')
         .get()
+        .catch(error => {
+            alert('ERROR AL INTENTAR OBTENER LA INFORMACIÓN DE GANTTCONFIGRESPACT: ' + error)
+        })
         
         return seguridad
     },
@@ -394,6 +409,8 @@ const util = {
         return datos.map((dato) => {
             dato.Lista = lista
             dato.PI = proyectoInversion
+            dato.Estatus = this.establecerEstatus(dato.Estatus)
+
             let urlLink = dato.UrlDocumentos !== null && dato.UrlDocumentos !== undefined ? dato.UrlDocumentos.substring(dato.UrlDocumentos.indexOf('<a')) : ''
             urlLink = urlLink.replace('<a href="', '').replace(' target="_blank">Ver Documentos</a><a></a></div>', '').replace('"', '').replace(' target="_blank">Ver Documentos', '').replace('"', '')
             const parseResultDocto = new DOMParser().parseFromString(urlLink, "text/html")
@@ -532,6 +549,7 @@ const util = {
                 return arreglo.IdTerreno.ID
             case 'RelacionFechasAprobacionTerreno':
             case 'RelacionBancosProyectosDeptos':
+            case 'RelacionTerrenoInteresados':
                 return arreglo.ID
             case 'FechasTramites':
                 return arreglo.Lista === 'Flujo Tareas' ? arreglo.ID : arreglo.IdFlujoId
@@ -644,18 +662,26 @@ const util = {
                 json.EstatusAnteriorId = 1
                 json.Visible = true
                 json.Orden = nuevaTarea.Orden
+            }).catch(error => {
+                alert('ERROR AL INTENTAR OBTENER LOS DATOS DE LA TAREA ' + tareaCrear + ': ' + error)
             })
         }
         if(idTarea === 12){
             const bitacoras = await webBitacoras.web.lists.getByTitle("Bitacora").items
             .filter("Title eq 'BIT.ADT." + terreno.Title + "'")
             .get()
+            .catch(error => {
+                alert('ERROR AL INTENTAR OBTENER LA BITÁCORA BIT.ADT' + terreno.Title + ': ' + error)
+            })
 
             if(bitacoras.length === 0){
-                await currentWeb.lists.getByTitle('Tareas').items.getById(274).get().then(async(nuevaTarea)=>{
+                await currentWeb.lists.getByTitle('Tareas').items.getById(274).get().then(async()=>{
                     const lineaBase = await currentWeb.lists.getByTitle('Fechas objetivo').items
                     .filter("Title eq '" + PI.Title + (!terreno.Title.startsWith('T-') ? "' and Terreno eq '" + terreno.Title : '') + "' and IdActividad eq 13")
                     .get()
+                    .catch(error => {
+                        alert('ERROR AL INTENTAR OBTENER LOS DATOS DE FECHAS OBJETIVO: ' + error)
+                    })
 
                     if(lineaBase.length >0){
                         if(lineaBase.FechaFinMeta !== undefined){
@@ -664,8 +690,12 @@ const util = {
                         }
                     }
                     if(Object.keys(json).length > 0){
-                        await currentWeb.lists.getByTitle('Flujo Tareas').items.add(json)
+                        await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+                            alert('ERROR AL INSERTAR EN LA LISTA FLUJO TAREAS: ' + error)
+                        })
                     }
+                }).catch(error => {
+                    alert('ERROR AL INTENTAR OBTENER LA TAREA 274: ' + error)
                 })
                 
                 this.crearBitacoraEjecutivo(webBitacoras, PI.Title, terreno.Title, terreno.NombredelTerreno2 )
@@ -674,12 +704,16 @@ const util = {
         else if(idTarea === 188 || idTarea === 189){
             
             if(Object.keys(json).length > 0){
-                await currentWeb.lists.getByTitle('Flujo Tareas').items.add(json)
+                await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+                    alert('ERROR AL INSERTAR EN LA LISTA FLUJO TAREAS: ' + error)
+                })
             }
 
             const categorias = await webBitacoras.web.lists.getByTitle("Categoria").items
             .filter("NombreCorto eq 'ARQ' or NombreCorto eq 'EST' or NombreCorto eq 'INS' or NombreCorto eq 'ACB' or NombreCorto eq 'NOR' or NombreCorto eq 'REG'")
-            .get()
+            .get().catch(error => {
+                alert('ERROR AL INTENTAR OBTENER LAS CATEGORÍAS: ' + error)
+            })
 
             this.crearBitacoraVarios(webBitacoras, categorias, PI, terreno)
         }
@@ -699,7 +733,7 @@ const util = {
         }
 
         // Creacion de bitacora generica
-        await webBitacoras.web.lists.getByTitle("Bitacora").items.add(json)
+        await CRUD.createListItem(webBitacoras.web, 'Bitacora', json)
         .then(async(resultBA)=>{
             for(let i=0; i<3; i++){
                 let datos = util.GetIncidenteValues(i);
@@ -719,11 +753,15 @@ const util = {
                 }
 
                 // Creacion de incidencia sobre bitacora
-                await webBitacoras.web.lists.getByTitle("Incidencia").items.add(jsoni)
+                await CRUD.createListItem(webBitacoras.web, 'Incidencia', jsoni)
                 .then(async(result)=>{
                     // Objeto para actualizacion de incidencia creada
                     var jsoniu = { "Title": result.data.Title + result.data.Id }
-                    await webBitacoras.web.lists.getByTitle("Incidencia").items.getById(result.data.Id).update(jsoniu)
+                    await CRUD.updateListItem(webBitacoras.web, "Incidencia", result.data.Id, jsoniu).catch(error=>{
+                        alert('ERROR AL ACTUALIZAR LA INCIDENCIA ' + result.data.Id + ': ' + error)
+                    })
+                }).catch(error => {
+                    alert('ERROR AL INTENTAR CREAR LA INCIDENCIA ' + (i + 1) + ': ' + error)
                 })
             }
         })
@@ -764,7 +802,10 @@ const util = {
                 "PIBit": PI.Title,
                 "EdoBit": 'Abierta'
             }
-            await webBitacoras.web.lists.getByTitle("Bitacora").items.add(json)
+            await CRUD.createListItem(webBitacoras.web, 'Bitacora', json)
+            .catch(error => {
+                alert('ERROR AL INTENTAR CREAR LA BITÁCORA BIT' + categoria.NombreCorto + "." + terreno.Title + ': ' + error)
+            })
         })
     },
     obtenerBitacorasInfo: async function(proyectoTitulo, terrenoTitulo){
@@ -782,6 +823,9 @@ const util = {
         .expand('MotivoCausaInc', 'BitacoraInc', 'AreaAsignadaInc', 'AsignadoAInc', 'Favoritos')
         .top(100)
         .get()
+        .catch(error => {
+            alert('ERROR AL INTENTAR OBTENER LAS INCIDENCIAS DEL TERRENO ' + terrenoTitulo + ': ' + error)
+        })
 
         bitacorasInfo.map((bitacora)=>{
             bitacora.Lista = 'Incidencia'
@@ -797,10 +841,13 @@ const util = {
     },
     obtenerSolucionInfo: async function(webBitacoras){
         const solucionInfo = await webBitacoras.web.lists.getByTitle('Solucion').items
-            .select('ID', 'FechaCompSol', 'IncidenciaSol/ID')
-            .expand('IncidenciaSol')
-            .top(10000)
-            .get()
+        .select('ID', 'FechaCompSol', 'IncidenciaSol/ID')
+        .expand('IncidenciaSol')
+        .top(10000)
+        .get()
+        .catch(error => {
+            alert('ERROR AL INTENTAR OBTENER LOS DATOS DE LAS SOLUCIONES: ' + error)
+        })
 
         return solucionInfo
     },
@@ -827,15 +874,10 @@ const util = {
         if(esSubcluster){
             const clusterIncompleto = datos.some(x=> x.IdFlujoId === idFlujoTarea && x.Estatus.ID !== 3)
             if(!clusterIncompleto){
-                await currentWeb.lists.getByTitle('Flujo Tareas').items.getById(idFlujoTarea).update({
-                    EstatusId: 3,
-                    EstatusAnteriorId: 3
-                })
-                .then(()=>{
+                await CRUD.updateListItem(currentWeb, "Flujo Tareas", idFlujoTarea, {EstatusId: 3,EstatusAnteriorId: 3}).then(()=>{
                     actualizado = true
-                })
-                .catch(error=>{
-                    alert('Error al actualizar el subclúster: ' + error)
+                }).catch(error=>{
+                    alert('ERROR AL ACTUALIZAR EL SUBCLÚSTER DEL FLUJO ' + idFlujoTarea + ': ' + error)
                 })
             }
         }
@@ -994,7 +1036,7 @@ const util = {
     generarFiltrosEncabezado: function(idVentana, datosCdT, datosFPT, datosBit, gruposUsuarioActual, usuarioActual, filtrosTabla){
         if(idVentana !== 4){
             //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
-            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual)) && x.NombreCortoGantt !== 'EG')
+            let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual) || x.NombreCortoGantt === 'TODOS') && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
             let datosVentana = datosCdT.datos.filter(x=> x.Orden >= idVentana && x.Orden < idVentana + 1)
             let filtros = {
@@ -1362,7 +1404,7 @@ const util = {
     },
     filtrarPorFavsGanttTodos: function(idVentana, datos, filtro, tipo, usuarioActual, gruposUsuarioActual, filtrosTabla){
         //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
-        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual.Id) || x.RespAreaGanttId.includes(usuarioActual.Id)) && x.NombreCortoGantt !== 'EG')
+        let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual.Id) || x.RespAreaGanttId.includes(usuarioActual.Id) || x.NombreCortoGantt === 'TODOS') && x.NombreCortoGantt !== 'EG')
         strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
         let datosFiltrados = []
         switch(filtro){
@@ -1375,7 +1417,23 @@ const util = {
                 break;
             case 'gantt':
                 if(idVentana === 4){
-                    datosFiltrados = datos.filter(x=> x.Tarea.ExisteEnGantt === '1')
+                    if(tipo === 'N'){
+                        datos.forEach((dato)=>{
+                            if(dato.IdRCDTT === undefined){
+                                if(dato.Tarea.ExisteEnGantt === '1'){
+                                    datosFiltrados.push(dato)
+                                }
+                            }else{
+                                if(dato.IdRCDTT.ExisteEnGantt === '1'){
+                                    datosFiltrados.push(dato)
+                                }
+                            }
+                        })
+                        /*let datosTramites = datos.filter(x=> x.IdRCDTT !== undefined)
+                        datosTramites = datosTramites.filter(x=> x.IdRCDTT.ExisteEnGantt === '1')
+                        datosFiltrados = datos.filter(x=> x.Tarea.ExisteEnGantt === '1' && x.IdRCDTT !== undefined)
+                        datosFiltrados = datosFiltrados.concat(datosTramites)*/
+                    }
                 }else{
                     if(tipo === 'N'){
                         datosFiltrados = datos.filter(x=> x.IdTarea.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
@@ -1539,16 +1597,6 @@ const util = {
 
         const uniqueById = uniqByProp("ID");
         return uniqueById(dataSource);
-        /*dataSource.reduce((acc, current) => {
-            const x = acc.find(item => item.ID === current.ID);
-            if (!x) {
-              return acc.concat([current]);
-            } else {
-              return acc;
-            }
-          }, []);
-          
-        return dataSource*/
     }
 }
 export default util;

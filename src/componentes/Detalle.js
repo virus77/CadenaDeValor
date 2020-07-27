@@ -6,6 +6,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import util from '../js/util'
+import CRUD from '../js/CRUD';
 import '../estilos/detalle.css';
 
 const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
@@ -27,13 +28,12 @@ class Detalle extends Component {
     onGuardar = async () => {
         const { idElemento, estatusActual, estatus, lista } = this.state
         if (estatusActual.ID !== estatus.ID) {
-            await currentWeb.lists.getByTitle(lista).items.getById(idElemento).update({
-                EstatusId: estatus.ID
+            await CRUD.updateListItem(currentWeb, lista, idElemento, {EstatusId: estatus.ID}).then(() => {
+                this.props.datosRetorno(this.state)
+                this.onCerrar()
+            }).catch(error=>{
+                alert('ERROR AL ACTUALIZAR LA INCIDENCIA ' + idElemento + ': ' + error)
             })
-                .then(() => {
-                    this.props.datosRetorno(this.state)
-                    this.onCerrar()
-                })
         } else {
             this.onCerrar()
         }

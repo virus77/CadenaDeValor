@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PeoplePicker from './UserPicker'
+import PeoplePicker from './PeoplePicker'
 import Backdrop from '../componentes/Backdrop';
 import { sp } from "@pnp/sp";
 import { Web } from "@pnp/sp/webs";
@@ -9,6 +9,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import util from '../js/util'
+import CRUD from '../js/CRUD';
 import moment from 'moment'
 import '../estilos/actividadFicticia.css';
 
@@ -67,7 +68,7 @@ class ActividadFicticia extends Component {
                     })
                 })
                 .catch(error => {
-                    alert('Error al cargar la información: ' + error)
+                    alert('ERROR AL CARGAR LA INFORMACIÓN: ' + error)
                 })
         }
         else {
@@ -101,8 +102,9 @@ class ActividadFicticia extends Component {
     //#region Eventos genericos
 
     actualizarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) => {
+        let json = {}
         if (lineaBase !== '' && fechaEstimada !== '') {
-            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            json = {
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -111,9 +113,12 @@ class ActividadFicticia extends Component {
                 FechaEstimada: fechaEstimada,
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
+            }
+            await CRUD.updateListItem(currentWeb, "Flujo Tareas", this.state.ID, json).catch(error=>{
+                alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ': ' + error)
             })
         } else if (lineaBase !== '' && fechaEstimada === '') {
-            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            json = {
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
@@ -121,31 +126,37 @@ class ActividadFicticia extends Component {
                 LineaBaseModificoId: usuarioActual.Id,
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
-            })
+            }
         } else if (lineaBase === '' && fechaEstimada !== '') {
-            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            json = {
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
                 FechaEstimada: fechaEstimada,
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
-            })
+            }
         } else if (lineaBase === '' && fechaEstimada === '') {
-            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).update({
+            json = {
                 NombreActividad: this.state.NombreActividad,
                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                 AsignadoAId: usuariosAsignados,
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
+            }
+        }
+        if(Object.keys(json).length > 0){
+            await CRUD.updateListItem(currentWeb, "Flujo Tareas", this.state.ID, json).catch(error=>{
+                alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ': ' + error)
             })
         }
     }
 
     guardarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) => {
+        let json = {}
         let result
         if (lineaBase !== '' && fechaEstimada !== '') {
-            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
+            json = {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1 : 2,
@@ -159,11 +170,9 @@ class ActividadFicticia extends Component {
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 Orden: this.state.Orden
-            }).catch(error => {
-                alert('Error al guardar en flujo tareas: ' + error)
-            })
+            }
         } else if (lineaBase !== '' && fechaEstimada === '') {
-            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
+            json = {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1 : 2,
@@ -176,11 +185,9 @@ class ActividadFicticia extends Component {
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 Orden: this.state.Orden
-            }).catch(error => {
-                alert('Error al guardar en flujo tareas: ' + error)
-            })
+            }
         } else if (lineaBase === '' && fechaEstimada !== '') {
-            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
+            json = {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1 : 2,
@@ -192,11 +199,9 @@ class ActividadFicticia extends Component {
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 Orden: this.state.Orden
-            }).catch(error => {
-                alert('Error al guardar en flujo tareas: ' + error)
-            })
+            }
         } else if (lineaBase === '' && fechaEstimada === '') {
-            result = await currentWeb.lists.getByTitle('Flujo Tareas').items.add({
+            json = {
                 IdProyectoInversionId: this.props.datos.info.idPI,
                 IdTareaId: this.props.datos.Tarea.ID,
                 NivelId: this.props.datos.info.tipo === 'PI' ? 1 : 2,
@@ -207,19 +212,24 @@ class ActividadFicticia extends Component {
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 Orden: this.state.Orden
-            }).catch(error => {
-                alert('Error al guardar en flujo tareas: ' + error)
+            }
+        }
+        if(Object.keys(json).length > 0){
+            result = await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+                alert('ERROR AL INSERTAR EN LA LISTA FLUJO DE TAREAS: ' + error)
             })
         }
         return result
     }
 
     obtenerIdEG = async (IdFlujoTareas) => {
-        let resultados
-        resultados = await currentWeb.lists.getByTitle('EstrategiaGestion').items
-            .select('ID')
-            .filter('IdFlujoTareasId eq ' + IdFlujoTareas)
-            .get()
+        let resultados = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+        .select('ID')
+        .filter('IdFlujoTareasId eq ' + IdFlujoTareas)
+        .get()
+        .catch(error => {
+            alert('ERROR AL OBTENER LOS DATOS DEL FLUJO ' + IdFlujoTareas + ' EN LA E.G.: ' + error)
+        })
         return resultados
     }
 
@@ -241,20 +251,17 @@ class ActividadFicticia extends Component {
     onEliminar = async () => {
         if (window.confirm('¿Está seguro de eliminar esta actividad?')) {
             this.setState({ backdrop: { abierto: true, mensaje: 'Borrando la actividad...' } })
-            await currentWeb.lists.getByTitle("Flujo Tareas").items.getById(this.state.ID).delete()
-                .then(async () => {
-                    if (this.state.IDEG > 0) {
-                        await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).delete()
-                            .catch(error => {
-                                alert('Error al eliminar en Estrategia de gestión: ' + error)
-                            })
-                    }
-                    this.props.datosRetorno(this.state)
-                    this.onCerrar()
-                })
-                .catch(error => {
-                    alert('Error al eliminar en Flujo Tareas: ' + error)
-                })
+            await CRUD.deleteListItem(currentWeb, "Flujo Tareas", this.state.ID).then(async () => {
+                if (this.state.IDEG > 0) {
+                    await CRUD.deleteListItem(currentWeb, "EstrategiaGestion", this.state.IDEG).catch(error => {
+                        alert('ERROR AL INTENTAR ELIMINAR EN ESTRATEGIA DE GESTIÓN EL ELEMENTO ' + this.state.IDEG + ': ' + error)
+                    })
+                }
+                this.props.datosRetorno(this.state)
+                this.onCerrar()
+            }).catch(error => {
+                alert('ERROR AL INTENTAR ELIMINAR EN FLUJO TAREAS EL ELEMENTO ' + this.state.ID + ': ' + error)
+            })
         }
     }
 
@@ -266,7 +273,7 @@ class ActividadFicticia extends Component {
                     const usuariosAsignados = util.obtenerIdAsignados(this.state.usuarioAsignados)
                     const fta = await this.guardarFlujoTareas(this.state.LineaBase, this.state.FechaEstimada, usuariosAsignados)
                     if (this.state.OrdenEG !== undefined) {
-                        await currentWeb.lists.getByTitle('EstrategiaGestion').items.add({
+                        const json = {
                             ProyectoInversionId: this.props.datos.info.idPI,
                             TerrenoId: this.props.datos.info.idTerr === 0 ? null : this.props.datos.info.idTerr,
                             TareaId: this.props.datos.Tarea.ID,
@@ -277,14 +284,13 @@ class ActividadFicticia extends Component {
                             IdFlujoTareasId: fta.data.Id,
                             EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                             OrdenEG: this.state.OrdenEG
+                        }
+                        await CRUD.createListItem(currentWeb, 'EstrategiaGestion', json).then(() => {
+                            this.props.datosRetorno(this.state)
+                            this.onCerrar()
+                        }).catch(error => {
+                            alert('ERROR AL INSERTAR EN LA LISTA E.G.: ' + error)
                         })
-                            .then(() => {
-                                this.props.datosRetorno(this.state)
-                                this.onCerrar()
-                            })
-                            .catch(error => {
-                                alert('Error al guardar en Estrategia de gestión: ' + error)
-                            })
                     } else {
                         this.props.datosRetorno(this.state)
                         this.onCerrar()
@@ -295,30 +301,28 @@ class ActividadFicticia extends Component {
             } else {
                 this.setState({ backdrop: { abierto: true, mensaje: 'Guardando...' } })
                 const usuariosAsignados = util.obtenerIdAsignados(this.state.usuarioAsignados)
-                await this.actualizarFlujoTareas(this.state.LineaBase, this.state.FechaEstimada, usuariosAsignados)
-                    .then(async () => {
-                        if (this.state.OrdenEG !== undefined) {
-                            if (this.state.IDEG > 0) {
-                                await currentWeb.lists.getByTitle("EstrategiaGestion").items.getById(this.state.IDEG).update({
-                                    NombreActividad: this.state.NombreActividad,
-                                    AsignadoAId: usuariosAsignados,
-                                    GrupoResponsableId: this.state.GrupoResponsable.ID,
-                                    EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus
-                                })
-                                    .catch(error => {
-                                        alert('Error al guardar en Estrategia de gestión: ' + error)
-                                    })
+                await this.actualizarFlujoTareas(this.state.LineaBase, this.state.FechaEstimada, usuariosAsignados).then(async () => {
+                    if (this.state.OrdenEG !== undefined) {
+                        if (this.state.IDEG > 0) {
+                            const json = {
+                                NombreActividad: this.state.NombreActividad,
+                                AsignadoAId: usuariosAsignados,
+                                GrupoResponsableId: this.state.GrupoResponsable.ID,
+                                EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus
                             }
-                            this.props.datosRetorno(this.state)
-                            this.onCerrar()
-                        } else {
-                            this.props.datosRetorno(this.state)
-                            this.onCerrar()
+                            await CRUD.updateListItem(currentWeb, "EstrategiaGestion", this.state.IDEG, json).catch(error=>{
+                                alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ' EN LA E.G. : ' + error)
+                            })
                         }
-                    })
-                    .catch(error => {
-                        alert('Error al guardar en flujo tareas: ' + error)
-                    })
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
+                    } else {
+                        this.props.datosRetorno(this.state)
+                        this.onCerrar()
+                    }
+                }).catch(error => {
+                    alert('ERROR AL GUARDAR EN FLUJO TAREAS: ' + error)
+                })
             }
         } else {
             alert('Debe llenar todos los campos obligatorios')

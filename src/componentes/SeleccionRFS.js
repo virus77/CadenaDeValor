@@ -151,7 +151,10 @@ class SeleccionRFS extends Component{
         const terrenos = await currentWeb.lists.getByTitle("Terrenos").items
         .filter('IdProyectoInversionId eq ' + this.props.datos.ProyectoInversion.ID + ' and Empadronamiento eq null')
         .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO', 'Empadronamiento')
-        .get();
+        .get()
+        .catch(error => {
+            alert('ERROR AL CARGAR LA VENTANA: ' + error)
+        });
         this.setState({terrenos: terrenos})
     }
 

@@ -18,13 +18,14 @@
     "@testing-library/react": "^9.4.1",
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.19.2",
-    "bootstrap": "^4.4.1",
+    "bootstrap": "^4.5.0",
     "cors": "^2.8.5",
     "date-fns": "^2.12.0",
     "immutability-helper": "^3.0.1",
     "jquery": "^3.5.0",
     "popper.js": "^1.16.1",
     "react": "^16.13.0",
+    "react-bootbox": "^1.1.1",
     "react-bootstrap": "^1.0.0-beta.17",
     "react-bootstrap-validation": "^0.1.11",
     "react-dom": "^16.13.0",
@@ -33,7 +34,8 @@
     "reactstrap": "^8.4.1",
     "semantic-ui-react": "^0.88.2",
     "styled-components": "^5.0.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "webpack": "4.41.5"
   },
   "scripts": {
     "start": "react-scripts start",

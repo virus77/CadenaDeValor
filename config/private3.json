@@ -1,7 +1,7 @@
 {
-  "siteUrl": "http://con.quierocasa.com.mx:21520/CompraDeTerreno/",
+  "siteUrl": "http://sp.quierocasa.com.mx:21520/compradeterreno/",
   "strategy": "OnpremiseUserCredentials",
-  "username": "az.adconsultor",
-  "password": "951247e41dd5b77518e9e31451c2e3f63522530947a7b8240d8935b96814669b4f784c76d7a01e38cd131266238ae1bf7D0DW5+TXaGQG9jit+7qpw==",
+  "username": "gustavo.magana",
+  "password": "b63e46ebb57504d03818c89c0fc2b340d88f6c68426308d956c71e120660e8f3cc43857a46c0e561b9f8096ed86771d6tBeDyTlAdZ/O8hGxeFDpKQ==",
   "domain": "quierocasa"
 }
