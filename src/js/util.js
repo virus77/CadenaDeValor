@@ -352,13 +352,15 @@ const util = {
             //let strGruposUsuarioActual = gruposUsuarioActual.filter(x => x.AdminAreaGanttId.includes(usuarioActual) && x.NombreCortoGantt !== 'EG')
             let strGruposUsuarioActual = gruposUsuarioActual.filter(x => (x.AdminAreaGanttId.includes(usuarioActual) || x.RespAreaGanttId.includes(usuarioActual) || x.NombreCortoGantt === 'TODOS') && x.NombreCortoGantt !== 'EG')
             strGruposUsuarioActual = strGruposUsuarioActual.map((x)=> { return x.NombreCortoGantt}).join(',')
-            datosVentana.forEach(registro => {
-                if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
-                    values.push('')
-                }
-                else if(strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(registro.AsignadoA).results.includes(usuarioActual))
-                { values.push(registro) }
-            })
+            if(!strGruposUsuarioActual.includes('VISIT')){
+                datosVentana.forEach(registro => {
+                    if(!strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt.toString()) && registro.AsignadoA === undefined){
+                        values.push('')
+                    }
+                    else if(strGruposUsuarioActual.includes(registro.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(registro.AsignadoA).results.includes(usuarioActual))
+                    { values.push(registro) }
+                })
+            }else{ values = datosVentana }
         }else{ values = datosVentana }
         return values.filter(x=> x !== '' && x !== undefined && x !== null)
     },
@@ -647,8 +649,8 @@ const util = {
     },
     crearBitacoras: async function(idTarea,terreno, PI, tareaCrear){
         const rootweb = await currentWeb.getParentWeb()
-        let websCdV = await rootweb.web.webs()
-        let webBitacoras = websCdV[2]
+        let websCdV = await rootweb.web.webs();
+        let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras');
         webBitacoras = await sp.site.openWebById(webBitacoras.Id)
         let json = {}
         if(tareaCrear!== '0'){
@@ -811,7 +813,7 @@ const util = {
     obtenerBitacorasInfo: async function(proyectoTitulo, terrenoTitulo){
         const rootweb = await currentWeb.getParentWeb();
         let websCdV = await rootweb.web.webs();
-        let webBitacoras = websCdV[2];
+        let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras');
         webBitacoras = await sp.site.openWebById(webBitacoras.Id);
         let datos = { bitacoras: [], solucion: [] }
 
@@ -1047,7 +1049,7 @@ const util = {
                 estatus: []
             }
             datosVentana.forEach((item)=>{
-                const permitido = filtrosTabla.ver.length > 0 ? true : (strGruposUsuarioActual.includes(item.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(item.AsignadoA).results.includes(usuarioActual) ? true : false)
+                const permitido = filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') ? true : (strGruposUsuarioActual.includes(item.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(item.AsignadoA).results.includes(usuarioActual) ? true : false)
                 if(item.GrupoResponsable !== undefined){
                     if (filtrosTabla.ver.length > 0){
                         if(!filtros.responsable.includes(item.GrupoResponsable.NombreCortoGantt)){
@@ -1410,9 +1412,9 @@ const util = {
         switch(filtro){
             case 'favs':
                 if(tipo !== 'B'){
-                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
                 }else{
-                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.AreaAsignadaInc.NombreCorto) || this.obtenerIdAsignados(x.AsignadoAInc).results.includes(usuarioActual))))
+                    datosFiltrados = datos.filter(x=> this.contieneAsignadoA(x.Favoritos, usuarioActual.Id) && (filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') || (strGruposUsuarioActual.includes(x.AreaAsignadaInc.NombreCorto) || this.obtenerIdAsignados(x.AsignadoAInc).results.includes(usuarioActual))))
                 }
                 break;
             case 'gantt':
@@ -1429,18 +1431,14 @@ const util = {
                                 }
                             }
                         })
-                        /*let datosTramites = datos.filter(x=> x.IdRCDTT !== undefined)
-                        datosTramites = datosTramites.filter(x=> x.IdRCDTT.ExisteEnGantt === '1')
-                        datosFiltrados = datos.filter(x=> x.Tarea.ExisteEnGantt === '1' && x.IdRCDTT !== undefined)
-                        datosFiltrados = datosFiltrados.concat(datosTramites)*/
                     }
                 }else{
                     if(tipo === 'N'){
-                        datosFiltrados = datos.filter(x=> x.IdTarea.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                        datosFiltrados = datos.filter(x=> x.IdTarea.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
                     }else if(tipo === 'T'){
-                        datosFiltrados = datos.filter(x=> x.IdDocTramite.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                        datosFiltrados = datos.filter(x=> x.IdDocTramite.ExisteEnGantt === '1' && (filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
                     }else if(tipo === 'M'){
-                        datosFiltrados = datos.filter(x=> x.Visible && (filtrosTabla.ver.length > 0 || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
+                        datosFiltrados = datos.filter(x=> x.Visible && (filtrosTabla.ver.length > 0 || strGruposUsuarioActual.includes('VISIT') || (strGruposUsuarioActual.includes(x.GrupoResponsable.NombreCortoGantt) || this.obtenerIdAsignados(x.AsignadoA).results.includes(usuarioActual))))
                     }
                 }
                 break;
@@ -1494,7 +1492,6 @@ const util = {
                         opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezadoOriginal)
                     }
                 }else{
-                    //if(filtroTabla.columna === filtrosTablaOrden[index -1].columna && !cambioFiltro){
                     if(filtroTabla.columna === filtrosTablaOrden[index -1].columna){
                         if(filtroTabla.columna === 'favs' || filtroTabla.columna === 'gantt' || filtroTabla.columna === 'ver'){
                             datosFiltrados.datos = datosFiltrados.datos.concat(this.filtrarPorFavsGanttTodos(idVentana, dataSourceCdT.datos, filtroTabla.columna, 'N', usuarioActual, gruposUsuarioActual, filtrosTabla))
@@ -1511,11 +1508,19 @@ const util = {
                         }
                     }else{
                         cambioFiltro = true
-                        datosFiltrados.datos = this.filtrarDatos(datosFiltrados.datos, filtroTabla.columna, filtroTabla.valor, 'N')
-                        datosFiltradosMkt = this.filtrarDatos(dataSourceMkt, filtroTabla.columna, filtroTabla.valor, 'M')
-                        datosFiltradosFPT = this.filtrarDatos(datosFiltradosFPT, filtroTabla.columna, filtroTabla.valor, 'N')
-                        datosFiltradosBit = this.filtrarDatos(dataSourceBit, filtroTabla.columna, filtroTabla.valor, 'B')
-                        opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezado)
+                        if(filtroTabla.columna === 'favs' || filtroTabla.columna === 'gantt' || filtroTabla.columna === 'ver'){
+                            datosFiltrados.datos = this.filtrarPorFavsGanttTodos(idVentana, datosFiltrados.datos, filtroTabla.columna, 'N', usuarioActual, gruposUsuarioActual, filtrosTabla)
+                            datosFiltradosMkt = this.filtrarPorFavsGanttTodos(idVentana, datosFiltradosMkt, filtroTabla.columna, 'M', usuarioActual, gruposUsuarioActual, filtrosTabla)
+                            datosFiltradosFPT = this.filtrarPorFavsGanttTodos(idVentana, datosFiltradosFPT, filtroTabla.columna, 'T', usuarioActual, gruposUsuarioActual, filtrosTabla)
+                            datosFiltradosBit = this.filtrarPorFavsGanttTodos(idVentana, datosFiltradosBit, filtroTabla.columna, 'B', usuarioActual, gruposUsuarioActual, filtrosTabla)
+                            opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezadoOriginal)
+                        }else{
+                            datosFiltrados.datos = this.filtrarDatos(datosFiltrados.datos, filtroTabla.columna, filtroTabla.valor, 'N')
+                            datosFiltradosMkt = this.filtrarDatos(dataSourceMkt, filtroTabla.columna, filtroTabla.valor, 'M')
+                            datosFiltradosFPT = this.filtrarDatos(datosFiltradosFPT, filtroTabla.columna, filtroTabla.valor, 'N')
+                            datosFiltradosBit = this.filtrarDatos(dataSourceBit, filtroTabla.columna, filtroTabla.valor, 'B')
+                            opcionesFiltrosEncabezado = this.actualizarFiltrosEncabezado(idVentana, datosFiltrados, datosFiltradosFPT, datosFiltradosBit, filtroTabla.columna, opcionesFiltrosEncabezado)
+                        }
                     }
                 }
             })

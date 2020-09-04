@@ -284,12 +284,6 @@ class Ventana extends Component {
         }
     }
 
-    onCerrar = () => {
-        this.setState(this.initialState)
-        this.props.cerrar()
-    }
-    //#endregion
-
     guardarDatos = async (listas, camposLista) => {
         await util.asyncForEach(listas, async lista => {
             if (lista !== 'Documentos' && lista !== 'null' && lista !== '0') {
@@ -433,11 +427,11 @@ class Ventana extends Component {
                         const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === campoLista.campo)
                         let campoRef = this.state.campos[filaIndice]
                         campoLista.valor = campoRef.valor
-                        if (campoRef.valor !== null && campoRef.valor !== undefined) {
+                        if (campoRef.valor !== '' && campoRef.valor !== null && campoRef.valor !== undefined) {
                             json.IdFlujoId = idElemento
                             json.Title = campoLista.campo
-                            json.InteresadosId = campoLista.tipo === 'PeoplePicker' ? util.obtenerIdAsignados(campoRef.valor) : { results: [campoRef.valor.Id] }
-
+                            json.InteresadosId = campoLista.tipo === 'PeoplePicker' ? util.obtenerIdAsignados(campoRef.valor) : (campoRef.valor.Id !== undefined ? { results: [campoRef.valor.Id] } : { results: [] })
+                            
                             const datos = await currentWeb.lists.getByTitle(lista).items
                             .select('ID', 'IdFlujoId', 'Title', 'Interesados/Id', 'Interesados/Title')
                             .filter("IdFlujoId eq " + idElemento + " and Title eq '" + campoLista.campo + "'")
@@ -467,7 +461,10 @@ class Ventana extends Component {
                         let campoRef = this.state.campos[filaIndice]
                         if(campoRef.valor !== null && campoRef.valor !== undefined){
                             campoLista.valor = campoRef.valor
-                            if(campoLista.valor != ''){
+                            if(campoLista.tipo === 'CheckBox'){
+                                json[campoLista.campo] = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
+                            }
+                            else if(campoLista.valor != ''){
                                 json[campoLista.campo] = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                             }
                             return campoLista
@@ -477,10 +474,28 @@ class Ventana extends Component {
                         if(json.Calle !== undefined && json.NoExterior !== undefined){
                             json.NombredelTerreno2 = json.Calle + ' - ' + json.NoExterior
                         }
-                    }else if(this.state.idTarea === 98){
-                        json.LinkFichasVenta = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Fichas de venta'
-                        json.LinkMemoriaAcabados = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Memoria de acabados'
-                        json.LinkFichasDesarrollo = 'Documents/' + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + '/' + this.props.abrir.filaSeleccionada.IdTerreno.Title + '/' + json.ClaveDesarrollo + '/Fichas del desarrollo'
+                    }else if(this.state.idTarea === 215 || this.state.idTarea === 248){
+                        const consultaConsecutivo = await currentWeb.lists.getByTitle("Historico de registro de cambio").items
+                        .select("ID", "Consecutivo")
+                        .filter("(Title eq '" + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + "') and (" + (this.state.idTarea === 215 ? "Terreno eq null" : "Terreno eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "'") + ")")
+                        .orderBy("Consecutivo")
+                        .top(1000)
+                        .get()
+
+                        const a = this.state.catalogo[0].datos.find(x=> x.Id === json.GrupoResponsable)
+
+                        const jsonHRC = {
+                            Consecutivo: consultaConsecutivo.length + 1,
+                            Title: this.props.abrir.filaSeleccionada.IdProyectoInversion.Title,
+                            Terreno: this.state.idTarea === 215 ? '' : this.props.abrir.filaSeleccionada.IdTerreno.Title,
+                            NombreSolicitudCambio: json.NombreSolicitudCambio,
+                            GrupoResponsable: json.GrupoResponsable !== undefined ? this.state.catalogo[0].datos.find(x=> x.Id === json.GrupoResponsable).Title : '',
+                            FechaAutorizacionCambios: json.FechaAutorizacionCambios,
+                            ComentariosRegistroCambio: json.ComentariosSolicitudCambio
+                        }
+                        await CRUD.createListItem(currentWeb, 'Historico de registro de cambio', jsonHRC).catch(error => {
+                            alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
+                        })
                     }
                     if(Object.keys(json).length > 0){
                         await CRUD.updateListItem(currentWeb, lista, idElemento, json).catch(error=>{
@@ -492,15 +507,13 @@ class Ventana extends Component {
         })
     }
 
-    validate() {
-        this.form.current.reportValidity()
+    onCerrar = () => {
+        this.setState(this.initialState)
+        this.props.cerrar()
     }
+    //#endregion
 
-    obtenerTotalTerrenosPI = async () => {
-        const terrenos = await currentWeb.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.abrir.filaSeleccionada.ProyectoInversion.ID + ' and Empadronamiento eq null').get();
-        return terrenos.length
-    }
-
+    //#region Funciones
     obtenerCampos = async id => {
         let { refs, camposLista, catalogo, archivosCargados, idTarea, datosTramite } = this.state
         let catalogoEstatus = await currentWeb.lists.getByTitle('Estatus').items
@@ -575,7 +588,7 @@ class Ventana extends Component {
                     })
 
                     camposLista = util.groupBy(this.state.camposLista, 'listaPrincipal')
-                    const listas = []
+                    let listas = []
                     for (let prop in camposLista) {
                         listas.push(prop)
                     }
@@ -592,6 +605,7 @@ class Ventana extends Component {
                         })
                     }
                     const obtenerDatos = async () => {
+                        let noAplicaGeneral = false
                         await util.asyncForEach(listas, async lista => {
                             if (lista !== 'Documentos' && lista !== 'null') {
                                 let elementos = camposLista[lista]
@@ -680,10 +694,10 @@ class Ventana extends Component {
                                         campos.map((campo) => {
                                             if(campo.ListaDeGuardado === lista){
                                                 if (datos.some(x=> x.Title === campo.TituloInternoDelCampo)) {
-                                                    campo.valor = campo.TipoDeCampo === 'PeoplePicker' ? datos.find(x=> x.Title === campo.TituloInternoDelCampo).Interesados : datos.find(x=> x.Title === campo.TituloInternoDelCampo).Interesados[0]
+                                                    campo.valor = campo.TipoDeCampo === 'PeoplePicker' ? datos.find(x=> x.Title === campo.TituloInternoDelCampo).Interesados : (datos.find(x=> x.Title === campo.TituloInternoDelCampo).Interesados !== undefined ? datos.find(x=> x.Title === campo.TituloInternoDelCampo).Interesados[0] : [])
                                                 }
                                                 else{
-                                                    campo.valor = ''
+                                                    campo.TipoDeCampo === 'PeoplePicker' ? campo.valor = [] : campo.valor = ''
                                                 }
                                             }
                                             return campo
@@ -693,7 +707,16 @@ class Ventana extends Component {
                                     await currentWeb.lists.getByTitle(lista).items.getById(idElemento).select(camposSelect).get().then((datos) => {
                                         campos.map((campo) => {
                                             const valor = datos[campo.TituloInternoDelCampo]
-                                            if (valor !== undefined) { campo.valor = util.returnDataByFieldType(valor, campo.TipoDeCampo) }
+                                            if (valor !== undefined) {
+                                                campo.valor = util.returnDataByFieldType(valor, campo.TipoDeCampo)
+                                                if (typeof campo.valor === 'boolean') {
+                                                    noAplicaGeneral = campo.valor
+                                                }
+                                            }
+                                            if (typeof campo.valor !== 'boolean' && noAplicaGeneral) {
+                                                campo.Editable = false
+                                                campo.Requerido = false
+                                            }
                                             return campo
                                         })
                                     }).catch(error => {
@@ -737,69 +760,6 @@ class Ventana extends Component {
         }
     }
 
-    //#region Métodos de ciclo de vida
-    async componentDidMount() {
-        const { archivosCargados } = this.state
-        if (this.props.abrir.abierto) {
-           if (this.props.abrir.filaSeleccionada.Tarea !== undefined) {
-                //Cuando la tarea viene de estrategia de gestión
-                if (this.props.abrir.filaSeleccionada.Tarea.ID === 24) {
-                    if (this.props.abrir.filaSeleccionada.Estatus.ID === 3) {
-                        this.obtenerDatosGuardados(this.props.abrir.id)
-                    }
-                } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 269) {
-                    const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
-                    const result = await this.obtenerDocumentosCargados(urlDoctos, 'EGAutorizada')
-                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL + '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl }) }
-                }
-            }
-            this.obtenerCampos(this.props.abrir.id)
-        }
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (this.state.usuarioAsignados.length !== nextState.usuarioAsignados.length) {
-            return false
-        } else {
-            return true
-        }
-    }
-
-    //#endregion
-    onSeleccionarItems = (items) => {
-        const filaIndice = this.state.campos.findIndex(x => x.TituloInternoDelCampo === items.idCampo)
-        let campoActual = this.state.campos[filaIndice]
-        if(!items.nulo){
-            campoActual.valor = items
-        }else{
-            campoActual.valor = []
-        }
-        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
-        this.setState({ campos: datosActualizados })
-    }
-
-    onSeleccionar = e => {
-        const { id } = e.target;
-        this.setState({ radioChecked: id });
-    }
-
-    onSeleccionMultiple = (event) => {
-        const filaIndice = this.state.campos.findIndex(x => x.TituloInternoDelCampo === event.target.name)
-        let campoActual = this.state.campos[filaIndice]
-        campoActual.valor = event.target.value
-        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
-        this.setState({ campos: datosActualizados })
-    }
-
-    obtenerPosiciones = usuarios => {
-        var items = this.state.usuarioAsignados.map((usuario) => {
-            if (usuario.Id !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.Id))] }
-            else if (usuario.ID !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.ID))] }
-            return usuario
-        })
-        this.setState({ usuarioAsignados: items })
-    }
-
     obtenerDatosGuardados = async (id) => {
         const item = await currentWeb.lists.getByTitle("RFSN").items
         .filter('IdFlujoId eq ' + id + 'and IdTerrenoId eq null')
@@ -829,6 +789,194 @@ class Ventana extends Component {
         return result
     }
 
+    obtenerPosiciones = usuarios => {
+        var items = this.state.usuarioAsignados.map((usuario) => {
+            if (usuario.Id !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.Id))] }
+            else if (usuario.ID !== undefined) { return usuarios[usuarios.findIndex((obj => obj.Id === usuario.ID))] }
+            return usuario
+        })
+        this.setState({ usuarioAsignados: items })
+    }
+
+    obtenerTotalTerrenosPI = async () => {
+        const terrenos = await currentWeb.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.abrir.filaSeleccionada.ProyectoInversion.ID + ' and Empadronamiento eq null').get();
+        return terrenos.length
+    }
+
+    respaldarValores = () => {
+        let datosActualizados = []
+        for (let ref in this.state.refs) {
+            const valor = this.state.refs[ref].current !== null ? (this.state.refs[ref].current.type === 'checkbox' ? (this.state.refs[ref].current.checked ? true : false) : this.state.refs[ref].current.value) : ''
+            if (valor !== '') {
+                const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === ref)
+                let campoActual = this.state.campos[filaIndice]
+                campoActual.valor = valor
+                datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+            }
+        }
+        return datosActualizados
+    }
+
+    validate() {
+        this.form.current.reportValidity()
+    }
+    //#endregion
+
+    //#region Métodos de ciclo de vida
+    async componentDidMount() {
+        const { archivosCargados } = this.state
+        if (this.props.abrir.abierto) {
+           if (this.props.abrir.filaSeleccionada.Tarea !== undefined) {
+                //Cuando la tarea viene de estrategia de gestión
+                if (this.props.abrir.filaSeleccionada.Tarea.ID === 24) {
+                    if (this.props.abrir.filaSeleccionada.Estatus.ID === 3) {
+                        this.obtenerDatosGuardados(this.props.abrir.id)
+                    }
+                } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 269) {
+                    const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
+                    const result = await this.obtenerDocumentosCargados(urlDoctos, 'EGAutorizada')
+                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL + '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl }) }
+                }
+            }
+            this.obtenerCampos(this.props.abrir.id)
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.state.usuarioAsignados.length !== nextState.usuarioAsignados.length) {
+            return false
+        } else {
+            return true
+        }
+    }
+    //#endregion
+
+    //#region  Eventos de controles
+    onCambiar = (e) =>{
+        let {campos} = this.state
+
+        const filaIndice = campos.findIndex(campo => campo.TituloInternoDelCampo === e.target.id)
+        let campoActual = campos[filaIndice]
+        campoActual.valor = e.target.value
+        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+
+        this.setState({ campos: datosActualizados })
+        if(campoActual.Accion !== null){
+            this[campoActual.Accion](campoActual.Parametros)
+        }
+    }
+
+    async onCargarArchivo(e, nombreDocumento) {
+        const { archivosCargados } = this.state
+        if (window.confirm('¿Desea adjuntar el archivo "' + e.target.files[0].name + '"?')) {
+            const { id, name } = e.target
+            const archivo = e.target.files[0]
+            const extension = archivo.name.split('.').pop()
+            if (!this.props.abrir.esTarea) {
+                const rootweb = await currentWeb.getParentWeb()
+                let webCdV = Web(rootweb.data.Url)
+                const urlCargar = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
+                await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
+                    .then(async (docto) => {
+                        const item = await docto.file.getItem()
+                        await item.update({
+                            Title: nombreDocumento
+                        })
+                            .then(async () => {
+                                let index = archivosCargados.findIndex(x => x.nombreInterno === nombreDocumento)
+                                if (index === -1) {
+                                    archivosCargados.push({ nombreInterno: nombreDocumento, archivo: docto.data.Name, icono: rootweb.data.Url + '/CompraDeTerreno/images/iconos/' + extension + '.png', url: rootweb.data.Url + docto.data.ServerRelativeUrl })
+                                }
+                                alert('Su archivo se cargó correctamente')
+                                this.setState({ archivosCargados: archivosCargados })
+                            })
+                    }).catch(error => {
+                        alert('ERROR AL CARGAR EL ARCHIVO: ' + error)
+                    })
+            } else {
+                this.uploadFile(name.toString(), id, 'Fu' + id, archivo, extension)
+            }
+        }
+    }
+
+    onSeleccionar = e => {
+        const { id } = e.target;
+        this.setState({ radioChecked: id });
+    }
+
+    onSeleccionarItems = (items) => {
+        const filaIndice = this.state.campos.findIndex(x => x.TituloInternoDelCampo === items.idCampo)
+        let campoActual = this.state.campos[filaIndice]
+        if(!items.nulo){
+            campoActual.valor = items
+        }else{
+            campoActual.valor = []
+        }
+        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+        this.setState({ campos: datosActualizados })
+    }
+
+    onSeleccionMultiple = (event) => {
+        const filaIndice = this.state.campos.findIndex(x => x.TituloInternoDelCampo === event.target.name)
+        let campoActual = this.state.campos[filaIndice]
+        campoActual.valor = event.target.value
+        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
+        this.setState({ campos: datosActualizados })
+    }
+
+    uploadFile = (IdDocumento, IdControl, href, archivo, extension) => {
+        let { archivosValidos, idTarea, archivosCargados } = this.state
+        let IdProyectoInversion, IdTerreno, Nivel, ID
+        if (this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas') {
+            IdProyectoInversion = this.props.abrir.filaSeleccionada.IdProyectoInversion
+            IdTerreno = this.props.abrir.filaSeleccionada.IdTerreno
+            Nivel = this.props.abrir.filaSeleccionada.Nivel
+            ID = this.props.abrir.filaSeleccionada.ID
+        } else if (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites') {
+            IdProyectoInversion = this.state.datosTramite[0].IdProyectoInversion
+            IdTerreno = this.state.datosTramite[0].IdTerreno
+            Nivel = this.state.datosTramite[0].Nivel
+            ID = this.state.datosTramite[0].ID
+            idTarea = this.state.datosTramite[0].IdTareaId
+        }
+        if (!archivosValidos.includes(extension)) {
+            alert('Archivo con extensión inválida: "' + extension + '"')
+        }
+        else {
+            let datosActualizados = this.respaldarValores()
+            let formData = new FormData()
+            formData.append("file", archivo)
+            const url = this.props.abrir.url + '/CompraDeTerreno/_layouts/15/IQC.CadenaValor.CompraDeTerreno.Services/HandlerFileUpload.ashx?' + idTarea + "|" + IdDocumento + "|" + IdProyectoInversion.ID + "|" + (IdTerreno === undefined ? 0 : IdTerreno.ID) + "|" + 0 + "|" + 0 + "|" + IdProyectoInversion.Title + "|" + (IdTerreno === undefined ? '' : IdTerreno.Title) + "|" + '' + "|" + '' + "|" + (Nivel.ID === 1 ? 'I' : (Nivel.ID === 2 ? 'T' : 'C')) + "|" + IdControl + "|" + href + "|" + ID + ""
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                dataType: 'json',
+                async: false,
+                crossDomain: true,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    let resultUrl = new URL(data)
+                    let index = archivosCargados.findIndex(x => x.nombreInterno === IdControl)
+                    if (index === -1) {
+                        archivosCargados.push({ nombreInterno: IdControl, archivo: IdControl + '.' + extension, icono: resultUrl.origin + '/CompraDeTerreno/images/iconos/' + extension + '.png', url: data, requerido: false })
+                    }
+                    alert('Su archivo se cargó correctamente')
+                },
+                error: function (error) {
+                    alert('ERROR AL INTENTAR CARGAR EL ARCHIVO: ' + error.responseText);
+                }
+            })
+            if(datosActualizados.length>0)
+            {this.setState({archivosCargados: archivosCargados, campos: datosActualizados, contieneAdjunto : true })}
+            else
+            {this.setState({archivosCargados: archivosCargados, contieneAdjunto : true })}
+        }
+    }
+    //#endregion
+
+    //#region  Funciones genericas
     obtenerGrupos = async () => {
         return await currentWeb.siteGroups();
     }
@@ -853,20 +1001,6 @@ class Ventana extends Component {
         return await currentWeb.lists.getByTitle("Catálogo de bancos").items.get().catch(error => {
             alert('ERROR AL INTENTAR OBTENER EL CATÁLOGO DE BANCOS: ' + error)
         })
-    }
-
-    respaldarValores = () => {
-        let datosActualizados = []
-        for (let ref in this.state.refs) {
-            const valor = this.state.refs[ref].current !== null ? (this.state.refs[ref].current.type === 'checkbox' ? (this.state.refs[ref].current.checked ? true : false) : this.state.refs[ref].current.value) : ''
-            if (valor !== '') {
-                const filaIndice = this.state.campos.findIndex(campo => campo.TituloInternoDelCampo === ref)
-                let campoActual = this.state.campos[filaIndice]
-                campoActual.valor = valor
-                datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
-            }
-        }
-        return datosActualizados
     }
 
     habilitarCampos = (parametros) => {
@@ -924,20 +1058,6 @@ class Ventana extends Component {
         this.setState({ campos: datosActualizados })
     }
 
-    onCambiar = (e) =>{
-        let {campos} = this.state
-
-        const filaIndice = campos.findIndex(campo => campo.TituloInternoDelCampo === e.target.id)
-        let campoActual = campos[filaIndice]
-        campoActual.valor = e.target.value
-        let datosActualizados = update(this.state.campos, { $splice: [[filaIndice, 1, campoActual]] })
-
-        this.setState({ campos: datosActualizados })
-        if(campoActual.Accion !== null){
-            this[campoActual.Accion](campoActual.Parametros)
-        }
-    }
-
     calcularEficiencia = (parametros) => {
         let datosActualizados = this.respaldarValores()
         const newParametros = parametros.split(',')
@@ -969,90 +1089,7 @@ class Ventana extends Component {
             }
         }
     }
-
-    async onCargarArchivo(e, nombreDocumento) {
-        const { archivosCargados } = this.state
-        if (window.confirm('¿Desea adjuntar el archivo "' + e.target.files[0].name + '"?')) {
-            const { id, name } = e.target
-            const archivo = e.target.files[0]
-            const extension = archivo.name.split('.').pop()
-            if (!this.props.abrir.esTarea) {
-                const rootweb = await currentWeb.getParentWeb()
-                let webCdV = Web(rootweb.data.Url)
-                const urlCargar = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
-                await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
-                    .then(async (docto) => {
-                        const item = await docto.file.getItem()
-                        await item.update({
-                            Title: nombreDocumento
-                        })
-                            .then(async () => {
-                                let index = archivosCargados.findIndex(x => x.nombreInterno === nombreDocumento)
-                                if (index === -1) {
-                                    archivosCargados.push({ nombreInterno: nombreDocumento, archivo: docto.data.Name, icono: rootweb.data.Url + '/CompraDeTerreno/images/iconos/' + extension + '.png', url: rootweb.data.Url + docto.data.ServerRelativeUrl })
-                                }
-                                alert('Su archivo se cargó correctamente')
-                                this.setState({ archivosCargados: archivosCargados })
-                            })
-                    }).catch(error => {
-                        alert('ERROR AL CARGAR EL ARCHIVO: ' + error)
-                    })
-            } else {
-                this.uploadFile(name.toString(), id, 'Fu' + id, archivo, extension)
-            }
-        }
-    }
-
-    uploadFile = (IdDocumento, IdControl, href, archivo, extension) => {
-        let { archivosValidos, idTarea, archivosCargados } = this.state
-        let IdProyectoInversion, IdTerreno, Nivel, ID
-        if (this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas') {
-            IdProyectoInversion = this.props.abrir.filaSeleccionada.IdProyectoInversion
-            IdTerreno = this.props.abrir.filaSeleccionada.IdTerreno
-            Nivel = this.props.abrir.filaSeleccionada.Nivel
-            ID = this.props.abrir.filaSeleccionada.ID
-        } else if (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites') {
-            IdProyectoInversion = this.state.datosTramite[0].IdProyectoInversion
-            IdTerreno = this.state.datosTramite[0].IdTerreno
-            Nivel = this.state.datosTramite[0].Nivel
-            ID = this.state.datosTramite[0].ID
-            idTarea = this.state.datosTramite[0].IdTareaId
-        }
-        if (!archivosValidos.includes(extension)) {
-            alert('Archivo con extensión inválida: "' + extension + '"')
-        }
-        else {
-            let datosActualizados = this.respaldarValores()
-            let formData = new FormData()
-            formData.append("file", archivo)
-            const url = this.props.abrir.url + '/CompraDeTerreno/_layouts/15/IQC.CadenaValor.CompraDeTerreno.Services/HandlerFileUpload.ashx?' + idTarea + "|" + IdDocumento + "|" + IdProyectoInversion.ID + "|" + (IdTerreno === undefined ? 0 : IdTerreno.ID) + "|" + 0 + "|" + 0 + "|" + IdProyectoInversion.Title + "|" + (IdTerreno === undefined ? '' : IdTerreno.Title) + "|" + '' + "|" + '' + "|" + (Nivel.ID === 1 ? 'I' : (Nivel.ID === 2 ? 'T' : 'C')) + "|" + IdControl + "|" + href + "|" + ID + ""
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: formData,
-                dataType: 'json',
-                async: false,
-                crossDomain: true,
-                contentType: false,
-                processData: false,
-                success: function (data) {
-                    let resultUrl = new URL(data)
-                    let index = archivosCargados.findIndex(x => x.nombreInterno === IdControl)
-                    if (index === -1) {
-                        archivosCargados.push({ nombreInterno: IdControl, archivo: IdControl + '.' + extension, icono: resultUrl.origin + '/CompraDeTerreno/images/iconos/' + extension + '.png', url: data, requerido: false })
-                    }
-                    alert('Su archivo se cargó correctamente')
-                },
-                error: function (error) {
-                    alert('ERROR AL INTENTAR CARGAR EL ARCHIVO: ' + error.responseText);
-                }
-            })
-            if(datosActualizados.length>0)
-            {this.setState({archivosCargados: archivosCargados, campos: datosActualizados, contieneAdjunto : true })}
-            else
-            {this.setState({archivosCargados: archivosCargados, contieneAdjunto : true })}
-        }
-    }
+    //#endregion
 
     render() {
         var boton = '';
@@ -1081,8 +1118,8 @@ class Ventana extends Component {
                                         </div>
                                     case 'CheckBox':
                                         return <div key={campo.ID} className="form-group">
-                                            <label style={{ paddingLeft: "5px" }} htmlFor='cancelado' className='texto'>{campo.Title}</label><br /><br />
-                                            <input style={{ height: '15px', width: '15px' }} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} checked={campo.valor} disabled={!campo.Editable} onChange={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />
+                                            <label>{campo.Title}</label>
+                                            <input style={{ width: '15px' }} className="form-control form-control-md" type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} checked={campo.valor} disabled={!campo.Editable} onChange={campo.Accion !== null ? () => { this[campo.Accion](campo.Parametros) } : null} />
                                         </div>
                                     case 'Date':
                                         return <div key={campo.ID} className="form-group">
@@ -1091,7 +1128,7 @@ class Ventana extends Component {
                                         </div>
                                     case 'File':
                                         return <div key={campo.ID} className="form-group">
-                                            <label>{campo.Title + ": "}</label>
+                                            <label>{campo.Title}</label>
                                             <div className={"custom-file file-width"}>
                                                 <input type={campo.TipoDeCampo} className="custom-file-input" name={campo.IdDocumento} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} lang='es' required={util.esRequerido(archivosCargados, campo)} disabled={!campo.Editable} />
                                                 <label className="custom-file-label" htmlFor={campo.TituloInternoDelCampo}></label>
@@ -1158,7 +1195,6 @@ class Ventana extends Component {
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
                                             <FormControl style={{ width: '100%' }}>
-                                                <InputLabel id="demo-mutiple-checkbox-label">Bancos...</InputLabel>
                                                 <Select
                                                     labelId="demo-mutiple-checkbox-label"
                                                     id={campo.TituloInternoDelCampo}
@@ -1200,7 +1236,7 @@ class Ventana extends Component {
                                     case 'Text':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
-                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} />
+                                            <input className={'form-control form-control-md' + (campo.Requerido ? ' is-invalid' : '')} type={campo.TipoDeCampo} name={campo.Tarea.ID} id={campo.TituloInternoDelCampo} maxLength={campo.Parametros} ref={this[campo.TituloInternoDelCampo]} onBlur={this.onCambiar} defaultValue={campo.valor} required={campo.Requerido} disabled={!campo.Editable} />
                                         </div>
                                     case 'TextArea':
                                         return <div key={campo.ID} className="form-group">
@@ -1269,8 +1305,8 @@ class Ventana extends Component {
                                 </ModalBody>
                                 <ModalFooter>
                                     {
-                                        idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 || idTarea === 289 ?
-                                            null : <Botones />
+                                        idTarea === 25 || idTarea === 30 || idTarea === 35 || idTarea === 271 || idTarea === 272 || idTarea === 289 ? null
+                                        : <Botones />
                                     }
                                 </ModalFooter>
                             </fieldset>
