@@ -12,6 +12,7 @@ import macoc from '../imagenes/macoC.png';
 import macoc_eg from '../imagenes/macoC_EG.png';
 import macox from '../imagenes/macoX.png';
 import toGantt from '../imagenes/toGantt.png';
+import toDashboard from '../imagenes/dashboard_icon.png';
 import '../estilos/encabezado.css';
 
 class Encabezado extends Component {
@@ -69,12 +70,15 @@ class Encabezado extends Component {
             <div>
                 <div className='container-fluid' style={{ paddingTop: "1%" }}>
                     <div className='row'>
-                        <div className='col-sm-2 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
-                        <div className='col-sm-1 columna'><img id='FiltroFavoritos' className={this.props.filtros.favs.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(5, disabled)} src={idVentana !== 4 ? fav_icon : favDis_icon} alt='favoritos_icon' disabled={disabled} title='Favoritos' ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroGantt' className={this.props.filtros.gantt.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(6, false)} src={idVentana !== 4 ? gantt_icon : gantt_icon} alt='gantt_icon' disabled={false} title='Acts. Gantt' ></img></div>
-                        <div className='col-sm-1 columna'><img id='FiltroVerTodo' className={this.props.filtros.ver.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} title='Todas' ></img></div>
-                        <div className='col-sm-1 columna'><img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (idVentana === 4 ? (this.props.maco === 'B' ? macob_eg : macoc_eg) : (this.props.maco === 'B' ? macob : macoc))} alt='maco' onClick={idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img></div>
-                        <div className='col-sm-1 columna'><img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img></div>
+                        <div className='col-sm-3 nombreTerreno'><label id='NombreTerreno'><b>{terreno}</b></label></div>
+                        <div className='col-sm columna'>
+                            <img id='FiltroFavoritos' className={this.props.filtros.favs.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(5, disabled)} src={idVentana !== 4 ? fav_icon : favDis_icon} alt='favoritos_icon' disabled={disabled} title='Favoritos' ></img>
+                            <img id='FiltroGantt' className={this.props.filtros.gantt.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(6, false)} src={idVentana !== 4 ? gantt_icon : gantt_icon} alt='gantt_icon' disabled={false} title='Acts. Gantt' ></img>
+                            <img id='FiltroVerTodo' className={this.props.filtros.ver.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} title='Todas' ></img>
+                            <img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (idVentana === 4 ? (this.props.maco === 'B' ? macob_eg : macoc_eg) : (this.props.maco === 'B' ? macob : macoc))} alt='maco' onClick={idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img>
+                            <img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img>
+                            <img id='ToDashboard' onClick={() => this.onCambiarVentana(9)} src={toDashboard} alt='toDashboard' ></img>
+                        </div>
                         <div className='col-sm-5 menu'>
                             <nav className="navbar navbar-expand-sm bg-light navbar-light" style={{ padding: '0' }}>
                                 <ul className="navbar-nav" style={{ borderBottomStyle: "solid", borderBottomColor: "#3C8891", textAlign: 'center' }}>

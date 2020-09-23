@@ -1,7 +1,7 @@
 {
-  "siteUrl": "http://sp.quierocasa.com.mx:21520/compradeterreno/",
+  "siteUrl": "http://sp.quierocasa.com.mx:21520/compradeterreno",
   "strategy": "OnpremiseUserCredentials",
   "username": "gustavo.magana",
-  "password": "b63e46ebb57504d03818c89c0fc2b340d88f6c68426308d956c71e120660e8f3cc43857a46c0e561b9f8096ed86771d6tBeDyTlAdZ/O8hGxeFDpKQ==",
+  "password": "7db2ea2201c5af6f3e9b2a7eead6c6a00eaeb7510e7745fe43d746c9bf8928109d3a7c4df2a71a8abdbf48f26ee2d21bK+iggl7NuIA+623/DeR2lQ==",
   "domain": "quierocasa"
 }

@@ -412,6 +412,10 @@ class Generico extends Component {
                     const dato = this.props.rfs === false ? proyectoTitulo : terrenoTitulo
                     window.open(webUrl + "/CompraDeTerreno/sitepages/gantt.aspx?Valor=" + dato, "_blank");
                     break;
+                case 9:
+                    //Se hizo clic en el icono de redirección a Dashboard
+                    window.open(webUrl + "/PanelDashboard/index.html?terr=" + terrenoTitulo, "_blank");
+                    break;
                 default:
                     break;
             }

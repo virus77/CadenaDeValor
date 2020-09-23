@@ -8,7 +8,6 @@ import Tabla from './Tabla';
 class Principal extends Component {
     constructor(props) {
         super(props);
-        //this.initialState = { activeIndex: 0, isActive: false }
         this.initialState = {
             estatusCluster: [],
             clustersColapsados: false

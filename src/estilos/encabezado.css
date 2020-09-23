@@ -27,6 +27,9 @@
 .columna {
     width: 5%;
 }
+.columna img{
+    padding: 0 1.5rem!important;
+}
 
 .menu {
     width: 40%;
