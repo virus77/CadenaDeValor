@@ -1,3 +1,4 @@
+//#region Componentes
 import React, { Component } from 'react';
 import Encabezado from '../componentes/Encabezado';
 import Modal from '../componentes/Ventana';
@@ -7,12 +8,12 @@ import DateFnsUtils from '@date-io/date-fns';
 import FormControl from '@material-ui/core/FormControl';
 import Badge from '@material-ui/core/Badge';
 import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers';
-import Skeleton from '@material-ui/lab/Skeleton';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import Input from '@material-ui/core/Input';
-import { makeStyles } from '@material-ui/core/styles';
 import { InputLabel, Select, MenuItem } from '@material-ui/core'
+//#endregion
+//#region Imágenes
 import favoritos_icon_disabled from '../imagenes/favoritos_icon_disabled.png';
 import arrow_up_icon from '../imagenes/arrow_up_icon.png';
 import arrow_down_icon from '../imagenes/arrow_down_icon.png';
@@ -29,25 +30,25 @@ import disk from '../imagenes/disk.png';
 import pen from '../imagenes/pen.png';
 import hyperlink_icon from '../imagenes/hyperlink_icon.png';
 import forbidden from '../imagenes/forbidden.png';
-
+//#endregion
+//#region Librerías externas
 import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+import { es } from 'date-fns/locale';
+import moment from 'moment'
+import { makeStyles } from '@material-ui/core/styles';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
-
+//#endregion
+//#region Scripts
 import util from '../js/util';
 import CRUD from '../js/CRUD';
-
-import { es } from 'date-fns/locale';
-import moment from 'moment'
+//#endregion
 
 var checkedItems = []
 var webUrl = ''
 var webCdT = ''
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 
 class Generico extends Component {
     constructor(props) {
@@ -114,6 +115,7 @@ class Generico extends Component {
     }
     //Realiza la carga de datos iniciales al seleccionar un terreno o el reinicio de datos cuando se hace una fusión
     cargarDatosIniciales = async (esRFS, idProyecto, idTerreno, terrenoTitulo, tipo, usuarioActual, gruposUsuarioActual, seguridad) => {
+        const {webs} = this.props
         if (tipo !== 'TR' && tipo !== 'TS') {
             let actividades = []
             let datos = []
@@ -121,7 +123,7 @@ class Generico extends Component {
 
             //Si es terreno(s) original(es)
             if (!esRFS) {
-                actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                actividades = await webs.cdt.lists.getByTitle('Flujo Tareas').items
                     .filter('IdProyectoInversionId eq ' + idProyecto + ' and Visible eq 1')
                     .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
                     .expand('IdTarea', 'IdTerreno')
@@ -130,7 +132,7 @@ class Generico extends Component {
 
                 terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
 
-                datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+                datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                     .filter('(ProyectoInversionId eq ' + idProyecto + ')')
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
                         'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
@@ -144,7 +146,7 @@ class Generico extends Component {
                     .get();
             } else {
                 //Si es terreno RFS
-                actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                actividades = await webs.cdt.lists.getByTitle('Flujo Tareas').items
                     .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title))) and (IdTarea/Desactivable eq 0) and Visible eq 1)")
                     .select('IdTarea/TxtVentana', 'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2')
                     .expand('IdTarea', 'IdTerreno')
@@ -153,7 +155,7 @@ class Generico extends Component {
 
                 terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
 
-                datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+                datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                     .filter("(ProyectoInversionId eq " + idProyecto + ") and ((TerrenoId eq " + idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
                         'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
@@ -186,8 +188,8 @@ class Generico extends Component {
 
             const tieneRFS = datosEG.datos.some(x => x.Tarea.ID === 24 && x.Estatus.ID === 3)
 
-            let datosFPT = await util.generarConsultaFPT(actividades)
-            const datosBit = await util.obtenerBitacorasInfo(this.state.proyectoTitulo, terrenoTitulo)
+            let datosFPT = await util.generarConsultaFPT(actividades, webs.cdt)
+            const datosBit = await util.obtenerBitacorasInfo(this.state.proyectoTitulo, terrenoTitulo, webs.bitacoras)
             const bitacorasInfo = util.establecerLineaBaseBit(datosBit.solucion, datosBit.bitacoras)
 
             const totalAdmin = util.obtenerTotalPorVentana(1, actividades, datosFPT, [])
@@ -214,6 +216,7 @@ class Generico extends Component {
     }
 
     onCambiarVentana = async (idVentanaSeleccionada, mensaje, name, style, tipoRFS, nuevoTerreno, usuarioActual, gruposUsuarioActual, seguridad) => {
+        const {webs} = this.props
         const { idVentana, idProyecto, idTerreno, proyectoTitulo, terrenoTitulo, datosVentana, datosVentanaEG } = this.state
         let { filtrosTabla, orden, clusterToggle, opcionesFiltrosEncabezado, datosOriginalesFPT, bitacorasInfoOriginales, Mkt, MktOriginal, datosOriginalVentanaEG, datosOriginalVentana, opcionesFiltrosEncabezadoOriginal, filtrosTablaOrden, totalAdmin, totalNorm, totalProy } = this.state
         let result = [];
@@ -226,7 +229,7 @@ class Generico extends Component {
                 case 4:
                     //#region
                     if (name !== '' && style !== '') { util.styleLinkGen(name, style) }
-                    let datos = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+                    let datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                         .filter('(ProyectoInversionId eq ' + idProyecto + ') or (TerrenoId eq ' + (nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno) + ')')
                         .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
                             'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
@@ -278,7 +281,7 @@ class Generico extends Component {
                     //Obtiene todas las actividades del terreno seleccionado a nivel terreno y proyecto de inversión
                     const complemento = !terrenoTitulo.startsWith('T-') ? ' and (IdTarea/Desactivable eq 0)' : ''
 
-                    actividades = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                    actividades = await webs.cdt.lists.getByTitle('Flujo Tareas').items
                         .filter("((IdProyectoInversionId eq " + idProyecto + ") and ((IdTerrenoId eq " + idTerreno + ") or (IdTerrenoId eq null) or (IdTerrenoId eq 0) or (substringof('T-', IdTerreno/Title))) and Visible eq 1 " + complemento + ")")
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
                             'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
@@ -298,7 +301,7 @@ class Generico extends Component {
 
                     const terrenos = [...new Set(actividades.map(x => (x.IdTerreno !== undefined ? x.IdTerreno.Title : '')))]
 
-                    let datosFPT = await util.generarConsultaFPT(actividades)
+                    let datosFPT = await util.generarConsultaFPT(actividades, webs.cdt)
                     datosFPT = util.establacerDatoLista('Fechas paquete de trámites', datosFPT, this.props.IdProyInv)
 
                     let datosActs = util.inicializarArregloDatos(idVentanaSeleccionada, actividades.filter(x => x.Orden >= idVentanaSeleccionada && x.Orden <= idVentanaSeleccionada + 1))
@@ -319,7 +322,7 @@ class Generico extends Component {
 
                     //Obtiene datos de las bitácoras
                     if (idVentanaSeleccionada === 3) {
-                        const datosBit = await util.obtenerBitacorasInfo(proyectoTitulo, terrenoTitulo)
+                        const datosBit = await util.obtenerBitacorasInfo(proyectoTitulo, terrenoTitulo, webs.bitacoras)
                         solucionInfo = datosBit.solucion
                         bitacorasInfo = util.establecerLineaBaseBit(datosBit.solucion, datosBit.bitacoras)
                     }
@@ -589,6 +592,8 @@ class Generico extends Component {
                     return orden.asc ? comparison : comparison * -1;
                 })
                 break;
+            default:
+                break;
         }
         if (idVentana === 4) {
             this.setState({ datosVentanaEG: datosVentanaEG })
@@ -623,6 +628,7 @@ class Generico extends Component {
         let val = { results: [] }
         let favoritos = []
         const user = this.state.usuarioActual
+        const{webs} = this.props
         let { datosVentana, datosOriginalVentana, datosFPT, datosOriginalesFPT, bitacorasInfo, bitacorasInfoOriginales } = this.state
         
         //Verifica si la columna Favoritos ya tiene algún dato. Si ya lo tiene...
@@ -632,7 +638,7 @@ class Generico extends Component {
             //Sino la tiene como favorita...
             if (!exists) {
                 //Agregar al usuario actual al arreglo de datos de la columna Favoritos que se actualizará
-                fila.Favoritos.map((favorito) => {
+                fila.Favoritos.forEach((favorito) => {
                     val.results.push(favorito.ID)
                     favoritos.push({ ID: favorito.ID, Name: favorito.Name })
                 })
@@ -656,7 +662,7 @@ class Generico extends Component {
         //Si la lista a la que pertenece la tarea seleccionada no es incidencia...
         if (fila.Lista !== 'Incidencia') {
             //Actualiza la columna Favoritos de la tarea seleccionada
-            await CRUD.updateListItem(currentWeb,fila.Lista,fila.ID,{FavoritosId: val}).then(() => {
+            await CRUD.updateListItem(webs.cdt,fila.Lista,fila.ID,{FavoritosId: val}).then(() => {
                 //Si la lista que se actualizó fue Flujo Tareas...
                 if (fila.Lista === 'Flujo Tareas') {
                     //Actualiza los datos actualizados al estatus de datosVentana y datosVentanaOriginal, así como la posición actual de la pantalla
@@ -678,14 +684,8 @@ class Generico extends Component {
                 }
             })
         } else {
-            //Se obtiene el objeto Web del sitio de Bitácoras
-            const rootweb = await currentWeb.getParentWeb()
-            let websCdV = await rootweb.web.webs();
-            let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras');
-            webBitacoras = await sp.site.openWebById(webBitacoras.Id)
-
             //Actualiza la columna Favoritos del incidente seleccionado
-            await CRUD.updateListItem(webBitacoras.web,fila.Lista,fila.ID,{FavoritosId: val}).then(() => {
+            await CRUD.updateListItem(webs.bitacoras,fila.Lista,fila.ID,{FavoritosId: val}).then(() => {
                 //Actualiza los datos actualizados al estatus de bitacorasInfo y bitacorasInfoOriginales, así como la posición actual de la pantalla
                 let data = util.actualizarPropiedadesEstatus(bitacorasInfo, 'ID', fila.ID, 'Favoritos', favoritos)
                 let dataO = util.actualizarPropiedadesEstatus(bitacorasInfoOriginales, 'ID', fila.ID, 'Favoritos', favoritos)
@@ -699,6 +699,7 @@ class Generico extends Component {
 
     //Establece la fecha seleccionada en el campo de Linea base y/o Fecha estimada
     onSeleccionarFecha = async (fecha, fila, campo) => {
+        const {webs} = this.props
         const { idVentana, gruposUsuarioActual, usuarioActual } = this.state
         let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT, datosOriginalesFPT, filtrosTabla } = this.state
         const node = document.getElementById('cluster');
@@ -713,7 +714,7 @@ class Generico extends Component {
                     //Actualiza los campos LineaBase y LineaBaseModifico del elemento de Flujo Tareas con la fecha seleccionada
                     //y el usaio actual, respectivamente, así como agregar dichos dato al arreglo de datos del estatus que
                     //se actualizará posteriormente
-                    await CRUD.updateListItem(currentWeb,fila.Lista,fila.ID,{LineaBase: fecha, LineaBaseModificoId: usuarioActual.Id}).then(() => {
+                    await CRUD.updateListItem(webs.cdt,fila.Lista,fila.ID,{LineaBase: fecha, LineaBaseModificoId: usuarioActual.Id}).then(() => {
                         newData.LineaBase = moment(fecha).format()
                         newData.LineaBaseModifico = usuarioActual
                         newDataO.LineaBase = moment(fecha).format()
@@ -723,7 +724,7 @@ class Generico extends Component {
                 case 'FechaEstimada':
                     //Actualiza el campo FechaEstimada del elemento de Flujo Tareas con la fecha seleccionada
                     //así como agregar dicho dato al arreglo de datos del estatus que se actualizará posteriormente
-                    await CRUD.updateListItem(currentWeb,fila.Lista,fila.ID,{FechaEstimada: fecha}).then(() => {
+                    await CRUD.updateListItem(webs.cdt,fila.Lista,fila.ID,{FechaEstimada: fecha}).then(() => {
                         newData.FechaEstimada = moment(fecha).format()
                         newDataO.FechaEstimada = moment(fecha).format()
                     })
@@ -749,7 +750,7 @@ class Generico extends Component {
                     //Actualiza los campos LineaBase y LineaBaseModifico del elemento de Fechas paquete de trámites con la fecha seleccionada
                     //y el usaio actual, respectivamente, así como agregar dichos dato al arreglo de datos del estatus que
                     //se actualizará posteriormente
-                    await CRUD.updateListItem(currentWeb,fila.Lista,fila.ID,{LineaBase: fecha, LineaBaseModificoId: usuarioActual.Id}).then(() => {
+                    await CRUD.updateListItem(webs.cdt,fila.Lista,fila.ID,{LineaBase: fecha, LineaBaseModificoId: usuarioActual.Id}).then(() => {
                         newData.LineaBase = moment(fecha).format()
                         newData.LineaBaseModifico = usuarioActual
                         newDataO.LineaBase = moment(fecha).format()
@@ -759,7 +760,7 @@ class Generico extends Component {
                 case 'FechaEstimada':
                     //Actualiza el campo FechaEstimada del elemento de Fechas paquete de trámites con la fecha seleccionada
                     //así como agregar dicho dato al arreglo de datos del estatus que se actualizará posteriormente
-                    await CRUD.updateListItem(currentWeb,fila.Lista,fila.ID,{FechaEstimada: fecha}).then(() => {
+                    await CRUD.updateListItem(webs.cdt,fila.Lista,fila.ID,{FechaEstimada: fecha}).then(() => {
                         newData.FechaEstimada = moment(fecha).format()
                         newDataO.FechaEstimada = moment(fecha).format()
                     })
@@ -786,13 +787,13 @@ class Generico extends Component {
             //Establece el campo Seleccionado con el mismo valor chequeado/deschequeado en la E.G.
             if (event !== null) { checkedItems[indice].datos.Seleccionado = event.target.checked; }
             //Establece que el registró cambió y se considerará para guardar al momento de dar clic en OK en la E.G.
-            //checkedItems[indice].cambio = true
             checkedItems[indice].cambio = !checkedItems[indice].cambio
         }
     }
 
     //Guarda la información capturada en la E.G.
     onSave = async elementos => {
+        const {webs} = this.props
         //Filtra los elementos que hayan sido modificados
         elementos = elementos.filter(x => x.cambio)
         const guardarEG = async () => {
@@ -806,7 +807,7 @@ class Generico extends Component {
                     //Si la tarea checkeada es clúster o subcluster...
                     if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
                         //Obtiene los datos de la tarea en la lista Flujo Tareas
-                        fta = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                        fta = await webs.cdt.lists.getByTitle('Flujo Tareas').items
                             .filter('IdProyectoInversionId eq ' + elemento.datos.ProyectoInversion.ID +
                                 ' and IdTerrenoId eq ' + elemento.datos.Terreno.ID + ' and IdTareaId eq ' +
                                 elemento.datos.Tarea.ID)
@@ -832,7 +833,7 @@ class Generico extends Component {
                             ContieneAdjunto: false
                         };
                         //Crea el registro en la lista Flujo Tareas
-                        fta = await CRUD.createListItem(currentWeb, "Flujo Tareas", json).catch(error => {
+                        fta = await CRUD.createListItem(webs.cdt, "Flujo Tareas", json).catch(error => {
                             alert('ERROR AL GUARDAR LA ACTIVIDAD ' + elemento.datos.Tarea.ID + ': ' + error)
                         })
                     }
@@ -861,7 +862,7 @@ class Generico extends Component {
                                     ContieneAdjunto: false
                                 };
                                 //Crea el registro en la lista Fechas paquete de trámites
-                                fpt = await CRUD.createListItem(currentWeb, "Fechas paquete de trámites", json).catch(error => {
+                                fpt = await CRUD.createListItem(webs.cdt, "Fechas paquete de trámites", json).catch(error => {
                                     alert('ERROR AL GENERAR DATOS DEL TRÁMITE ' + elemento.datos.IdRCDTT.Title + ': ' + error)
                                 })
                             }
@@ -871,7 +872,7 @@ class Generico extends Component {
                                 Visible: elemento.datos.Seleccionado
                             }
                             //Si ya tiene Id en fechas paquete de trámites, actualiza la información en dicha lista
-                            await CRUD.updateListItem(currentWeb, "Fechas paquete de trámites", elemento.datos.IdFPTId, json).catch(error => {
+                            await CRUD.updateListItem(webs.cdt, "Fechas paquete de trámites", elemento.datos.IdFPTId, json).catch(error => {
                                 alert('ERROR AL ACTUALIZAR EL TRÁMITE ' + elemento.datos.IdFPTId + ': ' + error)
                             })
                         }
@@ -885,7 +886,7 @@ class Generico extends Component {
                         EstatusId: elemento.datos.Tarea.EsCluster === '1' ? 1 : 3,
                         IdFPTId: fpt !== 0 ? fpt.data.Id : null
                     }
-                    await CRUD.updateListItem(currentWeb, "EstrategiaGestion", elemento.datos.ID, jsonuEG).then(() => {
+                    await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", elemento.datos.ID, jsonuEG).then(() => {
                         //Asigna el ID de elemento generado en flujo tareas al objeto en memoria del item seleccionado
                         //en la vetana de la EG
                         const indice = this.state.datosVentanaEG.datos.findIndex((obj => obj.ID === elemento.datos.ID))
@@ -909,7 +910,7 @@ class Generico extends Component {
                         AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
                         Seleccionado: elemento.datos.Seleccionado
                     }
-                    await CRUD.updateListItem(currentWeb, "EstrategiaGestion", elemento.datos.ID, jsonuEG).then(async () => {
+                    await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", elemento.datos.ID, jsonuEG).then(async () => {
                         //Si la tarea tiene dato de trámite asociado, actualiza los datos en fechas paquete de trámites
                         if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
                             if (elemento.datos.IdFPTId !== null) {
@@ -917,7 +918,7 @@ class Generico extends Component {
                                     AsignadoAId: elemento.datos.AsignadoA !== undefined ? usuariosAsignados : { results: [] },
                                     Visible: elemento.datos.Seleccionado
                                 }
-                                await CRUD.updateListItem(currentWeb, "Fechas paquete de trámites", elemento.datos.IdFPTId, jsonuFPT).catch(error => {
+                                await CRUD.updateListItem(webs.cdt, "Fechas paquete de trámites", elemento.datos.IdFPTId, jsonuFPT).catch(error => {
                                     alert('ERROR AL ACTUALIZAR DATOS DEL TRÁMITE ' + elemento.datos.IdFPTId + ': ' + error)
                                 })
                             }else{
@@ -939,11 +940,11 @@ class Generico extends Component {
                                         ContieneAdjunto: false
                                     };
                                     //Crea el registro en la lista Fechas paquete de trámites
-                                    const fpt = await CRUD.createListItem(currentWeb, "Fechas paquete de trámites", jsonT).catch(error => {
+                                    const fpt = await CRUD.createListItem(webs.cdt, "Fechas paquete de trámites", jsonT).catch(error => {
                                         alert('ERROR AL GENERAR DATOS DEL TRÁMITE ' + elemento.datos.IdRCDTT.Title + ': ' + error)
                                     })
     
-                                    await CRUD.updateListItem(currentWeb, "EstrategiaGestion", elemento.datos.ID, {IdFPTId : fpt.data.Id}).catch(error => {
+                                    await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", elemento.datos.ID, {IdFPTId : fpt.data.Id}).catch(error => {
                                         alert('ERROR AL ACTUALIZAR DATOS DE LA ESTRATEGIA DE GESTIÓN ' + elemento.datos.ID + ': ' + error)
                                     })
                                 }else{
@@ -965,15 +966,15 @@ class Generico extends Component {
                         }
                         if (elemento.datos.Tarea.EsCluster === '1' || elemento.datos.Tarea.EsSubcluster === '1') {
                             if (elemento.datos.IdFPTId === null) {
-                                await CRUD.updateListItem(currentWeb, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
+                                await CRUD.updateListItem(webs.cdt, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
                             }else{
                                 let seleccionado = datosActualizados.datos.filter(x=> x.IdFlujoTareasId === elemento.datos.IdFlujoTareasId)
                                 seleccionado = seleccionado.some(x=> x.Seleccionado)
                                 jsonuFT.Visible = seleccionado
                             }
-                            await CRUD.updateListItem(currentWeb, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
+                            await CRUD.updateListItem(webs.cdt, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
                         }else{
-                            await CRUD.updateListItem(currentWeb, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
+                            await CRUD.updateListItem(webs.cdt, "Flujo Tareas", elemento.datos.IdFlujoTareasId, jsonuFT)
                         }
                     }).catch(error => {
                         alert('ERROR AL ACTUALIZAR DATOS DE LA ESTRATEGIA DE GESTIÓN ' + elemento.datos.ID + ': ' + error)
@@ -981,7 +982,7 @@ class Generico extends Component {
                 }
             });
             //Guarda el registro de cambios en la lista HistorialEG
-            await CRUD.createListItem(currentWeb, "HistorialEG", {ProyectoInversionId: this.state.idProyecto}).catch(error => {
+            await CRUD.createListItem(webs.cdt, "HistorialEG", {ProyectoInversionId: this.state.idProyecto}).catch(error => {
                 alert('ERROR AL GUARDAR EL HISTORIAL DE E.G.: ' + error)
             })
             //Restablece el campo cambio del arreglo de datos checkedItems 
@@ -1016,6 +1017,7 @@ class Generico extends Component {
     }
     //#region Métodos de ciclo de vida
     async componentDidMount() {
+        const {webs} = this.props
         //Aplica el estilo de la ventana de estrategia de gestión (E.G.)
         util.styleLinkGen("genericoEG.css", "../estilos/genericoEG.css")
 
@@ -1024,11 +1026,11 @@ class Generico extends Component {
         webUrl = webUrl.Url.replace('/CompraDeTerreno', '')
 
         //Obtiene los grupos y sus usuarios de la lista de GanttPersonColab
-        const seguridad = await util.obtenerSeguridad()
+        const seguridad = await util.obtenerSeguridad(webs.cdt)
         //Obtiene los datos del usuario actual
-        const usuarioActual = await currentWeb.currentUser.get()
+        const usuarioActual = await webs.cdt.currentUser.get()
         //Obtiene los grupos en los que está registrado el usuario actual en la lista de GanttPersonColab
-        const gruposUsuarioActual = await currentWeb.lists.getByTitle('GanttPersonColab').items
+        const gruposUsuarioActual = await webs.cdt.lists.getByTitle('GanttPersonColab').items
         .filter("AdminAreaGanttId eq " + usuarioActual.Id + " or RespAreaGanttId eq " + usuarioActual.Id + " or NombreCortoGantt eq 'TODOS'")
         .get()
         //Verifica si dentro de los grupos a los que pertenece el usuario actual se ecuentra EG (este grupo es el de Administrador de E.G.)
@@ -1052,6 +1054,7 @@ class Generico extends Component {
     //#endregion
 
     onActualizarDatos = async arregloDatos => {
+        const {webs} = this.props
         const { idVentana, MACO, idProyecto, tipo, usuarioActual, gruposUsuarioActual, seguridad, filtrosTabla } = this.state
         let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT, datosOriginalesFPT, MktOriginal, datosVentanaEG, datosOriginalVentanaEG } = this.state
         //Si la ventana es E.G.
@@ -1087,9 +1090,9 @@ class Generico extends Component {
                             //Establece el spinner mientras se generan los datos de la EG
                             this.setState({ backdrop: { cargado: false, mensaje: 'Generando estrategia de gestión. Esto podrí­a tardar unos minutos...' } })
                             //Obtiene los terrenos que coincidan con el PI actual y el campo empadronamiento sea nulo (son los terrenos vivos)
-                            const terrenosPI = await currentWeb.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + idProyecto + ' and Empadronamiento eq null').get()
+                            const terrenosPI = await webs.cdt.lists.getByTitle('Terrenos').items.filter('IdProyectoInversionId eq ' + idProyecto + ' and Empadronamiento eq null').get()
                             //Obtiene las tareas que se generán y que no sean de detonación inicial y MACO sea X o el perteneciente al MACO del terreno y no se creen con RFS
-                            const nuevasTareasEG = await currentWeb.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "') and (CrearConRFS eq 0))").get();
+                            const nuevasTareasEG = await webs.cdt.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + MACO + "') and (CrearConRFS eq 0))").get();
 
                             const generarEG = async () => {
                                 //Recorre los terrenos vivos
@@ -1113,7 +1116,7 @@ class Generico extends Component {
                                                 Orden: nuevaTarea.Orden
                                             }
                                             //Crea el elemento en la lista Flujo Tareas
-                                            tareaEG = await CRUD.createListItem(currentWeb, "Flujo Tareas", json).catch(error => {
+                                            tareaEG = await CRUD.createListItem(webs.cdt, "Flujo Tareas", json).catch(error => {
                                                 alert('ERROR AL GENERAR LA TAREA ' + nuevaTarea.ID + ' DEL ID TERRENO ' + terrenoPI.Id + ' EN FLUJO TAREAS: ' + error)
                                             })
                                         }
@@ -1132,12 +1135,12 @@ class Generico extends Component {
                                                     OrdenEG: nuevaTarea.OrdenEG
                                                 }
                                                 //Crea el elemento en la estrategia de gestión
-                                                await CRUD.createListItem(currentWeb, "EstrategiaGestion", jsonEG).catch(error => {
+                                                await CRUD.createListItem(webs.cdt, "EstrategiaGestion", jsonEG).catch(error => {
                                                     alert('ERROR AL GENERAR LA TAREA ' + nuevaTarea.ID + ' EN LA EG: ' + error)
                                                 })
                                             } else {
                                                 //Si la actividad a crear sí es clúster o subclúster, obtiene los campos y asigna su id de relación a cada nueva actividad
-                                                const tareasTramites = await currentWeb.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
+                                                const tareasTramites = await webs.cdt.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
                                                 let existeNodo = false
                                                 await util.asyncForEach(tareasTramites, async tareaTramite => {
                                                     //Crea el elemento en la estrategia de gestión del terreno resultante actual
@@ -1152,7 +1155,7 @@ class Generico extends Component {
                                                             EstatusId: 1,
                                                             OrdenEG: nuevaTarea.OrdenEG
                                                         }
-                                                        await CRUD.createListItem(currentWeb, "EstrategiaGestion", jsonEG).catch(error => {
+                                                        await CRUD.createListItem(webs.cdt, "EstrategiaGestion", jsonEG).catch(error => {
                                                             alert('ERROR AL GENERAR EL TRÁMITE NODO EN LA EG EN LA TAREA ' + nuevaTarea.ID + ': ' + error)
                                                         })
                                                         existeNodo = true
@@ -1168,7 +1171,7 @@ class Generico extends Component {
                                                         OrdenEG: nuevaTarea.OrdenEG,
                                                         IdRCDTTId: tareaTramite.ID
                                                     }
-                                                    await CRUD.createListItem(currentWeb, "EstrategiaGestion", jsonEG).catch(error => {
+                                                    await CRUD.createListItem(webs.cdt, "EstrategiaGestion", jsonEG).catch(error => {
                                                         alert('ERROR AL GENERAR EL TRÁMITE EN LA EG. TAREA ' + nuevaTarea.ID + '. CAMPO TRÁMITE ' + tareaTramite.ID + ': ' + error)
                                                     })
                                                 })
@@ -1197,17 +1200,17 @@ class Generico extends Component {
                         }).join(',')
 
                         //Obtiene las tareas a deshabilitar después de hacer un RFS
-                        const tareasDeshabilitar = await currentWeb.lists.getByTitle("Tareas").items
+                        const tareasDeshabilitar = await webs.cdt.lists.getByTitle("Tareas").items
                         .filter('Desactivable eq 1').select('ID').get()
 
                         //Deshabilita las tareas a nivel PI que ya no son necesarias después de hacer un RFS
                         await util.asyncForEach(tareasDeshabilitar, async (tareaDeshabilitar) => {
-                            await currentWeb.lists.getByTitle("Flujo Tareas").items
+                            await webs.cdt.lists.getByTitle("Flujo Tareas").items
                             .filter('IdProyectoInversionId eq ' + idProyecto + ' and IdTareaId eq ' + tareaDeshabilitar.ID)
                             .get()
                             .then(async (ft) => {
                                 if (ft.length > 0) {
-                                    await CRUD.updateListItem(currentWeb, "Flujo Tareas", ft[0].Id, {EstatusId: 3, EstatusAnteriorId: 3}).catch(error => {
+                                    await CRUD.updateListItem(webs.cdt, "Flujo Tareas", ft[0].Id, {EstatusId: 3, EstatusAnteriorId: 3}).catch(error => {
                                         alert('ERROR AL DESHABILITAR LA TAREA ' + tareaDeshabilitar.ID + ': ' + error)
                                     })
                                 }
@@ -1215,13 +1218,8 @@ class Generico extends Component {
                                 alert('ERROR AL OBTENER LA TAREAS A DESHABILITAR: ' + error)
                             })
                         }).then(async () => {
-                            //Obtiene el objeto web del sitio de búsqueda versionado
-                            const rootweb = await currentWeb.getParentWeb()
-                            let websCdV = await rootweb.web.webs()
-                            let weBdTVersionado = websCdV[0]
-                            weBdTVersionado = await sp.site.openWebById(weBdTVersionado.Id)
                             //Obtiene los terrenos cuyo idPredio sea el especificado
-                            const terrenosVersionadoPI = await weBdTVersionado.web.lists.getByTitle("Terrenos").items
+                            const terrenosVersionadoPI = await webs.bdtv.lists.getByTitle("Terrenos").items
                             .filter("IdPredio/IdPredio eq '" + arregloDatos.dato.tituloPI + "'")
                             .select('ID', 'Title', 'Metraje', 'IdPredio/ID', 'IdPredio/Title', 'IdPredio/IdPredio', 'Calle', 'Colonia', 'CodigoPostal', 'NoExterior', 'Municipio')
                             .expand('IdPredio').orderBy('ID', false).get()
@@ -1237,18 +1235,18 @@ class Generico extends Component {
                                         CantidadTerrenos: arregloDatos.dato.cantidadTerrenos,
                                         Metrajes: unionMetrajes
                                     }
-                                    await CRUD.createListItem(currentWeb, 'RFSN', json).catch(error => {
+                                    await CRUD.createListItem(webs.cdt, 'RFSN', json).catch(error => {
                                         alert('ERROR AL AGREGAR DATOS EN RFSN DEL TERRENO ' + terrenoActual.ID + ': ' + error)
                                     })
                                 }
                             }).then(async () => {
                                 //Establece la tarea como Enviada
-                                await CRUD.updateListItem(currentWeb, "Flujo Tareas", arregloDatos.dato.idFlujoTareas, {EstatusId: 3, EstatusAnteriorId: 3}).then(async () => {
+                                await CRUD.updateListItem(webs.cdt, "Flujo Tareas", arregloDatos.dato.idFlujoTareas, {EstatusId: 3, EstatusAnteriorId: 3}).then(async () => {
                                     //Establece el empadronamiento a los terrenos seleccionados en la tarea
                                     //para que se consideren como TERRENOS NO VIVOS
                                     await util.asyncForEach(arregloDatos.dato.terrenos, async (terrenoActual) => {
                                         if (terrenoActual.Empadronamiento === 'Sí') {
-                                            await CRUD.updateListItem(currentWeb, "Terrenos", terrenoActual.ID, {Empadronamiento: 'Sí'}).catch(error => {
+                                            await CRUD.updateListItem(webs.cdt, "Terrenos", terrenoActual.ID, {Empadronamiento: 'Sí'}).catch(error => {
                                                 alert('ERROR AL ESTABLECER EL EMPADRONAMIENTO DEL TERRENO ' + terrenoActual.ID + ': ' + error)
                                             })
                                         }
@@ -1257,7 +1255,7 @@ class Generico extends Component {
                                     //Crea los terrenos resultantes en la lista de terrenos de Búsqueda de terreno versionado
                                     await util.asyncForEach(arregloDatos.dato.terrenosResultantes, async (terrenoResultante, index) => {
                                         //Obtiene el ID máximo generado de la lista Terrenos
-                                        const maxTerrenos = await weBdTVersionado.web.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID', false).get()
+                                        const maxTerrenos = await webs.bdtv.lists.getByTitle("Terrenos").items.select('ID').top(1).orderBy('ID', false).get()
                                         const nuevoTerrenoId = arregloDatos.dato.tipo + '-' + util.padLeft(maxTerrenos[0].Id + 1, 5)
                                         const jsonTerrVer = {
                                             IdPredioId: terrenosVersionadoPI[0].IdPredio.ID,
@@ -1269,7 +1267,7 @@ class Generico extends Component {
                                             Municipio: terrenosVersionadoPI[0].Municipio,
                                             Metraje: arregloDatos.dato.metrajesTr[index].valor
                                         }
-                                        await CRUD.createListItem(weBdTVersionado.web, 'Terrenos', jsonTerrVer).then(async () => {
+                                        await CRUD.createListItem(webs.bdtv, 'Terrenos', jsonTerrVer).then(async () => {
                                             //Crea los terrenos resultantes en la lista de terrenos de Compra de terreno
                                             const jsonTerr = {
                                                 IdProyectoInversionId: idProyecto,
@@ -1284,9 +1282,9 @@ class Generico extends Component {
                                                 Delegacion: terrenosVersionadoPI[0].Municipio,
                                                 Metraje: arregloDatos.dato.metrajesTr[index].valor
                                             }
-                                            await CRUD.createListItem(currentWeb, 'Terrenos', jsonTerr).then(async (terr) => {
+                                            await CRUD.createListItem(webs.cdt, 'Terrenos', jsonTerr).then(async (terr) => {
                                                 //Obtiene las tareas que se crarán para el nuevo terreno dependiendo de su MACO y tipo de RFS (TS, TF o TR)
-                                                const nuevasTareasEG = await currentWeb.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + arregloDatos.dato.tipo + "' or MACO eq '" + terrenoResultante.MACO + "'))").get();
+                                                const nuevasTareasEG = await webs.cdt.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + arregloDatos.dato.tipo + "' or MACO eq '" + terrenoResultante.MACO + "'))").get();
 
                                                 const generarEG = async () => {
                                                     await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
@@ -1306,7 +1304,7 @@ class Generico extends Component {
                                                                 ContieneAdjunto: false
                                                             }
                                                             //Crea el elemento en la lista de Flujo Tareas
-                                                            tareaEG = await CRUD.createListItem(currentWeb, 'Flujo Tareas', jsonFT).catch(error => {
+                                                            tareaEG = await CRUD.createListItem(webs.cdt, 'Flujo Tareas', jsonFT).catch(error => {
                                                                 alert('ERROR AL GENERAR LA TAREA ' + nuevaTarea.ID + ' DEL TERRENO ' + terr.data.Id + ' EN FLUJO TAREAS: ' + error)
                                                             })
                                                         }
@@ -1325,12 +1323,12 @@ class Generico extends Component {
                                                                     OrdenEG: nuevaTarea.OrdenEG
                                                                 }
                                                                 //Crea el elemento en la estrategia de gestión del terreno resultante actual
-                                                                await CRUD.createListItem(currentWeb, 'EstrategiaGestion', jsonEG).catch(error => {
+                                                                await CRUD.createListItem(webs.cdt, 'EstrategiaGestion', jsonEG).catch(error => {
                                                                     alert('ERROR AL GENERAR LA TAREA ' + nuevaTarea.ID + ' DEL TERRENO ' + terr.data.Id + ' EN LA EG: ' + error)
                                                                 })
                                                             } else {
                                                                 //Si la tarea a crear sí es clúster o subclúster, obtiene los campos y asigna su id de relación a cada nueva actividad
-                                                                const tareasTramites = await currentWeb.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
+                                                                const tareasTramites = await webs.cdt.lists.getByTitle("Relación campos documentos trámites tareas").items.filter("TareaId eq " + nuevaTarea.ID + " and Tramite eq 'Trámite'").select('ID').get()
                                                                 let existeNodo = false
                                                                 await util.asyncForEach(tareasTramites, async tareaTramite => {
                                                                     //Crea el elemento en la estrategia de gestión del terreno resultante actual
@@ -1345,7 +1343,7 @@ class Generico extends Component {
                                                                             EstatusId: 1,
                                                                             OrdenEG: nuevaTarea.OrdenEG
                                                                         }
-                                                                        await CRUD.createListItem(currentWeb, 'EstrategiaGestion', jsonEGNodo).catch(error => {
+                                                                        await CRUD.createListItem(webs.cdt, 'EstrategiaGestion', jsonEGNodo).catch(error => {
                                                                             alert('ERROR AL GENERAR EL TRÁMITE NODO DE LA TAREA ' + nuevaTarea.ID + ' EN LA EG: ' + error)
                                                                         })
                                                                         existeNodo = true
@@ -1360,7 +1358,7 @@ class Generico extends Component {
                                                                         OrdenEG: nuevaTarea.OrdenEG,
                                                                         IdRCDTTId: tareaTramite.ID
                                                                     }
-                                                                    await CRUD.createListItem(currentWeb, 'EstrategiaGestion', jsonEG).catch(error => {
+                                                                    await CRUD.createListItem(webs.cdt, 'EstrategiaGestion', jsonEG).catch(error => {
                                                                         alert('ERROR AL GENERAR EN LA EG EL TRÁMITE DE LA TAREA ' + nuevaTarea.ID + ' DEL IDCAMPO ' + tareaTramite.ID + ' DEL TERRENO ' + terr.data.Id + ': ' + error)
                                                                     })
                                                                 })
@@ -1406,14 +1404,14 @@ class Generico extends Component {
                     let usuariosAsignados = util.obtenerIdAsignados(arregloDatos.dato.campos[0].valor)
                     const idElemento = filaSeleccionada.ID
 
-                    await CRUD.updateListItem(currentWeb, arregloDatos.dato.lista, idElemento, { AsignadoAId: usuariosAsignados }).then(async () => {
+                    await CRUD.updateListItem(webs.cdt, arregloDatos.dato.lista, idElemento, { AsignadoAId: usuariosAsignados }).then(async () => {
                         const filtroEG = arregloDatos.dato.lista === 'Flujo Tareas' ? (filaSeleccionada.Nivel.ID === 1 ?
                             'ProyectoInversionId eq ' + filaSeleccionada.IdProyectoInversion.ID + ' and TareaId eq ' + filaSeleccionada.IdTarea.ID
                             : 'ProyectoInversionId eq ' + filaSeleccionada.IdProyectoInversion.ID + ' and TerrenoId eq ' + filaSeleccionada.IdTerreno.ID + ' and TareaId eq ' + filaSeleccionada.IdTarea.ID)
                             : 'IdFPTId eq ' + filaSeleccionada.ID
-                        const itemEG = await currentWeb.lists.getByTitle("EstrategiaGestion").items.filter(filtroEG).get()
+                        const itemEG = await webs.cdt.lists.getByTitle("EstrategiaGestion").items.filter(filtroEG).get()
                         if (itemEG.length > 0) {
-                            await CRUD.updateListItem(currentWeb, 'EstrategiaGestion', itemEG[0].Id, { AsignadoAId: usuariosAsignados })
+                            await CRUD.updateListItem(webs.cdt, 'EstrategiaGestion', itemEG[0].Id, { AsignadoAId: usuariosAsignados })
                         }
 
                         if (arregloDatos.dato.lista === 'Flujo Tareas') {
@@ -1438,7 +1436,7 @@ class Generico extends Component {
                                 datosVentana.datos = update(this.state.datosVentana.datos, { $splice: [[filaIndice, 1, newData]] })
                                 datosOriginalVentana.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
 
-                                await CRUD.updateListItem(currentWeb, arregloDatos.dato.lista, newData.ID, { AsignadoAId: usuariosAsignados })
+                                await CRUD.updateListItem(webs.cdt, arregloDatos.dato.lista, newData.ID, { AsignadoAId: usuariosAsignados })
                             }
 
                             opcionesFiltrosEncabezado = util.generarFiltrosEncabezado(idVentana, datosOriginalVentana, datosFPT, [], gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
@@ -1461,7 +1459,7 @@ class Generico extends Component {
                             const nuevoAsignadosId = util.combinarIdAsignados(AsignadoAFPT, arregloDatos.dato.campos[0].valor)
                             const nuevoAsignados = util.combinarAsignados(AsignadoAFPT, arregloDatos.dato.campos[0].valor)
                             //Guarda los asignados en la tarea
-                            await CRUD.updateListItem(currentWeb, "Flujo Tareas", filaSeleccionada.IdFlujoId, { AsignadoAId: nuevoAsignadosId }).then(() => {
+                            await CRUD.updateListItem(webs.cdt, "Flujo Tareas", filaSeleccionada.IdFlujoId, { AsignadoAId: nuevoAsignadosId }).then(() => {
                                 //Asigna los asignados al state de datos y datos originales
                                 const data = util.actualizarPropiedadesEstatus(datosVentana.datos, 'ID', filaSeleccionada.IdFlujoId, 'AsignadoA', nuevoAsignados)
                                 const dataO = util.actualizarPropiedadesEstatus(datosOriginalVentana.datos, 'ID', filaSeleccionada.IdFlujoId, 'AsignadoA', nuevoAsignados)
@@ -1559,7 +1557,7 @@ class Generico extends Component {
                     EstatusAnteriorId: arregloDatos.dato.ID,
                     ContieneAdjunto: arregloDatos.contieneAdjunto
                 }
-                await CRUD.updateListItem(currentWeb, filaSeleccionada.Lista, filaSeleccionada.ID, json).then(async () => {
+                await CRUD.updateListItem(webs.cdt, filaSeleccionada.Lista, filaSeleccionada.ID, json).then(async () => {
                     if (filaSeleccionada.Lista === 'Flujo Tareas') {
                         if (filaSeleccionada.IdTarea.CreaBitacora === '1' || filaSeleccionada.IdTarea.TareaCrear !== '0') {
                             this.onCambiarVentana(idVentana, 'Cargando contenido generado...', "", "", "", '', usuarioActual, gruposUsuarioActual, seguridad)
@@ -1583,7 +1581,7 @@ class Generico extends Component {
                             datosActualizadosO.datos = update(this.state.datosOriginalVentana.datos, { $splice: [[filaIndiceO, 1, newDataO]] })
 
                             if (filaSeleccionada.IdTarea.ID === 20 || filaSeleccionada.IdTarea.ID === 28 || filaSeleccionada.IdTarea.ID === 33 || filaSeleccionada.IdTarea.ID === 38 || filaSeleccionada.IdTarea.ID === 98) {
-                                await currentWeb.lists.getByTitle("Terrenos").items
+                                await webs.cdt.lists.getByTitle("Terrenos").items
                                     .select('ID', 'IdProyectoInversionId', 'NombredelTerreno2', 'LinkFichasVenta', 'LinkMemoriaAcabados', 'LinkFichasDesarrollo')
                                     .filter('ID eq ' + filaSeleccionada.IdTerreno.ID)
                                     .get().then(async (dato) => {
@@ -1657,7 +1655,7 @@ class Generico extends Component {
                                         EstatusId: !tareasIncompletas ? 3 : 1,
                                         EstatusAnteriorId: !tareasIncompletas ? 3 : 1
                                     }
-                                    await CRUD.updateListItem(currentWeb, "Flujo Tareas", tareaCluster.ID, jsonFTCluster).then(() => {
+                                    await CRUD.updateListItem(webs.cdt, "Flujo Tareas", tareaCluster.ID, jsonFTCluster).then(() => {
                                         tareaCluster.Estatus = !tareasIncompletas ? this.state.datosVentana.datos.find(x => x.Estatus.ID === 3).Estatus : this.state.datosVentana.datos.find(x => x.Estatus.ID === 1).Estatus
                                         tareaCluster.EstatusAnterior = tareaCluster.Estatus
                                         tareaClusterO.Estatus = !tareasIncompletas ? this.state.datosOriginalVentana.datos.find(x => x.Estatus.ID === 3).Estatus : this.state.datosOriginalVentana.datos.find(x => x.Estatus.ID === 1).Estatus
@@ -1682,7 +1680,7 @@ class Generico extends Component {
                         newData.EstatusAnterior = arregloDatos.dato
                         newData.ContieneAdjunto = arregloDatos.contieneAdjunto
                         let datosActualizadosFPT = update(this.state.datosFPT, { $splice: [[filaIndice, 1, newData]] })
-                        const actualizarSubcluster = await util.cambiarEstatusCluster(filaSeleccionada.IdFlujoId, datosActualizadosFPT, this.state.datosVentana.datos)
+                        const actualizarSubcluster = await util.cambiarEstatusCluster(filaSeleccionada.IdFlujoId, datosActualizadosFPT, this.state.datosVentana.datos, webs.cdt)
                         if (actualizarSubcluster) {
                             let filaIndice = this.state.datosVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.IdFlujoId)
                             let filaIndiceO = this.state.datosOriginalVentana.datos.findIndex(datos => datos.ID === filaSeleccionada.IdFlujoId)
@@ -1854,6 +1852,7 @@ class Generico extends Component {
 
     render() {
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, seguridad, tieneRFS, clusterToggle } = this.state
+        const {webs} = this.props
 
         const useStyles = makeStyles(theme => ({
             formControl: {
@@ -2568,10 +2567,10 @@ class Generico extends Component {
                             <Encabezado rfs={tieneRFS} idPITerr={!tieneRFS ? idProyecto : idTerreno} terreno={nombreTerreno}
                                 maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
                                 totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} usuarioActual={usuarioActual} gruposUsuarioActual={gruposUsuarioActual}
-                                filtros={filtrosTabla} seguridad={seguridad} />
+                                filtros={filtrosTabla} seguridad={seguridad} webs={webs} />
                             <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
                             <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
-                            {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} /> : null}
+                            {this.state.modal.abierto && <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} webs={webs} />}
                         </div>
                         : null
                     }

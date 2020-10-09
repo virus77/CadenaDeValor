@@ -1,14 +1,16 @@
+//#region Componentes
 import React, {Component} from 'react';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+//#endregion
+//#region Librerías externas
 import update from 'immutability-helper';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/sites";
+//#endregion
+//#region Estilos
 import '../estilos/modal.css';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
+//#endregion
 
 class SeleccionRFS extends Component{
     constructor(props){
@@ -148,7 +150,8 @@ class SeleccionRFS extends Component{
     }
 
     async componentDidMount(){
-        const terrenos = await currentWeb.lists.getByTitle("Terrenos").items
+        const { webs } = this.props
+        const terrenos = await webs.cdt.lists.getByTitle("Terrenos").items
         .filter('IdProyectoInversionId eq ' + this.props.datos.ProyectoInversion.ID + ' and Empadronamiento eq null')
         .select('ID', 'Title', 'NombredelTerreno2', 'Metraje','MACO', 'Empadronamiento')
         .get()

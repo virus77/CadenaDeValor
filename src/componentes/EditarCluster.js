@@ -1,18 +1,22 @@
+//#region Componentes
 import React, { Component } from 'react'
 import Backdrop from '../componentes/Backdrop';
+//#endregion
+//#region Librerías externas
 import update from 'immutability-helper';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
+//#endregion
+//#region Scrips
 import util from '../js/util'
 import CRUD from '../js/CRUD';
+//#endregion
+//#region Estilos
 import '../estilos/editarCluster.css';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+//#endregion
 
 class EditarCluster extends Component {
     constructor(props) {
@@ -48,8 +52,9 @@ class EditarCluster extends Component {
     }
 
     obtenerTareas = async () => {
-        let usuarioActual = await currentWeb.currentUser.get()
-        let tareas = await currentWeb.lists.getByTitle('Flujo Tareas').items
+        const {webs} = this.props
+        let usuarioActual = await webs.cdt.currentUser.get()
+        let tareas = await webs.cdt.lists.getByTitle('Flujo Tareas').items
         .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
             ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and Orden eq 3.14 and IdTarea/Subcluster ne null)')
         .select('ID', 'IdTarea/ID', 'IdTarea/Title', 'IdTarea/Subcluster', 'Orden', 'Visible', 'EstatusId')
@@ -67,13 +72,14 @@ class EditarCluster extends Component {
     }
 
     obtenerTareasCluster = async (IdTarea) => {
-        await currentWeb.lists.getByTitle('Flujo Tareas').items
+        const {webs} = this.props
+        await webs.cdt.lists.getByTitle('Flujo Tareas').items
             .filter('(IdProyectoInversionId eq ' + this.props.datos.info.cluster.IdProyectoInversion.ID +
                 ' and IdTerrenoId eq ' + this.props.datos.info.cluster.IdTerreno.ID + ' and IdTareaId eq ' + IdTarea + ')')
             .get()
             .then(async (fts) => {
                 if (fts[0].EstatusId !== 1) {
-                    await CRUD.updateListItem(currentWeb, 'Flujo Tareas', fts[0].ID, {EstatusId: 1}).catch(error=>{
+                    await CRUD.updateListItem(webs.cdt, 'Flujo Tareas', fts[0].ID, {EstatusId: 1}).catch(error=>{
                         alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + fts[0].ID + ' DE LA LISTA FLUJO TAREAS: ' + error)
                     })
                 }
@@ -97,6 +103,7 @@ class EditarCluster extends Component {
     }
 
     onGuardar = async () => {
+        const {webs} = this.props
         let { datos } = this.state
         datos = datos.filter(x => x.Cambio)
 
@@ -104,7 +111,7 @@ class EditarCluster extends Component {
             if (datos.length > 0) {
                 this.setState({ backdrop: { abierto: true, mensaje: 'Guardando...' } })
                 await util.asyncForEach(datos, async dato => {
-                    await CRUD.updateListItem(currentWeb, 'Flujo Tareas', dato.ID, {Visible: dato.Visible}).catch(error=>{
+                    await CRUD.updateListItem(webs.cdt, 'Flujo Tareas', dato.ID, {Visible: dato.Visible}).catch(error=>{
                         alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + dato.ID + ' EN FLUJO TAREAS: ' + error)
                     })
                 })

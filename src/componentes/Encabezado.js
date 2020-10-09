@@ -1,6 +1,9 @@
+//#region Componentes
 import React, { Component } from 'react';
 import Modal from './Ventana';
 import { Badge } from 'reactstrap';
+//#endregion
+//#region Imágenes
 import favDis_icon from '../imagenes/favDis_icon.png';
 import gantt_icon from '../imagenes/gantt.png';
 import viewAll from '../imagenes/viewAll.png';
@@ -13,7 +16,10 @@ import macoc_eg from '../imagenes/macoC_EG.png';
 import macox from '../imagenes/macoX.png';
 import toGantt from '../imagenes/toGantt.png';
 import toDashboard from '../imagenes/dashboard_icon.png';
+//#endregion
+//#region Estilos
 import '../estilos/encabezado.css';
+//#endregion
 
 class Encabezado extends Component {
     constructor(props) {
@@ -64,7 +70,7 @@ class Encabezado extends Component {
     };
 
     render() {
-        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco } = this.props
+        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco, webs } = this.props
         const { esAdministrador } = this.state
         return (
             <div>
@@ -112,7 +118,7 @@ class Encabezado extends Component {
                         </div>
                     </div>
                 </div>
-                {this.state.modal.abierto ? <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} rfs={this.props.rfs} idPITerr={this.state.idPITerr} evento={this.onActualizarMaco} datos={this.state.datos} /> : null}
+                {this.state.modal.abierto && <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} rfs={this.props.rfs} idPITerr={this.state.idPITerr} evento={this.onActualizarMaco} datos={this.state.datos} webs={webs} />}
             </div>
         );
     }

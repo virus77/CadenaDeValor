@@ -1,3 +1,4 @@
+//#region Componentes
 import React, { Component, createRef } from 'react';
 import SeleccionRFS from './SeleccionRFS'
 import ActividadFicticia from './ActividadFicticia'
@@ -6,11 +7,18 @@ import EditarCluster from './EditarCluster.js'
 import PeoplePicker from './PeoplePicker'
 import UserPicker from './UserPicker'
 import Backdrop from '../componentes/Backdrop';
-import update from 'immutability-helper';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+import Input from '@material-ui/core/Input';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import ListItemText from '@material-ui/core/ListItemText';
+import Select from '@material-ui/core/Select';
+import Checkbox from '@material-ui/core/Checkbox';
+//#endregion
+//#region Librerías externas
+import update from 'immutability-helper';
 import $ from "jquery";
+import moment from 'moment';
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -21,20 +29,14 @@ import "@pnp/sp/files";
 import "@pnp/sp/files/web";
 import "@pnp/sp/folders";
 import "@pnp/sp/security";
+//#endregion
+//#region Scripts
 import util from '../js/util'
 import CRUD from '../js/CRUD';
+//#endregion
+//#region Estilos
 import '../estilos/modal.css';
-import moment from 'moment';
-
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import ListItemText from '@material-ui/core/ListItemText';
-import Select from '@material-ui/core/Select';
-import Checkbox from '@material-ui/core/Checkbox';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+//#endregion
 
 class Ventana extends Component {
     constructor(props) {
@@ -68,6 +70,7 @@ class Ventana extends Component {
     }
     //#region Eventos de botones
     async onGuardar(datos) {
+        const {webs} = this.props
         this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
         //Si los datos de la ventana no son de una tarea de Flujo tareas...
         if (!this.props.abrir.esTarea) {
@@ -75,19 +78,19 @@ class Ventana extends Component {
                 //Establece el MACO para el/los terrenos
                 case 268:
                     if (!this.props.rfs) {
-                        const items = await currentWeb.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.idPITerr + ' and Empadronamiento eq null').get();
+                        const items = await webs.cdt.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.idPITerr + ' and Empadronamiento eq null').get();
 
                         if (items.length > 0) {
                             for (var i = 0; i < items.length; i++) {
-                                await CRUD.updateListItem(currentWeb, "Terrenos", items[i].ID, { MACO: this.state.radioChecked })
+                                await CRUD.updateListItem(webs.cdt, "Terrenos", items[i].ID, { MACO: this.state.radioChecked })
                             }
                         }
                         this.props.evento({ tarea: 0, dato: this.state.radioChecked })
                     } else {
-                        const items = await currentWeb.lists.getByTitle("Terrenos").items.filter('ID eq ' + this.props.idPITerr).get();
+                        const items = await webs.cdt.lists.getByTitle("Terrenos").items.filter('ID eq ' + this.props.idPITerr).get();
 
                         if (items.length > 0) {
-                            await CRUD.updateListItem(currentWeb, "Terrenos", items[0].ID, { MACO: this.state.radioChecked })
+                            await CRUD.updateListItem(webs.cdt, "Terrenos", items[0].ID, { MACO: this.state.radioChecked })
                         }
                         this.props.evento(this.state.radioChecked)
                         this.onCerrar()
@@ -127,9 +130,9 @@ class Ventana extends Component {
 
             await this.guardarDatos(listas, camposLista).then(()=>{
                 if(this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas'){
-                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.IdTarea.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 2), contieneAdjunto: this.state.contieneAdjunto })
+                    this.props.evento({ tarea: this.props.abrir.filaSeleccionada.IdTarea.ID, dato: this.state.catalogoEstatus.find(x=> x.ID === 2), contieneAdjunto: this.state.contieneAdjunto })
                 }else{
-                    this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 2), contieneAdjunto: this.state.contieneAdjunto })
+                    this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID === 2), contieneAdjunto: this.state.contieneAdjunto })
                 }
                 this.onCerrar()
             })
@@ -137,6 +140,7 @@ class Ventana extends Component {
     }
 
     async onEnviar(datos) {
+        const {webs} = this.props
         const { idTarea, radioChecked } = this.state
         switch (idTarea) {
             case 24:
@@ -182,14 +186,14 @@ class Ventana extends Component {
                             IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
                             IdFlujoId: this.props.abrir.id, FRSN: this.state.radioChecked
                         }
-                        await CRUD.createListItem(currentWeb, this.state.campos[0].ListaDeGuardado, json).then(async () => {
+                        await CRUD.createListItem(webs.cdt, this.state.campos[0].ListaDeGuardado, json).then(async () => {
                             //Actualiza el estatus del elemento de la EG
-                            await CRUD.updateListItem(currentWeb, "EstrategiaGestion", this.props.abrir.filaSeleccionada.ID, {EstatusId: 3}).then(async () => {
+                            await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", this.props.abrir.filaSeleccionada.ID, {EstatusId: 3}).then(async () => {
                                 //Establece la tarea como Enviada
-                                await CRUD.updateListItem(currentWeb, "Flujo Tareas", this.props.abrir.id, {EstatusId: 3, EstatusAnteriorId: 3}).then(async () => {
+                                await CRUD.updateListItem(webs.cdt, "Flujo Tareas", this.props.abrir.id, {EstatusId: 3, EstatusAnteriorId: 3}).then(async () => {
                                     //Verifica si se creará una nueva tarea, dependiento del valor de RFNS seleccionado
                                     if (idNuevaTarea !== 0) {
-                                        const datosNuevaTarea = await currentWeb.lists.getByTitle('Tareas').items.getById(idNuevaTarea).get();
+                                        const datosNuevaTarea = await webs.cdt.lists.getByTitle('Tareas').items.getById(idNuevaTarea).get();
                                         //Crea la nueva tarea en Flujo Tareas
                                         const jsonFT = {
                                             IdProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
@@ -201,7 +205,7 @@ class Ventana extends Component {
                                             EstatusAnteriorId: 1,
                                             Visible: true
                                         }
-                                        await CRUD.createListItem(currentWeb, "Flujo Tareas", jsonFT).then(async result => {
+                                        await CRUD.createListItem(webs.cdt, "Flujo Tareas", jsonFT).then(async result => {
                                             //Crea el elemento en la estrategia de gestión
                                             const jsonEG = {
                                                 ProyectoInversionId: this.props.abrir.filaSeleccionada.ProyectoInversion.ID,
@@ -212,7 +216,7 @@ class Ventana extends Component {
                                                 EstatusId: 1,
                                                 OrdenEG: datosNuevaTarea.OrdenEG
                                             }
-                                            await CRUD.createListItem(currentWeb, "EstrategiaGestion", jsonEG).catch(error => {
+                                            await CRUD.createListItem(webs.cdt, "EstrategiaGestion", jsonEG).catch(error => {
                                                 alert('ERROR AL CREAR LA TAREA ' + idNuevaTarea + ' EN LA E.G.: ' + error)
                                             })
                                             //Establecer estado para nueva tarea creada
@@ -249,7 +253,7 @@ class Ventana extends Component {
             case 35:
                 this.setState({backdrop: {abierto: true, mensaje: 'Guardando...'}})
                 //Actualiza el estatus del elemento de la EG
-                await CRUD.updateListItem(currentWeb, "EstrategiaGestion", this.props.abrir.filaSeleccionada.ID, {EstatusId: 3}).then(() => {
+                await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", this.props.abrir.filaSeleccionada.ID, {EstatusId: 3}).then(() => {
                     //Manda el ID de la tarea actual y el dato para saber si deberá genera la EG
                     this.props.evento({ tarea: idTarea, dato: datos })
                     this.props.cerrar();
@@ -269,10 +273,10 @@ class Ventana extends Component {
 
                     await this.guardarDatos(listas, camposLista).then(async () => {
                         if (this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas') {
-                            await util.crearBitacoras(this.props.abrir.filaSeleccionada.IdTarea.ID, this.props.abrir.filaSeleccionada.IdTerreno, this.props.abrir.filaSeleccionada.IdProyectoInversion, this.props.abrir.filaSeleccionada.IdTarea.TareaCrear)
-                            this.props.evento({ tarea: this.props.abrir.filaSeleccionada.ID, dato: this.state.catalogoEstatus.find(x=> x.ID == 3), contieneAdjunto: this.state.contieneAdjunto })
+                            await util.crearBitacoras(this.props.abrir.filaSeleccionada.IdTarea.ID, this.props.abrir.filaSeleccionada.IdTerreno, this.props.abrir.filaSeleccionada.IdProyectoInversion, this.props.abrir.filaSeleccionada.IdTarea.TareaCrear, webs)
+                            this.props.evento({ tarea: this.props.abrir.filaSeleccionada.ID, dato: this.state.catalogoEstatus.find(x=> x.ID === 3), contieneAdjunto: this.state.contieneAdjunto })
                         }else{
-                            this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID == 3), contieneAdjunto: this.state.contieneAdjunto })
+                            this.props.evento({ tarea: this.state.datosTramite[0].IdTareaId, dato: this.state.catalogoEstatus.find(x=> x.ID === 3), contieneAdjunto: this.state.contieneAdjunto })
                         }
                         this.onCerrar()
                     })
@@ -285,6 +289,7 @@ class Ventana extends Component {
     }
 
     guardarDatos = async (listas, camposLista) => {
+        const {webs} = this.props
         await util.asyncForEach(listas, async lista => {
             if (lista !== 'Documentos' && lista !== 'null' && lista !== '0') {
                 let newCamposLista = camposLista[lista]
@@ -303,23 +308,23 @@ class Ventana extends Component {
                             json.Fecha = valor
                             json.Campo = campoLista.campo
                         }
-                        const datos = await currentWeb.lists.getByTitle(lista).items.select('ID', 'Fecha', 'Campo').filter("Title eq '" + idElemento + "' and Campo eq '" + campoLista.campo + "'").get()
+                        const datos = await webs.cdt.lists.getByTitle(lista).items.select('ID', 'Fecha', 'Campo').filter("Title eq '" + idElemento + "' and Campo eq '" + campoLista.campo + "'").get()
                         if (datos.length === 0) {
                             if (Object.keys(json).length > 0) {
-                                await CRUD.createListItem(currentWeb, lista, json).catch(error => {
+                                await CRUD.createListItem(webs.cdt, lista, json).catch(error => {
                                     alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                                 })
                             }
                         }else{
                             if(Object.keys(json).length > 0){
-                                await CRUD.updateListItem(currentWeb, lista, datos[0].ID, json).catch(error=>{
+                                await CRUD.updateListItem(webs.cdt, lista, datos[0].ID, json).catch(error=>{
                                     alert('ERROR AL ACTUALIZAR LA LISTA ' + lista + ': ' + error)
                                 })
                             }
                         }
                     })
                 } else if (lista === 'Fechas paquete de trámites') {
-                    const tramites = this.state.campos.filter(x => x.Tramite == 'Trámite')
+                    const tramites = this.state.campos.filter(x => x.Tramite === 'Trámite')
                     await util.asyncForEach(tramites, async tramite => {
                         if (this.props.abrir.filaSeleccionada.Lista === 'Flujo Tareas') { json = { 'IdFlujoId': idElemento, 'Title': this.props.abrir.filaSeleccionada.IdTerreno.Title, 'IdDocTaskId': tramite.IdRTD, 'IdDocTramiteId': tramite.IdTramite } }
                         else if (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites') { json = { 'IdFlujoId': idElemento, 'Title': this.state.datosTramite[0].IdTerreno.Title, 'IdDocTaskId': tramite.IdRTD, 'IdDocTramiteId': tramite.IdTramite } }
@@ -339,20 +344,20 @@ class Ventana extends Component {
                             }
                         })
 
-                        const datos = await currentWeb.lists.getByTitle(lista).items
+                        const datos = await webs.cdt.lists.getByTitle(lista).items
                         .select('FechaDeIngreso', 'FechaDeLaPrevencion', 'FechaDeResolucion', 'FechaVigencia', 'InternalNameFdeI', 'InternalNameFdeI',
                             'InternalNameFdeLaP', 'InternalNameFdeR', 'InternalNameFdeV', 'IdDocTaskId', 'IdDocTramiteId', 'ID')
                         .filter('IdFlujoId eq ' + idElemento + ' and IdDocTaskId eq ' + tramite.IdRTD + ' and IdDocTramiteId eq ' + tramite.IdTramite).get()
 
                         if(datos.length === 0){
                             if(Object.keys(json).length > 0){
-                                await CRUD.createListItem(currentWeb, lista, json).catch(error => {
+                                await CRUD.createListItem(webs.cdt, lista, json).catch(error => {
                                     alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                                 })
                             }
                         }else{
                             if(Object.keys(json).length > 0){
-                                await CRUD.updateListItem(currentWeb, lista, datos[0].ID, json).catch(error=>{
+                                await CRUD.updateListItem(webs.cdt, lista, datos[0].ID, json).catch(error=>{
                                     alert('ERROR AL ACTUALIZAR LA LISTA ' + lista + ': ' + error)
                                 })
                             }
@@ -371,20 +376,20 @@ class Ventana extends Component {
                                 json.CategoriaId = valor
                                 json.IdResponsable = campoLista.campo
                             }
-                            const datos = await currentWeb.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "' and IdResponsable eq '" + campoLista.campo + "'")
+                            const datos = await webs.cdt.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "' and IdResponsable eq '" + campoLista.campo + "'")
                             .get()
                             .catch(error=>{
                                 alert('ERROR AL CONSULTAR DATOS EN LA LISTA ' + lista + ': ' + error)
                             })
                             if(datos.length === 0){
                                 if(Object.keys(json).length > 0){
-                                    await CRUD.createListItem(currentWeb, lista, json).catch(error => {
+                                    await CRUD.createListItem(webs.cdt, lista, json).catch(error => {
                                         alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                                     })
                                 }
                             }else{
                                 if(Object.keys(json).length > 0){
-                                    await CRUD.updateListItem(currentWeb, lista, datos[0].ID, json).catch(error=>{
+                                    await CRUD.updateListItem(webs.cdt, lista, datos[0].ID, json).catch(error=>{
                                         alert('ERROR AL ACTUALIZAR LA LISTA ' + lista + ': ' + error)
                                     })
                                 }
@@ -392,7 +397,7 @@ class Ventana extends Component {
                         }
                     })
                 } else if (lista === 'Relación Bancos Proyectos Deptos') {
-                    const datos = await currentWeb.lists.getByTitle(lista).items.filter("IdFlujo eq " + this.props.abrir.filaSeleccionada.ID)
+                    const datos = await webs.cdt.lists.getByTitle(lista).items.filter("IdFlujo eq " + this.props.abrir.filaSeleccionada.ID)
                     .get()
                     .catch(error => {
                         alert('ERROR AL CONSULTAR DATOS EN LA LISTA ' + lista + ': ' + error)
@@ -401,25 +406,27 @@ class Ventana extends Component {
                     if(datos.length > 0){
                         if(Object.keys(json).length > 0){
                             await util.asyncForEach(datos, async dato =>{
-                                await CRUD.deleteListItem(currentWeb, lista, dato.Id)
+                                await CRUD.deleteListItem(webs.cdt, lista, dato.Id)
                             })
                         }
                     }
                     await util.asyncForEach(newCamposLista, async (campoLista) => {
                         campoLista.valor = this.state.campos.find(x => x.TituloInternoDelCampo === campoLista.campo).valor
-                        await util.asyncForEach(campoLista.valor, async (valor) => {
-                            json = {}
-                            if (valor > 0) {
-                                json.Title = this.props.abrir.filaSeleccionada.IdTerreno.Title
-                                json.IdFlujo = this.props.abrir.filaSeleccionada.ID
-                                json.NombreDelBancoId = valor
-                            }
-                            if (Object.keys(json).length > 0) {
-                                await CRUD.createListItem(currentWeb, lista, json).catch(error => {
-                                    alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
-                                })
-                            }
-                        })
+                        if(campoLista.valor !== undefined){
+                            await util.asyncForEach(campoLista.valor, async (valor) => {
+                                json = {}
+                                if (valor > 0) {
+                                    json.Title = this.props.abrir.filaSeleccionada.IdTerreno.Title
+                                    json.IdFlujo = this.props.abrir.filaSeleccionada.ID
+                                    json.NombreDelBancoId = valor
+                                }
+                                if (Object.keys(json).length > 0) {
+                                    await CRUD.createListItem(webs.cdt, lista, json).catch(error => {
+                                        alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
+                                    })
+                                }
+                            })
+                        }
                     })
                 } else if(lista === 'RelacionTerrenoInteresados'){
                     await util.asyncForEach(newCamposLista, async campoLista => {
@@ -432,7 +439,7 @@ class Ventana extends Component {
                             json.Title = campoLista.campo
                             json.InteresadosId = campoLista.tipo === 'PeoplePicker' ? util.obtenerIdAsignados(campoRef.valor) : (campoRef.valor.Id !== undefined ? { results: [campoRef.valor.Id] } : { results: [] })
                             
-                            const datos = await currentWeb.lists.getByTitle(lista).items
+                            const datos = await webs.cdt.lists.getByTitle(lista).items
                             .select('ID', 'IdFlujoId', 'Title', 'Interesados/Id', 'Interesados/Title')
                             .filter("IdFlujoId eq " + idElemento + " and Title eq '" + campoLista.campo + "'")
                             .expand('Interesados')
@@ -442,13 +449,13 @@ class Ventana extends Component {
                             })
                             if (datos.length === 0) {
                                 if (Object.keys(json).length > 0) {
-                                    await CRUD.createListItem(currentWeb, lista, json).catch(error => {
+                                    await CRUD.createListItem(webs.cdt, lista, json).catch(error => {
                                         alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                                     })
                                 }
                             }else{
                                 if(Object.keys(json).length > 0){
-                                    await CRUD.updateListItem(currentWeb, lista, datos[0].ID, json).catch(error=>{
+                                    await CRUD.updateListItem(webs.cdt, lista, datos[0].ID, json).catch(error=>{
                                         alert('ERROR AL ACTUALIZAR LA LISTA ' + lista + ': ' + error)
                                     })
                                 }
@@ -464,7 +471,7 @@ class Ventana extends Component {
                             if(campoLista.tipo === 'CheckBox'){
                                 json[campoLista.campo] = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                             }
-                            else if(campoLista.valor != ''){
+                            else if(campoLista.valor !== ''){
                                 json[campoLista.campo] = util.returnDataByFieldType(campoRef.valor, campoLista.tipo)
                             }
                             return campoLista
@@ -475,14 +482,12 @@ class Ventana extends Component {
                             json.NombredelTerreno2 = json.Calle + ' - ' + json.NoExterior
                         }
                     }else if(this.state.idTarea === 215 || this.state.idTarea === 248){
-                        const consultaConsecutivo = await currentWeb.lists.getByTitle("Historico de registro de cambio").items
+                        const consultaConsecutivo = await webs.cdt.lists.getByTitle("Historico de registro de cambio").items
                         .select("ID", "Consecutivo")
                         .filter("(Title eq '" + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + "') and (" + (this.state.idTarea === 215 ? "Terreno eq null" : "Terreno eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "'") + ")")
                         .orderBy("Consecutivo")
                         .top(1000)
                         .get()
-
-                        const a = this.state.catalogo[0].datos.find(x=> x.Id === json.GrupoResponsable)
 
                         const jsonHRC = {
                             Consecutivo: consultaConsecutivo.length + 1,
@@ -493,12 +498,12 @@ class Ventana extends Component {
                             FechaAutorizacionCambios: json.FechaAutorizacionCambios,
                             ComentariosRegistroCambio: json.ComentariosSolicitudCambio
                         }
-                        await CRUD.createListItem(currentWeb, 'Historico de registro de cambio', jsonHRC).catch(error => {
+                        await CRUD.createListItem(webs.cdt, 'Historico de registro de cambio', jsonHRC).catch(error => {
                             alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                         })
                     }
                     if(Object.keys(json).length > 0){
-                        await CRUD.updateListItem(currentWeb, lista, idElemento, json).catch(error=>{
+                        await CRUD.updateListItem(webs.cdt, lista, idElemento, json).catch(error=>{
                             alert('ERROR AL ACTUALIZAR LA LISTA ' + lista + ': ' + error)
                         })
                     }
@@ -515,8 +520,9 @@ class Ventana extends Component {
 
     //#region Funciones
     obtenerCampos = async id => {
+        const {webs} = this.props
         let { refs, camposLista, catalogo, archivosCargados, idTarea, datosTramite } = this.state
-        let catalogoEstatus = await currentWeb.lists.getByTitle('Estatus').items
+        let catalogoEstatus = await webs.cdt.lists.getByTitle('Estatus').items
         .select('ID', 'Title')
         .filter("Categoria eq 'Automático'")
         .get()
@@ -527,7 +533,7 @@ class Ventana extends Component {
         if (!this.props.abrir.esTarea) {
             if (id > 0) {
                 //Obtiene los campos a pintar en el formulario
-                await currentWeb.lists.getByTitle('Relación campos documentos trámites tareas').items
+                await webs.cdt.lists.getByTitle('Relación campos documentos trámites tareas').items
                 .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado', 'Editable',
                     'ListaDeGuardadoIN', 'ListaDeGuardadoSecundario', 'ListaDeGuardadoSecundarioIN', 'Catalogos', 'Ordenamiento',
                     'Requerido', 'Tramite', 'Activo', 'Boton', 'IdRTD', 'IdTramite', 'IdDocumento', 'Url', 'EstiloColumna',
@@ -538,7 +544,7 @@ class Ventana extends Component {
                 .then(async (campos)=>{
                     let users = []
                     if (this.props.abrir.id === 270) {
-                        users = await currentWeb.siteUsers();
+                        users = await webs.cdt.siteUsers();
                         if(this.props.abrir.idVentana !== 4){
                             if (this.props.abrir.gruposUsuarioActual.some(x => x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID && !x.AdminAreaGanttId.some(x => x === this.props.abrir.usuarioActual.Id) && x.RespAreaGanttId.some(x => x === this.props.abrir.usuarioActual.Id))) {
                                 users = users.filter(x => x.Id === this.props.abrir.usuarioActual.Id)
@@ -560,7 +566,7 @@ class Ventana extends Component {
                     : (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites' ? (this.props.abrir.filaSeleccionada.IdDocTaskId !== null ? 'IdRTD eq ' + this.props.abrir.filaSeleccionada.IdDocTaskId : 'IdTramite eq ' + this.props.abrir.filaSeleccionada.IdDocTramite.ID)
                         : '(TareaId eq ' + this.props.abrir.filaSeleccionada.Tarea + ') and (Activo eq 1)'))
             //Obtiene los campos a pintar en el formulario
-            await currentWeb.lists.getByTitle('Relación campos documentos trámites tareas').items
+            await webs.cdt.lists.getByTitle('Relación campos documentos trámites tareas').items
                 .select('Tarea/ID', 'Tarea/Title', 'Title', 'TituloInternoDelCampo', 'TipoDeCampo', 'ListaDeGuardado', 'Editable',
                     'ListaDeGuardadoIN', 'ListaDeGuardadoSecundario', 'ListaDeGuardadoSecundarioIN', 'Catalogos', 'Ordenamiento',
                     'Requerido', 'Tramite', 'Activo', 'Boton', 'IdRTD', 'IdTramite', 'IdDocumento', 'Url', 'EstiloColumna',
@@ -594,7 +600,7 @@ class Ventana extends Component {
                     }
 
                     if (this.props.abrir.filaSeleccionada.Lista === 'Fechas paquete de trámites') {
-                        datosTramite = await currentWeb.lists.getByTitle('Flujo Tareas').items
+                        datosTramite = await webs.cdt.lists.getByTitle('Flujo Tareas').items
                         .select('ID', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdTerreno/ID', 'IdTerreno/Title',
                             'Nivel/ID', 'Nivel/Title', 'IdTareaId')
                         .filter('ID eq ' + this.props.abrir.filaSeleccionada.IdFlujoId)
@@ -614,7 +620,7 @@ class Ventana extends Component {
                                 }).join(',')
                                 let idElemento = util.obtenerIdActualizarPorLista(this.props.abrir.filaSeleccionada, elementos[0].listaPrincipalIN)
                                 if (lista === 'Relación Fechas Aprobación Terreno') {
-                                    const datos = await currentWeb.lists.getByTitle(lista).items.select('Fecha', 'Campo').filter('Title eq ' + idElemento.toString()).get()
+                                    const datos = await webs.cdt.lists.getByTitle(lista).items.select('Fecha', 'Campo').filter('Title eq ' + idElemento.toString()).get()
                                     if (datos.length > 0) {
                                         campos.map((campo) => {
                                             const newCampo = datos.find(x => x.Campo === campo.TituloInternoDelCampo)
@@ -625,9 +631,9 @@ class Ventana extends Component {
                                         })
                                     }
                                 } else if (lista === 'Fechas paquete de trámites') {
-                                    const tramites = campos.filter(x => x.Tramite == 'Trámite')
+                                    const tramites = campos.filter(x => x.Tramite === 'Trámite')
                                     await util.asyncForEach(tramites, async tramite => {
-                                        const datos = await currentWeb.lists.getByTitle(lista).items
+                                        const datos = await webs.cdt.lists.getByTitle(lista).items
                                         .select('FechaDeIngreso', 'FechaDeLaPrevencion', 'FechaDeResolucion', 'FechaVigencia', 'InternalNameFdeI', 'InternalNameFdeI',
                                             'InternalNameFdeLaP', 'InternalNameFdeR', 'InternalNameFdeV', 'IdDocTaskId', 'IdDocTramiteId', 'ID', 'NoAplica')
                                         .filter('IdFlujoId eq ' + idElemento + ' and IdDocTaskId eq ' + tramite.IdRTD + ' and IdDocTramiteId eq ' + tramite.IdTramite)
@@ -657,7 +663,7 @@ class Ventana extends Component {
                                         }
                                     })
                                 } else if (lista === 'Relación DRO´s Proyectos deptos') {
-                                    const datos = await currentWeb.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "'")
+                                    const datos = await webs.cdt.lists.getByTitle(lista).items.filter("Title eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "'")
                                     .get()
                                     .catch(error => {
                                         alert('ERROR AL CONSULTAR DATOS EN LA LISTA ' + lista + ': ' + error)
@@ -672,7 +678,7 @@ class Ventana extends Component {
                                         })
                                     }
                                 } else if (lista === 'Relación Bancos Proyectos Deptos') {
-                                    const datos = await currentWeb.lists.getByTitle(lista).items.select('NombreDelBancoId').filter('IdFlujo eq ' + this.props.abrir.filaSeleccionada.ID).get()
+                                    const datos = await webs.cdt.lists.getByTitle(lista).items.select('NombreDelBancoId').filter('IdFlujo eq ' + this.props.abrir.filaSeleccionada.ID).get()
                                     if (datos.length > 0) {
                                         campos.map((campo) => {
                                             if (campo.TituloInternoDelCampo === elementos[0].campo) {
@@ -682,7 +688,7 @@ class Ventana extends Component {
                                         })
                                     }
                                 } else if (lista === 'RelacionTerrenoInteresados') {                                    
-                                    const datos = await currentWeb.lists.getByTitle(lista).items
+                                    const datos = await webs.cdt.lists.getByTitle(lista).items
                                     .select('ID', 'IdFlujoId', 'Title', 'Interesados/Id', 'Interesados/Title')
                                     .filter("IdFlujoId eq " + idElemento)
                                     .expand('Interesados')
@@ -704,7 +710,7 @@ class Ventana extends Component {
                                         })
                                     }
                                 } else {
-                                    await currentWeb.lists.getByTitle(lista).items.getById(idElemento).select(camposSelect).get().then((datos) => {
+                                    await webs.cdt.lists.getByTitle(lista).items.getById(idElemento).select(camposSelect).get().then((datos) => {
                                         campos.map((campo) => {
                                             const valor = datos[campo.TituloInternoDelCampo]
                                             if (valor !== undefined) {
@@ -730,7 +736,7 @@ class Ventana extends Component {
                                 let elementos = camposLista[lista]
                                 await util.asyncForEach(elementos, async elementos => {
                                     const result = await this.obtenerDocumentosCargados(urlDoctos, elementos.campo)
-                                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL + '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl, requerido: false }) }
+                                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.ServerRelativeUrl, requerido: false }) }
                                 })
                             }
                         })
@@ -739,13 +745,12 @@ class Ventana extends Component {
                         this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, backdrop: {abierto : false, mensaje: ''} })
                     }else{
                         await obtenerDatos().then(async()=>{
-                            const existeGrupo = this.props.abrir.gruposUsuarioActual.some(x=> x.ID === this.props.abrir.filaSeleccionada.GrupoResponsable.ID)
                             const idsAsignados = util.obtenerIdAsignados(this.props.abrir.filaSeleccionada.AsignadoA)
                             const existeAsignado = idsAsignados.results.includes(this.props.abrir.usuarioActual.Id)
                             const esAdministrador = this.props.abrir.filaSeleccionada.esAdministrador
                             let { usuarios } = this.state
                             if(idTarea === 45 || idTarea === 152){
-                                usuarios = await currentWeb.siteUsers()
+                                usuarios = await webs.cdt.siteUsers()
                             }
                             this.setState({ campos: campos, catalogoEstatus: catalogoEstatus, catalogo: catalogo, refs: refs,
                                 camposLista: camposLista, archivosCargados: archivosCargados, datosTramite: datosTramite,
@@ -761,7 +766,8 @@ class Ventana extends Component {
     }
 
     obtenerDatosGuardados = async (id) => {
-        const item = await currentWeb.lists.getByTitle("RFSN").items
+        const {webs} = this.props
+        const item = await webs.cdt.lists.getByTitle("RFSN").items
         .filter('IdFlujoId eq ' + id + 'and IdTerrenoId eq null')
         .get()
         .catch(error => {
@@ -773,14 +779,13 @@ class Ventana extends Component {
     }
 
     obtenerDocumentosCargados = async (url, documento) => {
+        const {webs} = this.props
         let result = {}
-        const rootweb = await currentWeb.getParentWeb()
-        let webCdV = Web(rootweb.data.Url)
-        await webCdV.getFolderByServerRelativeUrl('/Documents/' + url).files.get().then(items => {
+        await webs.cdv.getFolderByServerRelativeUrl('/Documents/' + url).files.get().then(items => {
             result = items.find(x => x.Title === documento)
             if (result !== undefined) {
                 result.extension = result.Name.split('.').pop()
-                result.rootURL = rootweb.data.Url
+                result.rootURL = result.ServerRelativeUrl
             }
         }).catch(error => {
             alert('ERROR AL INTENTAR OBTENER LOS DOCUMENTOS DESDE ' + url + ': ' + error)
@@ -799,7 +804,8 @@ class Ventana extends Component {
     }
 
     obtenerTotalTerrenosPI = async () => {
-        const terrenos = await currentWeb.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.abrir.filaSeleccionada.ProyectoInversion.ID + ' and Empadronamiento eq null').get();
+        const {webs} = this.props
+        const terrenos = await webs.cdt.lists.getByTitle("Terrenos").items.filter('IdProyectoInversionId eq ' + this.props.abrir.filaSeleccionada.ProyectoInversion.ID + ' and Empadronamiento eq null').get();
         return terrenos.length
     }
 
@@ -835,7 +841,7 @@ class Ventana extends Component {
                 } else if (this.props.abrir.filaSeleccionada.Tarea.ID === 269) {
                     const urlDoctos = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
                     const result = await this.obtenerDocumentosCargados(urlDoctos, 'EGAutorizada')
-                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: result.rootURL + '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.rootURL + result.ServerRelativeUrl }) }
+                    if (result !== undefined) { archivosCargados.push({ nombreInterno: result.Title, archivo: result.Name, icono: '/CompraDeTerreno/images/iconos/' + result.extension + '.png', url: result.ServerRelativeUrl }) }
                 }
             }
             this.obtenerCampos(this.props.abrir.id)
@@ -867,16 +873,15 @@ class Ventana extends Component {
     }
 
     async onCargarArchivo(e, nombreDocumento) {
+        const {webs} = this.props
         const { archivosCargados } = this.state
         if (window.confirm('¿Desea adjuntar el archivo "' + e.target.files[0].name + '"?')) {
             const { id, name } = e.target
             const archivo = e.target.files[0]
             const extension = archivo.name.split('.').pop()
             if (!this.props.abrir.esTarea) {
-                const rootweb = await currentWeb.getParentWeb()
-                let webCdV = Web(rootweb.data.Url)
                 const urlCargar = !this.props.abrir.filaSeleccionada.esRFS ? this.props.abrir.filaSeleccionada.ProyectoInversion.title : this.props.abrir.filaSeleccionada.ProyectoInversion.title + '/' + this.props.abrir.filaSeleccionada.Terreno.title
-                await webCdV.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
+                await webs.cdv.getFolderByServerRelativeUrl('/Documents/' + urlCargar + '/').files.add(nombreDocumento + '.' + extension, archivo, true)
                     .then(async (docto) => {
                         const item = await docto.file.getItem()
                         await item.update({
@@ -885,7 +890,7 @@ class Ventana extends Component {
                             .then(async () => {
                                 let index = archivosCargados.findIndex(x => x.nombreInterno === nombreDocumento)
                                 if (index === -1) {
-                                    archivosCargados.push({ nombreInterno: nombreDocumento, archivo: docto.data.Name, icono: rootweb.data.Url + '/CompraDeTerreno/images/iconos/' + extension + '.png', url: rootweb.data.Url + docto.data.ServerRelativeUrl })
+                                    archivosCargados.push({ nombreInterno: nombreDocumento, archivo: docto.data.Name, icono: '/CompraDeTerreno/images/iconos/' + extension + '.png', url: docto.data.ServerRelativeUrl })
                                 }
                                 alert('Su archivo se cargó correctamente')
                                 this.setState({ archivosCargados: archivosCargados })
@@ -978,7 +983,8 @@ class Ventana extends Component {
 
     //#region  Funciones genericas
     obtenerGrupos = async () => {
-        return await currentWeb.siteGroups();
+        const {webs} = this.props
+        return await webs.cdt.siteGroups();
     }
 
     obtenerSiNo = async () => {
@@ -986,19 +992,22 @@ class Ventana extends Component {
     }
 
     obtenerDRO = async (params) => {
-        return await currentWeb.lists.getByTitle("DRO´s").items.filter("Title eq '" + params + "'").get().catch(error => {
+        const {webs} = this.props
+        return await webs.cdt.lists.getByTitle("DRO´s").items.filter("Title eq '" + params + "'").get().catch(error => {
             alert('ERROR AL INTENTAR OBTENER LOS DROS DE ' + params + ': ' + error)
         })
     }
 
     obtenerEmpresas = async (params) => {
-        return await currentWeb.lists.getByTitle("Empresas").items.filter("Activo eq " + parseInt(params)).get().catch(error => {
+        const {webs} = this.props
+        return await webs.cdt.lists.getByTitle("Empresas").items.filter("Activo eq " + parseInt(params)).get().catch(error => {
             alert('ERROR AL INTENTAR OBTENER LAS EMPRESAS: ' + error)
         })
     }
 
     CatBancos = async () => {
-        return await currentWeb.lists.getByTitle("Catálogo de bancos").items.get().catch(error => {
+        const {webs} = this.props
+        return await webs.cdt.lists.getByTitle("Catálogo de bancos").items.get().catch(error => {
             alert('ERROR AL INTENTAR OBTENER EL CATÁLOGO DE BANCOS: ' + error)
         })
     }
@@ -1094,6 +1103,7 @@ class Ventana extends Component {
     render() {
         var boton = '';
         var ID = 0;
+        const {abrir, webs} = this.props
         let { idTarea, archivosCargados, esIframe, catalogo, editablePorUsuario } = this.state
 
         const Formulario = () => {
@@ -1148,12 +1158,12 @@ class Ventana extends Component {
                                         </div>
                                     case 'Link':
                                         return <div key={campo.ID} className="form-group">
-                                            <a href={util.ensamblarURL(campo.Url, this.props.abrir.filaSeleccionada, this.props.abrir.url)} target='_blank' disabled={campo.Activo}>{campo.Title}</a>
+                                            <a href={util.ensamblarURL(campo.Url, this.props.abrir.filaSeleccionada, this.props.abrir.url)} target='_blank' rel="noopener noreferrer" disabled={campo.Activo}>{campo.Title}</a>
                                         </div>
                                     case 'LinkPE':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label><br />
-                                            <a href={util.ensamblarURLPE(campo.Url, this.props.abrir.filaSeleccionada, campo.TituloInternoDelCampo, this.props.abrir.url)} target='_blank' disabled={campo.Activo}>Ir a la carpeta</a>
+                                            <a href={util.ensamblarURLPE(campo.Url, this.props.abrir.filaSeleccionada, campo.TituloInternoDelCampo, this.props.abrir.url)} target='_blank' rel="noopener noreferrer" disabled={campo.Activo}>Ir a la carpeta</a>
                                         </div>
                                     case 'Number':
                                         return <div key={campo.ID} className="form-group">
@@ -1289,18 +1299,18 @@ class Ventana extends Component {
         return (
             <div>
                 {this.state.campos.length > 0 && !this.state.backdrop.abierto ?
-                    <Modal isOpen={this.props.abrir.abierto} size={this.props.abrir.size}>
+                    <Modal isOpen={abrir.abierto} size={abrir.size}>
                         <ModalHeader className='encabezado' close={closeBtn}>{this.state.campos[0].Tarea.Title}</ModalHeader>
                         <form action='' className={idTarea !== 24 && idTarea !== 25 && idTarea !== 30 && idTarea !== 35 && idTarea !== 268 && idTarea !== 271 && idTarea !== 272 && idTarea !== 289 ? 'was-validated' : ''} ref={this.form} onSubmit={e => e.preventDefault()}>
-                            <div className='datoTerreno'>{this.props.abrir.terreno}</div>
-                            <fieldset disabled={!this.props.abrir.esTarea ? false : (this.props.abrir.filaSeleccionada.Estatus.ID === 3 || !editablePorUsuario ? true : false)}>
+                            <div className='datoTerreno'>{abrir.terreno}</div>
+                            <fieldset disabled={!abrir.esTarea ? false : (abrir.filaSeleccionada.Estatus.ID === 3 || !editablePorUsuario ? true : false)}>
                                 <ModalBody className='form-row'>
                                     {
                                         idTarea === 25 || idTarea === 30 || idTarea === 35 ?
-                                            <SeleccionRFS datos={this.props.abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} />
-                                            : (idTarea === 271 ? <ActividadFicticia datos={this.props.abrir.filaSeleccionada} esTarea={this.props.abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} usuarioActual={this.props.abrir.usuarioActual} gruposUsuarioActual={this.props.abrir.gruposUsuarioActual} />
-                                                : (idTarea === 272 ? <Detalle datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} />
-                                                    : (idTarea === 289 ? <EditarCluster datos={this.props.abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} /> : <Formulario />)))
+                                            <SeleccionRFS datos={abrir.filaSeleccionada} tipo={this.state.campos[0].TituloInternoDelCampo} datosRetorno={this.onEnviar} cerrar={this.onCerrar} webs={webs} />
+                                            : (idTarea === 271 ? <ActividadFicticia datos={abrir.filaSeleccionada} esTarea={abrir.esTarea} datosRetorno={this.onGuardar} cerrar={this.onCerrar} usuarioActual={abrir.usuarioActual} gruposUsuarioActual={abrir.gruposUsuarioActual} webs={webs} />
+                                                : (idTarea === 272 ? <Detalle datos={abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} webs={webs} />
+                                                    : (idTarea === 289 ? <EditarCluster datos={abrir.filaSeleccionada} datosRetorno={this.onGuardar} cerrar={this.onCerrar} webs={webs} /> : <Formulario />)))
                                     }
                                 </ModalBody>
                                 <ModalFooter>

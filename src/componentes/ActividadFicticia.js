@@ -1,19 +1,24 @@
+//#region Componentes
 import React, { Component } from 'react';
 import PeoplePicker from './PeoplePicker'
 import Backdrop from '../componentes/Backdrop';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+//#endregion
+//#region Librerías externas
+import moment from 'moment'
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
+//#endregion
+//#region Scripts
 import util from '../js/util'
 import CRUD from '../js/CRUD';
-import moment from 'moment'
+//#endregion
+//#region Estilos
 import '../estilos/actividadFicticia.css';
+//#endregion
 
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
 var usuarioActual
 
 class ActividadFicticia extends Component {
@@ -39,11 +44,12 @@ class ActividadFicticia extends Component {
 
     //#region Métodos de ciclo de vida
     async componentDidMount() {
+        const {webs} = this.props
         //Obtiene los datos del usuario actual
-        usuarioActual = await currentWeb.currentUser.get();
-        const listaUsuarios = await currentWeb.siteUsers()
+        usuarioActual = await webs.cdt.currentUser.get();
+        const listaUsuarios = await webs.cdt.siteUsers()
         if (this.props.datos.info === undefined) {
-            await currentWeb.lists.getByTitle('Flujo Tareas').items
+            await webs.cdt.lists.getByTitle('Flujo Tareas').items
                 .select('ID', 'NombreActividad', 'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Name',
                     'LineaBase', 'FechaEstimada', 'Estatus/ID', 'Estatus/Title', 'Author/ID', 'Author/Name')
                 .filter('ID eq ' + (this.props.datos.IdFlujoTareasId !== undefined ? this.props.datos.IdFlujoTareasId : this.props.datos.Id))
@@ -102,6 +108,7 @@ class ActividadFicticia extends Component {
     //#region Eventos genericos
 
     actualizarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) => {
+        const {webs} = this.props
         let json = {}
         if (lineaBase !== '' && fechaEstimada !== '') {
             json = {
@@ -114,7 +121,7 @@ class ActividadFicticia extends Component {
                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                 EstatusAnteriorId: this.state.Estatus === 0 ? 2 : this.state.Estatus
             }
-            await CRUD.updateListItem(currentWeb, "Flujo Tareas", this.state.ID, json).catch(error=>{
+            await CRUD.updateListItem(webs.cdt, "Flujo Tareas", this.state.ID, json).catch(error=>{
                 alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ': ' + error)
             })
         } else if (lineaBase !== '' && fechaEstimada === '') {
@@ -146,13 +153,14 @@ class ActividadFicticia extends Component {
             }
         }
         if(Object.keys(json).length > 0){
-            await CRUD.updateListItem(currentWeb, "Flujo Tareas", this.state.ID, json).catch(error=>{
+            await CRUD.updateListItem(webs.cdt, "Flujo Tareas", this.state.ID, json).catch(error=>{
                 alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ': ' + error)
             })
         }
     }
 
     guardarFlujoTareas = async (lineaBase, fechaEstimada, usuariosAsignados) => {
+        const {webs} = this.props
         let json = {}
         let result
         if (lineaBase !== '' && fechaEstimada !== '') {
@@ -215,7 +223,7 @@ class ActividadFicticia extends Component {
             }
         }
         if(Object.keys(json).length > 0){
-            result = await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+            result = await CRUD.createListItem(webs.cdt, 'Flujo Tareas', json).catch(error => {
                 alert('ERROR AL INSERTAR EN LA LISTA FLUJO DE TAREAS: ' + error)
             })
         }
@@ -223,7 +231,8 @@ class ActividadFicticia extends Component {
     }
 
     obtenerIdEG = async (IdFlujoTareas) => {
-        let resultados = await currentWeb.lists.getByTitle('EstrategiaGestion').items
+        const {webs} = this.props
+        let resultados = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
         .select('ID')
         .filter('IdFlujoTareasId eq ' + IdFlujoTareas)
         .get()
@@ -234,7 +243,7 @@ class ActividadFicticia extends Component {
     }
 
     obtenerPosiciones = (usuariosAsignados, usuarios) => {
-        var items = usuarios.map((usuario) => {
+        var items = usuarios.forEach((usuario) => {
             if (usuario.Id !== undefined) { return usuariosAsignados[usuariosAsignados.findIndex((obj => obj.Id === usuario.Id))] }
             else if (usuario.ID !== undefined) { return usuariosAsignados[usuariosAsignados.findIndex((obj => obj.Id === usuario.ID))] }
         })
@@ -250,10 +259,11 @@ class ActividadFicticia extends Component {
 
     onEliminar = async () => {
         if (window.confirm('¿Está seguro de eliminar esta actividad?')) {
+            const {webs} = this.props
             this.setState({ backdrop: { abierto: true, mensaje: 'Borrando la actividad...' } })
-            await CRUD.deleteListItem(currentWeb, "Flujo Tareas", this.state.ID).then(async () => {
+            await CRUD.deleteListItem(webs.cdt, "Flujo Tareas", this.state.ID).then(async () => {
                 if (this.state.IDEG > 0) {
-                    await CRUD.deleteListItem(currentWeb, "EstrategiaGestion", this.state.IDEG).catch(error => {
+                    await CRUD.deleteListItem(webs.cdt, "EstrategiaGestion", this.state.IDEG).catch(error => {
                         alert('ERROR AL INTENTAR ELIMINAR EN ESTRATEGIA DE GESTIÓN EL ELEMENTO ' + this.state.IDEG + ': ' + error)
                     })
                 }
@@ -267,6 +277,7 @@ class ActividadFicticia extends Component {
 
     onGuardar = async () => {
         if (this.state.NombreActividad !== '' && this.state.usuarioAsignados.length > 0) {
+            const {webs} = this.props
             if (this.state.ID === 0) {
                 if (this.state.Orden !== null) {
                     this.setState({ backdrop: { abierto: true, mensaje: 'Guardando...' } })
@@ -285,7 +296,7 @@ class ActividadFicticia extends Component {
                             EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus,
                             OrdenEG: this.state.OrdenEG
                         }
-                        await CRUD.createListItem(currentWeb, 'EstrategiaGestion', json).then(() => {
+                        await CRUD.createListItem(webs.cdt, 'EstrategiaGestion', json).then(() => {
                             this.props.datosRetorno(this.state)
                             this.onCerrar()
                         }).catch(error => {
@@ -310,7 +321,7 @@ class ActividadFicticia extends Component {
                                 GrupoResponsableId: this.state.GrupoResponsable.ID,
                                 EstatusId: this.state.Estatus === 0 ? 2 : this.state.Estatus
                             }
-                            await CRUD.updateListItem(currentWeb, "EstrategiaGestion", this.state.IDEG, json).catch(error=>{
+                            await CRUD.updateListItem(webs.cdt, "EstrategiaGestion", this.state.IDEG, json).catch(error=>{
                                 alert('ERROR AL ACTUALIZAR EL ELEMENTO ' + this.state.ID + ' EN LA E.G. : ' + error)
                             })
                         }

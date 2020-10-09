@@ -1,15 +1,17 @@
-import favoritos_icon from '../imagenes/favoritos_icon.png';
-import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+//#region Librerías externas
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/site-users/web";
 import moment from 'moment';
+//#endregion
+//#region Scripts
 import CRUD from '../js/CRUD';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/");
+//#endregion
+//#region Imágenes
+import favoritos_icon from '../imagenes/favoritos_icon.png';
+import favoritos_icon_clicked from '../imagenes/favoritos_icon_clicked.png';
+//#endregion
 
 const util = {
     //Inicializa el arreglo de datos de actividades
@@ -108,9 +110,9 @@ const util = {
     },
     //Obtiene el porcentaje de tareas completadas (Enviadas/Concluidas) por cada clúster de tipo conjunto de tareas (EsCluster eq 0)
     average: function (props, orden) {
-        var average = 0;
-        var rowsNum = props.datos.filter(x => x.IdTarea.Orden === orden && x.IdTarea.ID !== 271);
-        var Res = rowsNum.filter(x => x.Estatus.ID === 3);
+        let average = 0;
+        const rowsNum = props.datos.filter(x => x.IdTarea.Orden === orden && x.IdTarea.ID !== 271);
+        const Res = rowsNum.filter(x => x.Estatus.ID === 3);
 
         average = Res.length > 0 ? ((100 / rowsNum.length) * Res.length) : 0;
         return average.toFixed(0);
@@ -370,7 +372,7 @@ const util = {
         }else{ return false}
     },
     //Obtiene la información de los trámites asociados a los IDs de tareas clúster dentro de las actividades proporcionadas
-    generarConsultaFPT: async function (actividades) {
+    generarConsultaFPT: async function (actividades, objetoWeb) {
         let datosFPT = [];
         let idsFPT = actividades.map((x) => { return x.IdTarea.EsCluster === '1' && x.IdTarea.EsBitacora === '0' ? x.ID : 0 })
 
@@ -381,7 +383,7 @@ const util = {
                 filtroFPT = filtroFPT === '' ? '(IdFlujoId eq ' + idFPT + ' and Visible eq 1)' : filtroFPT + ' or (IdFlujoId eq ' + idFPT + ' and Visible eq 1)'
             })
 
-            datosFPT = await currentWeb.lists.getByTitle('Fechas paquete de trámites').items
+            datosFPT = await objetoWeb.lists.getByTitle('Fechas paquete de trámites').items
             .filter(filtroFPT)
             .select('ID', 'IdFlujoId', 'IdDocTaskId', 'IdDocTramite/ID', 'IdDocTramite/Title', 'IdDocTramite/ExisteEnGantt', 'AsignadoA/ID',
                 'AsignadoA/Title', 'Estatus/ID', 'Estatus/Title', 'EstatusAnterior/ID', 'EstatusAnterior/Title',
@@ -396,8 +398,8 @@ const util = {
         }
         return datosFPT
     },
-    obtenerSeguridad: async function(){
-        const seguridad = await currentWeb.lists.getByTitle('GanttConfigRespAct').items
+    obtenerSeguridad: async function(objetoWeb){
+        const seguridad = await objetoWeb.lists.getByTitle('GanttConfigRespAct').items
         .select('ID', 'Title', 'IdActividadId', 'RespAreaGantt/ID', 'RespAreaGantt/Name', 'GrupoRespGantt')
         .expand('RespAreaGantt')
         .get()
@@ -647,14 +649,10 @@ const util = {
                 .replace('{LinkFichasDesarrollo}', datos.IdTerreno !== undefined ? datos.IdTerreno.LinkFichasDesarrollo : '')
                 .replace('{sitio}', url)
     },
-    crearBitacoras: async function(idTarea,terreno, PI, tareaCrear){
-        const rootweb = await currentWeb.getParentWeb()
-        let websCdV = await rootweb.web.webs();
-        let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras');
-        webBitacoras = await sp.site.openWebById(webBitacoras.Id)
+    crearBitacoras: async function(idTarea,terreno, PI, tareaCrear, objetoWeb){
         let json = {}
         if(tareaCrear!== '0'){
-            await currentWeb.lists.getByTitle('Tareas').items.getById(parseInt(tareaCrear)).get().then(async(nuevaTarea)=>{
+            await objetoWeb.cdt.lists.getByTitle('Tareas').items.getById(parseInt(tareaCrear)).get().then(async(nuevaTarea)=>{
                 json.IdProyectoInversionId = PI.ID
                 json.IdTareaId = nuevaTarea.ID
                 json.NivelId = nuevaTarea.NivelId
@@ -669,7 +667,7 @@ const util = {
             })
         }
         if(idTarea === 12){
-            const bitacoras = await webBitacoras.web.lists.getByTitle("Bitacora").items
+            const bitacoras = await objetoWeb.bitacoras.lists.getByTitle("Bitacora").items
             .filter("Title eq 'BIT.ADT." + terreno.Title + "'")
             .get()
             .catch(error => {
@@ -677,8 +675,8 @@ const util = {
             })
 
             if(bitacoras.length === 0){
-                await currentWeb.lists.getByTitle('Tareas').items.getById(274).get().then(async()=>{
-                    const lineaBase = await currentWeb.lists.getByTitle('Fechas objetivo').items
+                await objetoWeb.cdt.lists.getByTitle('Tareas').items.getById(274).get().then(async()=>{
+                    const lineaBase = await objetoWeb.cdt.lists.getByTitle('Fechas objetivo').items
                     .filter("Title eq '" + PI.Title + (!terreno.Title.startsWith('T-') ? "' and Terreno eq '" + terreno.Title : '') + "' and IdActividad eq 13")
                     .get()
                     .catch(error => {
@@ -692,7 +690,7 @@ const util = {
                         }
                     }
                     if(Object.keys(json).length > 0){
-                        await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+                        await CRUD.createListItem(objetoWeb.cdt, 'Flujo Tareas', json).catch(error => {
                             alert('ERROR AL INSERTAR EN LA LISTA FLUJO TAREAS: ' + error)
                         })
                     }
@@ -700,27 +698,27 @@ const util = {
                     alert('ERROR AL INTENTAR OBTENER LA TAREA 274: ' + error)
                 })
                 
-                this.crearBitacoraEjecutivo(webBitacoras, PI.Title, terreno.Title, terreno.NombredelTerreno2 )
+                this.crearBitacoraEjecutivo(objetoWeb.bitacoras, PI.Title, terreno.Title, terreno.NombredelTerreno2, objetoWeb.bitacoras)
             }
         }
         else if(idTarea === 188 || idTarea === 189){
             
             if(Object.keys(json).length > 0){
-                await CRUD.createListItem(currentWeb, 'Flujo Tareas', json).catch(error => {
+                await CRUD.createListItem(objetoWeb.cdt, 'Flujo Tareas', json).catch(error => {
                     alert('ERROR AL INSERTAR EN LA LISTA FLUJO TAREAS: ' + error)
                 })
             }
 
-            const categorias = await webBitacoras.web.lists.getByTitle("Categoria").items
+            const categorias = await objetoWeb.bitacoras.lists.getByTitle("Categoria").items
             .filter("NombreCorto eq 'ARQ' or NombreCorto eq 'EST' or NombreCorto eq 'INS' or NombreCorto eq 'ACB' or NombreCorto eq 'NOR' or NombreCorto eq 'REG'")
             .get().catch(error => {
                 alert('ERROR AL INTENTAR OBTENER LAS CATEGORÍAS: ' + error)
             })
 
-            this.crearBitacoraVarios(webBitacoras, categorias, PI, terreno)
+            this.crearBitacoraVarios(objetoWeb.bitacoras, categorias, PI, terreno)
         }
     },
-    crearBitacoraEjecutivo: async function (webBitacoras, idProyectoInversion, idTerreno, nombreTerreno){
+    crearBitacoraEjecutivo: async function (webBitacoras, idProyectoInversion, idTerreno, nombreTerreno, objetoWeb){
         // Construcción de informacion a enviar para la creación del elemento
         let json = {
             "Title": "BIT.ADT." + idTerreno,
@@ -735,7 +733,7 @@ const util = {
         }
 
         // Creacion de bitacora generica
-        await CRUD.createListItem(webBitacoras.web, 'Bitacora', json)
+        await CRUD.createListItem(objetoWeb, 'Bitacora', json)
         .then(async(resultBA)=>{
             for(let i=0; i<3; i++){
                 let datos = util.GetIncidenteValues(i);
@@ -755,11 +753,11 @@ const util = {
                 }
 
                 // Creacion de incidencia sobre bitacora
-                await CRUD.createListItem(webBitacoras.web, 'Incidencia', jsoni)
+                await CRUD.createListItem(objetoWeb, 'Incidencia', jsoni)
                 .then(async(result)=>{
                     // Objeto para actualizacion de incidencia creada
                     var jsoniu = { "Title": result.data.Title + result.data.Id }
-                    await CRUD.updateListItem(webBitacoras.web, "Incidencia", result.data.Id, jsoniu).catch(error=>{
+                    await CRUD.updateListItem(objetoWeb, "Incidencia", result.data.Id, jsoniu).catch(error=>{
                         alert('ERROR AL ACTUALIZAR LA INCIDENCIA ' + result.data.Id + ': ' + error)
                     })
                 }).catch(error => {
@@ -810,14 +808,10 @@ const util = {
             })
         })
     },
-    obtenerBitacorasInfo: async function(proyectoTitulo, terrenoTitulo){
-        const rootweb = await currentWeb.getParentWeb();
-        let websCdV = await rootweb.web.webs();
-        let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras');
-        webBitacoras = await sp.site.openWebById(webBitacoras.Id);
+    obtenerBitacorasInfo: async function(proyectoTitulo, terrenoTitulo, objetoWeb){
         let datos = { bitacoras: [], solucion: [] }
 
-        let bitacorasInfo = await webBitacoras.web.lists.getByTitle('Incidencia').items
+        let bitacorasInfo = await objetoWeb.lists.getByTitle('Incidencia').items
         .filter("(BitacoraInc/TerrenoBit eq '" + proyectoTitulo + "') or (BitacoraInc/TerrenoBit eq '" + terrenoTitulo + "')")
         .select('ID', 'Title', 'EdoInc', 'MotivoCausaInc/Title', 'BitacoraInc/ID', 'BitacoraInc/Title', 'BitacoraInc/TerrenoBit',
                 'MotivoCausaInc/ID', 'AreaAsignadaInc/NombreCorto', 'AsignadoAInc/ID', 'AsignadoAInc/Title',
@@ -834,7 +828,7 @@ const util = {
             return bitacora.EdoInc = this.reemplazarEstatusBitacora(bitacora.EdoInc) 
         })
 
-        const solucionInfo = await this.obtenerSolucionInfo(webBitacoras)
+        const solucionInfo = await this.obtenerSolucionInfo(objetoWeb)
 
         datos.bitacoras = bitacorasInfo
         datos.solucion = solucionInfo
@@ -842,7 +836,7 @@ const util = {
         return datos
     },
     obtenerSolucionInfo: async function(webBitacoras){
-        const solucionInfo = await webBitacoras.web.lists.getByTitle('Solucion').items
+        const solucionInfo = await webBitacoras.lists.getByTitle('Solucion').items
         .select('ID', 'FechaCompSol', 'IncidenciaSol/ID')
         .expand('IncidenciaSol')
         .top(10000)
@@ -870,13 +864,13 @@ const util = {
                 break;
         }
     },
-    cambiarEstatusCluster: async function(idFlujoTarea, datos, datosActividades){
+    cambiarEstatusCluster: async function(idFlujoTarea, datos, datosActividades, objetoWeb){
         let actualizado = false
         const esSubcluster = datosActividades.some(x=> x.ID === idFlujoTarea && x.IdTarea.EsCluster === '1' && x.IdTarea.EsSubcluster === '1' && x.IdTarea.EsBitacora === '0' && x.IdTarea.Subcluster !== null)
         if(esSubcluster){
             const clusterIncompleto = datos.some(x=> x.IdFlujoId === idFlujoTarea && x.Estatus.ID !== 3)
             if(!clusterIncompleto){
-                await CRUD.updateListItem(currentWeb, "Flujo Tareas", idFlujoTarea, {EstatusId: 3,EstatusAnteriorId: 3}).then(()=>{
+                await CRUD.updateListItem(objetoWeb, "Flujo Tareas", idFlujoTarea, {EstatusId: 3,EstatusAnteriorId: 3}).then(()=>{
                     actualizado = true
                 }).catch(error=>{
                     alert('ERROR AL ACTUALIZAR EL SUBCLÚSTER DEL FLUJO ' + idFlujoTarea + ': ' + error)
@@ -985,11 +979,11 @@ const util = {
                 break;
             case 'estatus':
                 if(tipo === 'N'){
-                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.Estatus.Title == valor)
+                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.Estatus.Title === valor)
                 }else if(tipo === 'B'){
-                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.EdoInc == valor)
+                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.EdoInc === valor)
                 }else if(tipo === 'M'){
-                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.Estatus.Title == valor && datoFiltrado.Visible)
+                    datosFiltrados = datosFiltrados.filter(datoFiltrado=> datoFiltrado.Estatus.Title === valor && datoFiltrado.Visible)
                 }
                 break;
             default:
@@ -1017,6 +1011,8 @@ const util = {
                     total += datosBit.filter(x=> x.EdoInc === 'Rechazado' || x.EdoInc === 'Vencido').length
                 }
                 return total += datosCdTFiltrados.filter(x=> x.Estatus.ID === 4 || x.Estatus.ID === 5).length
+            default:
+                break;
         }
     },
     establecerLineaBaseBit: function(datosSolucion, datosBit){

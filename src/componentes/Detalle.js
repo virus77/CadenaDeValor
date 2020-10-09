@@ -1,15 +1,19 @@
+//#region Componentes
 import React, { Component } from 'react';
-import { sp } from "@pnp/sp";
-import { Web } from "@pnp/sp/webs";
+//#endregion
+//#region Librerías externas
 import "@pnp/sp/sites";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+//#endregion
+//#region Scripts
 import util from '../js/util'
 import CRUD from '../js/CRUD';
+//#endregion
+//#region Estilos
 import '../estilos/detalle.css';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+//#endregion
 
 class Detalle extends Component {
     constructor(props) {
@@ -26,9 +30,10 @@ class Detalle extends Component {
 
     //#region Eventos de botones
     onGuardar = async () => {
+        const { webs } = this.props
         const { idElemento, estatusActual, estatus, lista } = this.state
         if (estatusActual.ID !== estatus.ID) {
-            await CRUD.updateListItem(currentWeb, lista, idElemento, {EstatusId: estatus.ID}).then(() => {
+            await CRUD.updateListItem(webs.cdt, lista, idElemento, {EstatusId: estatus.ID}).then(() => {
                 this.props.datosRetorno(this.state)
                 this.onCerrar()
             }).catch(error=>{

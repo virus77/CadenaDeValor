@@ -1,9 +1,15 @@
+//#region Componentes
 import React, { Component } from 'react';
 import { Accordion, Icon } from 'semantic-ui-react'
+import Tabla from './Tabla';
+//#endregion
+//#region Imágenes
 import main_collapse from '../imagenes/main_collapse.png';
 import main_expand from '../imagenes/main_expand.png';
+//#endregion
+//#region Estilos
 import "../estilos/Principal.css"
-import Tabla from './Tabla';
+//#endregion
 
 class Principal extends Component {
     constructor(props) {
@@ -48,7 +54,6 @@ class Principal extends Component {
     }
 
     render() {
-
         const { clustersColapsados, estatusCluster } = this.state
         const { selecciontereno, itemsT, itemsPI } = this.props
         this.styleLink()
@@ -58,11 +63,11 @@ class Principal extends Component {
                 <div style={{position:'fixed', top:'1%', width:'100%'}}>
                     <label style={{marginLeft:'8%', fontSize: '20px', float:'left'}}>Proyectos | Cadena de valor</label>
                     <div style={{float:'right', marginRight:'8%', verticalAlign: 'top', display:'inline-block', textAlign: 'center', height:'20px', wordWrap:'break-word'}}>
-                        <img alt='image' src={!clustersColapsados ? main_collapse : main_expand} style={{height:'20px'}} onClick={this.expandirColapsar} />
+                        <img alt='terreno' src={!clustersColapsados ? main_collapse : main_expand} style={{height:'20px'}} onClick={this.expandirColapsar} />
                         {clustersColapsados ? ' Expandir clústers' : ' Contraer clústers'}
                     </div>
                 </div>
-                <div style={{ top:'5%', height:'95%', overflowX: 'hidden', overflowY: 'scroll', position:'fixed', top:'5%', width:'100%'}}>
+                <div style={{ height:'95%', overflowX: 'hidden', overflowY: 'scroll', position:'fixed', top:'5%', width:'100%'}}>
                 {itemsPI.map((item, index) => (
                     <div key={index}>
                         <Accordion styled>

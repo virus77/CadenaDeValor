@@ -9,7 +9,6 @@ const TableBody = (props) => {
             let RFS = fila.Title;
             RFS = RFS.substring(0, 2);
             RFS = RFS === "T-" ? false : true;
-            //let txtTerreno = !RFS ? fila.IdProyectoInversion.NombreProyectoInversion : fila.NombredelTerreno2;
             let txtTerreno = fila.NombredelTerreno2 === fila.NombredelTerreno ? fila.NombredelTerreno : fila.NombredelTerreno2;
             return (
                 <tr className='row' key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, txtTerreno,

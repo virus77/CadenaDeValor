@@ -1,15 +1,18 @@
+//#region Componentes
 import React, { Component } from 'react';
-import './App.css';
-import { sp } from '@pnp/sp';
+import Principal from './componentes/Principal';
+import Generico from './componentes/Generico';
+//#endregion
+//#region Librerías externas
 import { Web } from "@pnp/sp/webs";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-import Principal from './componentes/Principal';
-import Generico from './componentes/Generico';
+//#endregion
+//#region Estilos
+import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-const currentWeb = Web(window.location.protocol + '//' + window.location.host + "/CompraDeTerreno/")
+//#endregion
 
 class App extends Component {
   state = {
@@ -24,7 +27,8 @@ class App extends Component {
     TerrenoId: "",
     IdProyInv: "",
     ventana:4,
-    nombreTerreno: ''
+    nombreTerreno: '',
+    webs: {}
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
@@ -44,7 +48,28 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    const listItemsT = await currentWeb.lists.getByTitle("Terrenos").items
+    //Objeto Web del sitio raíz
+    const webCdV = Web(window.location.protocol + '//' + window.location.host)
+    //const webCdV = Web('http://con.quierocasa.com.mx:21520')
+    //Subsitios del Objeto Web del sitio raíz
+    const websCdV = await webCdV.webs()
+    //Objeto Web del sitio de versionado
+    let webBdTV = websCdV.find(x=> x.Title === 'Busqueda Terreno Versionado')
+    const urlWebBdTV = webBdTV.Url
+    webBdTV = Web(urlWebBdTV)
+    webBdTV.Url = urlWebBdTV
+    //Objeto Web del sitio de compra
+    let webCdT = websCdV.find(x=> x.Title === 'Compra de terreno')
+    const urlWebCdT = webCdT.Url
+    webCdT = Web(urlWebCdT)
+    webCdT.Url = urlWebCdT
+    //Objeto Web del sitio de Bitácoras
+    let webBitacoras = websCdV.find(x=> x.Title === 'Sistema de Bitácoras')
+    const urlWebBitacoras = webBitacoras.Url
+    webBitacoras = Web(urlWebBitacoras)
+    webBitacoras.Url = urlWebBitacoras
+
+    const listItemsT = await webCdT.lists.getByTitle("Terrenos").items
     .select("ID", "Title", "Modified", "NombredelTerreno", "NombredelTerreno2", "IdProyectoInversion/ID",
       "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
     .expand("IdProyectoInversion")
@@ -53,21 +78,21 @@ class App extends Component {
     .top(1000)
     .get()
 
-    const listItemsPI = await currentWeb.lists.getByTitle("Proyecto Inversion").items
+    const listItemsPI = await webCdT.lists.getByTitle("Proyecto Inversion").items
     .select("ID", "NombreProyectoInversion")
     .orderBy("NombreProyectoInversion", true)
     .top(1000)
     .get();
 
-    this.setState({ itemsT: listItemsT, itemsPI: listItemsPI });
+    this.setState({ itemsT: listItemsT, itemsPI: listItemsPI, webs: {cdv: webCdV, bdtv: webBdTV, cdt: webCdT, bitacoras: webBitacoras }});
   }
 
   render(){
-    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv } = this.state;
+    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv, webs } = this.state;
     return (
       <div className="App">
-        {this.state.isInActive ? <Principal selecciontereno={this.onSeleccionTerreno} itemsT={itemsT} itemsPI={itemsPI} /> : null}
-        {this.state.isActive ? <Generico rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} /> : null}
+        {this.state.isInActive && <Principal selecciontereno={this.onSeleccionTerreno} itemsT={itemsT} itemsPI={itemsPI} />}
+        {this.state.isActive && <Generico rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} webs={webs} />}
       </div>
     );
   }
