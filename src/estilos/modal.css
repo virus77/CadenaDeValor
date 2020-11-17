@@ -143,3 +143,6 @@ label {
 .file-width{
     width: 85%!important;
 }
+.custom-file-label::after{
+    content: 'Elegir'!important;
+}

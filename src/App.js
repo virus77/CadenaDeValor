@@ -28,14 +28,15 @@ class App extends Component {
     IdProyInv: "",
     ventana:4,
     nombreTerreno: '',
+    enDashboard: false,
     webs: {}
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
-  onSeleccionTerreno = async (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv) => {
+  onSeleccionTerreno = (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv, enDashboard) => {
     this.setState({
       isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
-      Maco: maco, RFS: rfs, TerrenoId, IdProyInv
+      Maco: maco, RFS: rfs, TerrenoId, IdProyInv, enDashboard: enDashboard
     });
   }
 
@@ -49,7 +50,9 @@ class App extends Component {
 
   async componentDidMount() {
     //Objeto Web del sitio raíz
+    //Descomentar la linea inferior cuando se vaya a generar el build para los 3 ambientes
     const webCdV = Web(window.location.protocol + '//' + window.location.host)
+    //Descomentar la linea inferior cuando se esté modificando el código en desarrollo
     //const webCdV = Web('http://con.quierocasa.com.mx:21520')
     //Subsitios del Objeto Web del sitio raíz
     const websCdV = await webCdV.webs()
@@ -71,7 +74,7 @@ class App extends Component {
 
     const listItemsT = await webCdT.lists.getByTitle("Terrenos").items
     .select("ID", "Title", "Modified", "NombredelTerreno", "NombredelTerreno2", "IdProyectoInversion/ID",
-      "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO")
+      "IdProyectoInversion/NombreProyectoInversion", "IdProyectoInversion/Title", "MACO", "EnDashboard")
     .expand("IdProyectoInversion")
     .filter("(Empadronamiento eq null) and (IdProyectoInversion/ID ne null)")
     .orderBy("NombredelTerreno2", true)
@@ -88,11 +91,11 @@ class App extends Component {
   }
 
   render(){
-    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv, webs } = this.state;
+    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv, enDashboard, webs } = this.state;
     return (
       <div className="App">
         {this.state.isInActive && <Principal selecciontereno={this.onSeleccionTerreno} itemsT={itemsT} itemsPI={itemsPI} />}
-        {this.state.isActive && <Generico rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} webs={webs} />}
+        {this.state.isActive && <Generico enDashboard={enDashboard} rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} webs={webs} />}
       </div>
     );
   }

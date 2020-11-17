@@ -1139,16 +1139,32 @@ class Ventana extends Component {
                                     case 'File':
                                         return <div key={campo.ID} className="form-group">
                                             <label>{campo.Title}</label>
+                                            <div class="input-group mb-3">
+                                                <div class="custom-file col-md-11">
+                                                    <input type={campo.TipoDeCampo} className="custom-file-input" name={campo.IdDocumento} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} lang='es' required={util.esRequerido(archivosCargados, campo)} disabled={!campo.Editable} />
+                                                    <label className="custom-file-label" htmlFor={campo.TituloInternoDelCampo}></label>
+                                                </div>
+                                                <div class="input-group-prepend" style={{zIndex:'3'}}>
+                                                    {util.obtenerDatosDocumento(archivosCargados, campo) !== undefined &&
+                                                    <span style={{alignSelf:'center'}}>
+                                                        <img alt='' src={archivosCargados.length > 0 ? archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).icono : null}
+                                                        title={archivosCargados.length > 0 ? archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).archivo : ''}
+                                                        onClick={() => window.open(archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")}></img>
+                                                    </span>}
+                                                </div>
+                                            </div>
+                                            {/*<label>{campo.Title}</label>
                                             <div className={"custom-file file-width"}>
                                                 <input type={campo.TipoDeCampo} className="custom-file-input" name={campo.IdDocumento} id={campo.TituloInternoDelCampo} onChange={(e) => this.onCargarArchivo(e, campo.TituloInternoDelCampo)} lang='es' required={util.esRequerido(archivosCargados, campo)} disabled={!campo.Editable} />
                                                 <label className="custom-file-label" htmlFor={campo.TituloInternoDelCampo}></label>
                                             </div>
                                             {util.obtenerDatosDocumento(archivosCargados, campo) !== undefined ?
-                                                <img alt='' src={archivosCargados.length > 0 ? archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).icono : null}
+                                                <span onClick={() => window.open(archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")}>
+                                                    <img alt='' src={archivosCargados.length > 0 ? archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).icono : null}
                                                     title={archivosCargados.length > 0 ? archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).archivo : ''}
-                                                    onClick={() => window.open(archivosCargados.find(x => x.nombreInterno === campo.TituloInternoDelCampo).url, "_blank")}
                                                     style={{ float: 'right' }}></img>
-                                                : null}
+                                                </span>
+                                                : null}*/}
                                         </div>
                                     case 'hr':
                                         return <hr key={campo.ID} className="form-group" />

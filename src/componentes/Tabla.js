@@ -12,7 +12,7 @@ const TableBody = (props) => {
             let txtTerreno = fila.NombredelTerreno2 === fila.NombredelTerreno ? fila.NombredelTerreno : fila.NombredelTerreno2;
             return (
                 <tr className='row' key={fila.ID} onClick={() => props.selecciontereno(fila.ID, fila.IdProyectoInversion.ID, txtTerreno,
-                    fila.MACO, RFS, fila.Title, fila.IdProyectoInversion.Title)}>
+                    fila.MACO, RFS, fila.Title, fila.IdProyectoInversion.Title, fila.EnDashboard)}>
                     <td className='col-sm-1'>{fila.ID}</td>
                     <td className='col-sm-1'>{fila.Title}</td>
                     <td className='col-sm-9'>{fila.NombredelTerreno2}</td>

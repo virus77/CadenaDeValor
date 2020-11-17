@@ -1852,7 +1852,7 @@ class Generico extends Component {
 
     render() {
         const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, seguridad, tieneRFS, clusterToggle } = this.state
-        const {webs} = this.props
+        const {webs, enDashboard} = this.props
 
         const useStyles = makeStyles(theme => ({
             formControl: {
@@ -2567,7 +2567,7 @@ class Generico extends Component {
                             <Encabezado rfs={tieneRFS} idPITerr={!tieneRFS ? idProyecto : idTerreno} terreno={nombreTerreno}
                                 maco={MACO} idVentana={this.state.idVentana} disabled={this.state.disabled} cambiarVentana={this.onCambiarVentana} totalAdmin={totalAdmin}
                                 totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} usuarioActual={usuarioActual} gruposUsuarioActual={gruposUsuarioActual}
-                                filtros={filtrosTabla} seguridad={seguridad} webs={webs} />
+                                filtros={filtrosTabla} seguridad={seguridad} webs={webs} enDashboard={enDashboard} />
                             <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
                             <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
                             {this.state.modal.abierto && <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} webs={webs} />}

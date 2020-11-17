@@ -70,7 +70,7 @@ class Encabezado extends Component {
     };
 
     render() {
-        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco, webs } = this.props
+        const { terreno, totalAdmin, totalNorm, totalProy, disabled, idVentana, maco, enDashboard, webs } = this.props
         const { esAdministrador } = this.state
         return (
             <div>
@@ -83,7 +83,7 @@ class Encabezado extends Component {
                             <img id='FiltroVerTodo' className={this.props.filtros.ver.length === 0 ? 'normal' : 'presionado'} onClick={() => this.onCambiarVentana(7, disabled)} src={idVentana !== 4 ? viewAll : viewAllDis} alt='user_icon' disabled={disabled} title='Todas' ></img>
                             <img id='MACO' src={this.props.maco === '' || this.props.maco === null || this.props.maco === undefined ? macox : (idVentana === 4 ? (this.props.maco === 'B' ? macob_eg : macoc_eg) : (this.props.maco === 'B' ? macob : macoc))} alt='maco' onClick={idVentana === 4 ? () => { this.onAbrirModal(terreno, 268, false, 'radioChecked', maco, { Tarea: { ID: 268 } }, "", "190px") } : null} ></img>
                             <img id='ToGantt' onClick={() => this.onCambiarVentana(8)} src={toGantt} alt='toGantt' ></img>
-                            <img id='ToDashboard' onClick={() => this.onCambiarVentana(9)} src={toDashboard} alt='toDashboard' ></img>
+                            {enDashboard && <img id='ToDashboard' onClick={() => this.onCambiarVentana(9)} src={toDashboard} alt='toDashboard' ></img>}
                         </div>
                         <div className='col-sm-5 menu'>
                             <nav className="navbar navbar-expand-sm bg-light navbar-light" style={{ padding: '0' }}>
