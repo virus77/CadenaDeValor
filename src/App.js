@@ -53,7 +53,7 @@ class App extends Component {
     //Descomentar la linea inferior cuando se vaya a generar el build para los 3 ambientes
     const webCdV = Web(window.location.protocol + '//' + window.location.host)
     //Descomentar la linea inferior cuando se esté modificando el código en desarrollo
-    //const webCdV = Web('http://con.quierocasa.com.mx:21520')
+    //const webCdV = Web('http://x.quierocasa.com.mx:21520')
     //Subsitios del Objeto Web del sitio raíz
     const websCdV = await webCdV.webs()
     //Objeto Web del sitio de versionado

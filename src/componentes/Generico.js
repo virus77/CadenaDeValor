@@ -30,6 +30,10 @@ import disk from '../imagenes/disk.png';
 import pen from '../imagenes/pen.png';
 import hyperlink_icon from '../imagenes/hyperlink_icon.png';
 import forbidden from '../imagenes/forbidden.png';
+import main_collapse from '../imagenes/main_collapse.png';
+import main_expand from '../imagenes/main_expand.png';
+import toGantt from '../imagenes/toGantt.png';
+import toDashboard from '../imagenes/dashboard_icon.png';
 //#endregion
 //#region Librerías externas
 import { sp } from "@pnp/sp";
@@ -109,7 +113,8 @@ class Generico extends Component {
             orden: { col: '', asc: true },
             clusterToggle: [],
             posicionScroll: 0,
-            alerta: {mostrar: false, mesaje: '', encabezado: ''}
+            alerta: {mostrar: false, mesaje: '', encabezado: ''},
+            clustersColapsados: false
         }
         this.state = this.inialState;
     }
@@ -135,13 +140,13 @@ class Generico extends Component {
                 datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                     .filter('(ProyectoInversionId eq ' + idProyecto + ')')
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
-                        'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
-                        'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'AsignadoA/ID', 'AsignadoA/Title',
+                        'Tarea/ID', 'Tarea/Title', 'Tarea/OrdenEnCluster', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
+                        'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/ExisteEnDashboard', 'AsignadoA/ID', 'AsignadoA/Title',
                         'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'Estatus/ID', 'Estatus/Title',
                         'OrdenEG', 'NombreActividad', 'IdRCDTT/ID', 'IdRCDTT/Title', 'IdRCDTT/TituloInternoDelCampo', 'IdRCDTT/ExisteEnGantt',
-                        'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
+                        'IdRCDTT/ExisteEnDashboard', 'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
                     .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable', 'IdRCDTT', 'Estatus')
-                    .orderBy('OrdenEG', true)
+                    .orderBy('OrdenEG, Tarea/OrdenEnCluster', true)
                     .top(1000)
                     .get();
             } else {
@@ -158,13 +163,13 @@ class Generico extends Component {
                 datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                     .filter("(ProyectoInversionId eq " + idProyecto + ") and ((TerrenoId eq " + idTerreno + ") or (TerrenoId eq null) or (substringof('T-', TerrenoId/Title)))")
                     .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
-                        'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
-                        'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/Subcluster', 'AsignadoA/ID', 'AsignadoA/Title',
+                        'Tarea/ID', 'Tarea/Title', 'Tarea/OrdenEnCluster', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
+                        'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/Subcluster', 'Tarea/ExisteEnDashboard', 'AsignadoA/ID', 'AsignadoA/Title',
                         'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'Estatus/ID', 'Estatus/Title',
                         'OrdenEG', 'NombreActividad', 'IdRCDTT/ID', 'IdRCDTT/Title', 'IdRCDTT/TituloInternoDelCampo', 'IdRCDTT/ExisteEnGantt',
-                        'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
+                        'IdRCDTT/ExisteEnDashboard', 'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
                     .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable', 'IdRCDTT', 'Estatus')
-                    .orderBy('OrdenEG', true)
+                    .orderBy('OrdenEG, Tarea/OrdenEnCluster', true)
                     .top(1000)
                     .get();
             }
@@ -232,13 +237,13 @@ class Generico extends Component {
                     let datos = await webs.cdt.lists.getByTitle('EstrategiaGestion').items
                         .filter('(ProyectoInversionId eq ' + idProyecto + ') or (TerrenoId eq ' + (nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno) + ')')
                         .select('ID', 'ProyectoInversion/ID', 'ProyectoInversion/Title', 'Terreno/ID', 'Terreno/Title', 'Terreno/NombredelTerreno2',
-                            'Tarea/ID', 'Tarea/Title', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
-                            'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/Subcluster', 'AsignadoA/ID', 'AsignadoA/Title',
+                            'Tarea/ID', 'Tarea/Title', 'Tarea/OrdenEnCluster', 'Tarea/TxtCluster', 'Tarea/TxtVentana', 'Tarea/Orden', 'Tarea/OrdenEG', 'Tarea/Checkable',
+                            'Tarea/ExisteEnGantt', 'Tarea/EsCluster', 'Tarea/EsSubcluster', 'Tarea/Subcluster', 'Tarea/ExisteEnDashboard', 'AsignadoA/ID', 'AsignadoA/Title',
                             'GrupoResponsable/ID', 'GrupoResponsable/NombreCortoGantt', 'Seleccionado', 'IdFlujoTareasId', 'Estatus/ID', 'Estatus/Title',
                             'OrdenEG', 'NombreActividad', 'IdRCDTT/ID', 'IdRCDTT/Title', 'IdRCDTT/TituloInternoDelCampo', 'IdRCDTT/ExisteEnGantt',
-                            'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
+                            'IdRCDTT/ExisteEnDashboard', 'IdRCDTT/IdRTD', 'IdRCDTT/IdTramite', 'IdFPTId')
                         .expand('ProyectoInversion', 'Terreno', 'Tarea', 'AsignadoA', 'GrupoResponsable', 'IdRCDTT', 'Estatus')
-                        .orderBy('OrdenEG', true)
+                        .orderBy('OrdenEG, Tarea/OrdenEnCluster', true)
                         .top(1000)
                         .get();
 
@@ -264,7 +269,7 @@ class Generico extends Component {
 
                     this.setState({
                         backdrop: { cargado: true, mensaje: '' }, idVentana: idVentanaSeleccionada, clustersVentana: result,
-                        datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true,
+                        datosOriginalVentanaEG: datosEG, datosVentanaEG: datosEG, disabled: true, clustersColapsados:false,
                         idTerreno: nuevoTerreno !== '' ? nuevoTerreno.Id : idTerreno, MACO: nuevoTerreno !== '' ? nuevoTerreno.MACO : this.state.MACO,
                         terrenoTitulo: nuevoTerreno !== '' ? nuevoTerreno.Title : this.state.terrenoTitulo, cargado: true,
                         tieneRFS: tieneRFS, clusterToggle: clusterToggle, opcionesFiltrosEncabezado: opcionesFiltrosEncabezado
@@ -286,7 +291,7 @@ class Generico extends Component {
                         .select('ID', 'Title', 'IdProyectoInversion/ID', 'IdProyectoInversion/Title', 'IdProyectoInversion/NombreProyectoInversion',
                             'IdTerreno/ID', 'IdTerreno/Title', 'IdTerreno/NombredelTerreno2', 'Nivel/ID', 'Nivel/Title', 'IdTarea/ID', 'IdTarea/Title',
                             'IdTarea/TxtCluster', 'IdTarea/EsCluster', 'IdTarea/EsSubcluster', 'IdTarea/TxtVentana', 'IdTarea/Orden', 'IdTarea/Checkable',
-                            'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID', 'Visible',
+                            'IdTarea/OrdenEnCluster', 'IdTarea/ExisteEnGantt', 'IdTarea/EsBitacora', 'Estatus/ID', 'Estatus/Title', 'GrupoResponsable/ID', 'Visible',
                             'GrupoResponsable/NombreCortoGantt', 'AsignadoA/ID', 'AsignadoA/Title', 'LineaBase', 'FechaEstimada', 'Favoritos/ID',
                             'Favoritos/Name', 'UrlDocumentos', 'UrlTarea', 'EstatusAnterior/ID', 'EstatusAnterior/Title', 'Orden', 'NombreActividad',
                             'Created/ID', 'Modified', 'Editor/ID', 'Editor/Title', 'LineaBaseModifico/ID', 'LineaBaseModifico/Title',
@@ -356,7 +361,7 @@ class Generico extends Component {
                         terrenos: terrenos, terrenoTitulo: terrenoTitulo, disabled: false, backdrop: { cargado: true, mensaje: '' },
                         filtrosTabla: filtrosTabla, datosFPT: datosFPT, Mkt: Mkt, bitacorasInfo: bitacorasInfo, seguridad: seguridad,
                         solucionInfo: solucionInfo, gruposUsuarioActual: gruposUsuarioActual, usuarioActual: usuarioActual, cargado: true,
-                        opcionesFiltrosEncabezadoOriginal: opcionesFiltrosEncabezado, MktOriginal: MktOriginal
+                        opcionesFiltrosEncabezadoOriginal: opcionesFiltrosEncabezado, MktOriginal: MktOriginal, clustersColapsados:false
                     })
                     //#endregion
                     break;
@@ -1014,6 +1019,17 @@ class Generico extends Component {
         let datosActualizados = update(clusterToggle, { $splice: [[index, 1, newData]] })
         //Actualiza el estatus clusterToggle y la posición del scroll en la pantalla al momento del clic
         this.setState({ clusterToggle: datosActualizados, posicionScroll: node.scrollTop})
+    }
+
+    onExpandirColapsarTodos = () =>{
+        let { clusterToggle, clustersColapsados } = this.state
+        const node = document.getElementById('cluster');
+        const newClusterToggle = clusterToggle.map((cluster)=>{
+            cluster.abierto = clustersColapsados
+            return cluster
+        })
+        
+        this.setState({ clusterToggle: newClusterToggle, clustersColapsados: !clustersColapsados, posicionScroll: node.scrollTop })
     }
     //#region Métodos de ciclo de vida
     async componentDidMount() {
@@ -1721,7 +1737,8 @@ class Generico extends Component {
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={<p style={{ textAlign: "center", fontSize: "12px" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
                 <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={fila.AsignadoA !== undefined ? "primary" : "secondary"} badgeContent={fila.AsignadoA !== undefined ? fila.AsignadoA.length : 0} ><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null} /></Badge></p>} estilo='col-sm-2' editable={false} />
-                <Columna estilo='col-sm-2' />
+                <Columna titulo={<p style={{ textAlign: "center" }}>{((fila.Tarea.EsCluster === '0' && fila.Tarea.ExisteEnGantt === '1') || ((fila.Tarea.EsCluster === '1' && util.buscarValor(fila.IdRCDTT, 'ExisteEnGantt', '0') === '1'))) && <img src={toGantt} title='Aplica Gantt' style={{width:'30%'}} /> }</p>} estilo='col-sm-1' />
+                <Columna titulo={<p style={{ textAlign: "center" }}>{((fila.Tarea.EsCluster === '0' && fila.Tarea.ExisteEnDashboard === '1') || ((fila.Tarea.EsCluster === '1' && util.buscarValor(fila.IdRCDTT, 'ExisteEnDashboard', '0') === '1'))) && <img src={toDashboard} title='Aplica Dashboard' style={{width:'30%'}} /> }</p>} estilo='col-sm-1' />
             </div>
         )
     }
@@ -1737,7 +1754,8 @@ class Generico extends Component {
                     datos={fila.Tarea.ID === 271 ? fila : (props.esCheckable === '1' || (fila.Tarea.ID !== 24 && fila.Tarea.ID !== 25 && fila.Tarea.ID !== 30 && fila.Tarea.ID !== 35) ? null : fila)} />
                 <Columna titulo={<p style={{ textAlign: "center", fontSize: "12px" }}>{fila.GrupoResponsable !== undefined ? fila.GrupoResponsable.NombreCortoGantt : 'Sin asignar'}</p>} estilo='col-sm-2' editable={false} />
                 <Columna titulo={<p style={{ textAlign: "center" }}><Badge color={fila.AsignadoA !== undefined ? "primary" : "secondary"} badgeContent={fila.AsignadoA !== undefined ? fila.AsignadoA.length : 0} ><img title={fila.AsignadoA === undefined ? 'Sin asignar' : (fila.AsignadoA.length > 0 ? util.obtenerAsignados(fila.AsignadoA) : 'Sin asignar')} src={fila.AsignadoA === undefined ? plus_icon : (fila.AsignadoA.length > 0 ? assignedTo_icon : plus_icon)} alt='assignedTo_icon' onClick={fila.Tarea.ID !== 271 ? () => { this.onAbrirModal(nombreTerreno, 270, false, 'AsignadoA', fila.AsignadoA !== undefined ? fila.AsignadoA : [], fila, 4, "", "550px") } : null} /></Badge></p>} estilo='col-sm-2' editable={false} />
-                <Columna estilo='col-sm-2' />
+                <Columna titulo={<p style={{ textAlign: "center" }}>{fila.IdRCDTT.ExisteEnGantt === '1' && <img src={toGantt} title='Aplica Gantt' style={{width:'30%'}} /> }</p>} estilo='col-sm-1' />
+                <Columna titulo={<p style={{ textAlign: "center" }}>{fila.IdRCDTT.ExisteEnDashboard === '1' && <img src={toDashboard} title='Aplica Dashboard' style={{width:'30%'}} /> }</p>} estilo='col-sm-1' />
             </div>
         )
     }
@@ -1851,7 +1869,7 @@ class Generico extends Component {
     }
 
     render() {
-        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, seguridad, tieneRFS, clusterToggle } = this.state
+        const { idVentana, totalAdmin, totalNorm, totalProy, MACO, filtrosTabla, idTerreno, idProyecto, nombreTerreno, usuarioActual, gruposUsuarioActual, seguridad, tieneRFS, clusterToggle, clustersColapsados } = this.state
         const {webs, enDashboard} = this.props
 
         const useStyles = makeStyles(theme => ({
@@ -1868,6 +1886,7 @@ class Generico extends Component {
                     //Otras ventanas
                     const esEditorMkt = gruposUsuarioActual.some(gpo => (gpo.NombreCortoGantt === 'ARQ' && (gpo.AdminAreaGanttId.includes(usuarioActual.Id))))
                     let datosV = util.filtrarDatosVentana(idVentana, props.datos, gruposUsuarioActual, usuarioActual.Id, filtrosTabla)
+                    datosV.sort((a,b)=>parseFloat(a.IdTarea.OrdenEnCluster) - parseFloat(b.IdTarea.OrdenEnCluster))
                     let filaCluster = props.titulos.map((fila) => {
                         if (datosV.some(x => x.Orden === fila.cluster.IdTarea.Orden)) {
                             const existeAFActiva = datosV.some(x => x.Orden === fila.cluster.Orden && x.IdTarea.ID === 271 && x.Estatus.ID !== 3)
@@ -2569,6 +2588,10 @@ class Generico extends Component {
                                 totalNorm={totalNorm} totalProy={totalProy} cambioMaco={this.onCambiarMaco} usuarioActual={usuarioActual} gruposUsuarioActual={gruposUsuarioActual}
                                 filtros={filtrosTabla} seguridad={seguridad} webs={webs} enDashboard={enDashboard} />
                             <Header datosVentana={idVentana === 4 ? this.state.datosVentanaEG.columnas : this.state.datosVentana.columnas} />
+                            <div style={{position:'fixed', top:'12%', left:'4%'}}>
+                                <img alt='terreno' src={!clustersColapsados ? main_collapse : main_expand} style={{height:'20px'}} onClick={this.onExpandirColapsarTodos} />
+                                {clustersColapsados ? ' Expandir clústers' : ' Contraer clústers'}
+                            </div>
                             <Cluster titulos={this.state.clustersVentana} idVentana={idVentana} datos={idVentana === 4 ? this.state.datosVentanaEG.datos : this.state.datosVentana.datos} />
                             {this.state.modal.abierto && <Modal abrir={this.state.modal} cerrar={this.onCerrarModal} evento={this.onActualizarDatos} datos={this.state.datos} webs={webs} />}
                         </div>

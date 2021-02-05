@@ -1598,6 +1598,13 @@ const util = {
 
         const uniqueById = uniqByProp("ID");
         return uniqueById(dataSource);
+    },
+    buscarValor: function(fila, columna, valorDefault){
+        let valorRetorno = valorDefault
+        if (fila !== undefined){
+            valorRetorno = fila[columna]
+        }
+        return valorRetorno
     }
 }
 export default util;

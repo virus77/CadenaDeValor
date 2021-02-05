@@ -93,12 +93,12 @@ p {
 }
 
 .presionado {
-    border-style: outset !important;
-    border-radius: 2em/2em !important;
+    border-style: inset !important;
+    border-radius: 100% !important;
 }
 
 .normal {
-    border-radius: 2em/2em !important;
+    border-radius: 100% !important;
 }
 
 .badge-secondary {
