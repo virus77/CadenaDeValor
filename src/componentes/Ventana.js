@@ -501,6 +501,33 @@ class Ventana extends Component {
                         await CRUD.createListItem(webs.cdt, 'Historico de registro de cambio', jsonHRC).catch(error => {
                             alert('ERROR AL INSERTAR EN LA LISTA ' + lista + ': ' + error)
                         })
+                    }else if(this.state.idTarea === 98){
+                        const consultaRPS = await webs.cdt.lists.getByTitle("Relación de Proyectos en Sistemas").items
+                        .select("ID, CRM")
+                        .filter("(Title eq '" + this.props.abrir.filaSeleccionada.IdProyectoInversion.Title + "') and (Terreno eq '" + this.props.abrir.filaSeleccionada.IdTerreno.Title + "')")
+                        .orderBy("ID")
+                        .top(1000)
+                        .get()
+
+                        const jsonRPS = {
+                            Title: this.props.abrir.filaSeleccionada.IdProyectoInversion.Title,
+                            NombreProyectoInversion: this.props.abrir.filaSeleccionada.IdProyectoInversion.NombreProyectoInversion,
+                            Terreno: this.props.abrir.filaSeleccionada.IdTerreno.Title,
+                            NombredelDesarrollo: this.props.abrir.filaSeleccionada.IdTerreno.NombredelTerreno2,
+                            CRM: json.SiglasDelDesarrollo
+                        }
+
+                        if(consultaRPS.length === 0){
+                            await CRUD.createListItem(webs.cdt, 'Relación de Proyectos en Sistemas', jsonRPS).catch(error => {
+                                alert('ERROR AL INSERTAR EN LA LISTA RELACIÓN DE PROYECTOS EN SISTEMAS: ' + error)
+                            })
+                        }else{
+                            if(consultaRPS[0].CRM !== jsonRPS.CRM){
+                                await CRUD.updateListItem(webs.cdt, 'Relación de Proyectos en Sistemas', consultaRPS[0].ID, jsonRPS).catch(error=>{
+                                    alert('ERROR AL ACTUALIZAR LA LISTA RELACIÓN DE PROYECTOS EN SISTEMAS: ' + error)
+                                })
+                            }
+                        }
                     }
                     if(Object.keys(json).length > 0){
                         await CRUD.updateListItem(webs.cdt, lista, idElemento, json).catch(error=>{

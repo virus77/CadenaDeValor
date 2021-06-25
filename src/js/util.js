@@ -554,6 +554,7 @@ const util = {
             case 'RelacionFechasAprobacionTerreno':
             case 'RelacionBancosProyectosDeptos':
             case 'RelacionTerrenoInteresados':
+            case 'RelacionFechasAprobacion':
                 return arreglo.ID
             case 'FechasTramites':
                 return arreglo.Lista === 'Flujo Tareas' ? arreglo.ID : arreglo.IdFlujoId
@@ -734,7 +735,7 @@ const util = {
 
         // Creacion de bitacora generica
         await CRUD.createListItem(objetoWeb, 'Bitacora', json)
-        .then(async(resultBA)=>{
+        /*.then(async(resultBA)=>{
             for(let i=0; i<3; i++){
                 let datos = util.GetIncidenteValues(i);
                 // Construcción de informacion a enviar para la creación del elemento
@@ -764,7 +765,7 @@ const util = {
                     alert('ERROR AL INTENTAR CREAR LA INCIDENCIA ' + (i + 1) + ': ' + error)
                 })
             }
-        })
+        })*/
     },
     crearBitacoraVarios: async function(webBitacoras, categorias, PI, terreno){
         await util.asyncForEach(categorias, async categoria=>{

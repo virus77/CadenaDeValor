@@ -1070,7 +1070,7 @@ class Generico extends Component {
     //#endregion
 
     onActualizarDatos = async arregloDatos => {
-        const {webs} = this.props
+        const {webs, nombrePI, IdProyInv, TerrenoId, terreno} = this.props
         const { idVentana, MACO, idProyecto, tipo, usuarioActual, gruposUsuarioActual, seguridad, filtrosTabla } = this.state
         let { datosVentana, datosOriginalVentana, opcionesFiltrosEncabezado, datosFPT, datosOriginalesFPT, MktOriginal, datosVentanaEG, datosOriginalVentanaEG } = this.state
         //Si la ventana es E.G.
@@ -1113,6 +1113,27 @@ class Generico extends Component {
                             const generarEG = async () => {
                                 //Recorre los terrenos vivos
                                 await util.asyncForEach(terrenosPI, async terrenoPI => {
+                                    //Crea los datos en la lista Relación de Proyectos en Sistemas
+                                    const consultaRPS = await webs.cdt.lists.getByTitle("Relación de Proyectos en Sistemas").items
+                                    .select("ID, CRM")
+                                    .filter("(Title eq '" + IdProyInv + "') and (Terreno eq '" + terrenoPI.Title + "')")
+                                    .orderBy("ID")
+                                    .top(1000)
+                                    .get()
+
+                                    const jsonRPS = {
+                                        Title: IdProyInv,
+                                        NombreProyectoInversion: nombrePI,
+                                        Terreno: TerrenoId,
+                                        NombredelDesarrollo: terreno
+                                    }
+
+                                    if(consultaRPS.length === 0){
+                                        await CRUD.createListItem(webs.cdt, 'Relación de Proyectos en Sistemas', jsonRPS).catch(error => {
+                                            alert('ERROR AL INSERTAR EN LA LISTA RELACIÓN DE PROYECTOS EN SISTEMAS: ' + error)
+                                        })
+                                    }
+
                                     //Recorre todas las tareas que se generarán
                                     await util.asyncForEach(nuevasTareasEG, async nuevaTarea => {
                                         let tareaEG = 0
@@ -1299,6 +1320,32 @@ class Generico extends Component {
                                                 Metraje: arregloDatos.dato.metrajesTr[index].valor
                                             }
                                             await CRUD.createListItem(webs.cdt, 'Terrenos', jsonTerr).then(async (terr) => {
+                                                const consultaRPS = await webs.cdt.lists.getByTitle("Relación de Proyectos en Sistemas").items
+                                                .select("ID, CRM")
+                                                .filter("(Title eq '" + IdProyInv + "') and (Terreno eq '" + jsonTerr.Title + "')")
+                                                .orderBy("ID")
+                                                .top(1000)
+                                                .get()
+
+                                                const jsonRPS = {
+                                                    Title: IdProyInv,
+                                                    NombreProyectoInversion: nombrePI,
+                                                    Terreno: jsonTerr.Title,
+                                                    NombredelDesarrollo: jsonTerr.NombredelTerreno2
+                                                }
+
+                                                if(consultaRPS.length === 0){
+                                                    await CRUD.createListItem(webs.cdt, 'Relación de Proyectos en Sistemas', jsonRPS).catch(error => {
+                                                        alert('ERROR AL INSERTAR EN LA LISTA RELACIÓN DE PROYECTOS EN SISTEMAS: ' + error)
+                                                    })
+                                                }else{
+                                                    if(consultaRPS[0].CRM !== jsonRPS.CRM){
+                                                        await CRUD.updateListItem(webs.cdt, 'Relación de Proyectos en Sistemas', consultaRPS[0].ID, jsonRPS).catch(error=>{
+                                                            alert('ERROR AL ACTUALIZAR LA LISTA RELACIÓN DE PROYECTOS EN SISTEMAS: ' + error)
+                                                        })
+                                                    }
+                                                }
+
                                                 //Obtiene las tareas que se crarán para el nuevo terreno dependiendo de su MACO y tipo de RFS (TS, TF o TR)
                                                 const nuevasTareasEG = await webs.cdt.lists.getByTitle("Tareas").items.filter("((DetonacionInicial eq 0) and (MACO eq 'X' or MACO eq '" + arregloDatos.dato.tipo + "' or MACO eq '" + terrenoResultante.MACO + "'))").get();
 

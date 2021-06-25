@@ -26,6 +26,7 @@ class App extends Component {
     RFS: false,
     TerrenoId: "",
     IdProyInv: "",
+    NombrePI: '',
     ventana:4,
     nombreTerreno: '',
     enDashboard: false,
@@ -33,9 +34,9 @@ class App extends Component {
   }
 
   //función utilizada para seleccionar el terreno y abrir los clusters
-  onSeleccionTerreno = (IdTerreno, IdProyecto, TxtTerreno, maco, rfs, TerrenoId, IdProyInv, enDashboard) => {
+  onSeleccionTerreno = (IdTerreno, IdProyecto, NombrePI, TxtTerreno, maco, rfs, TerrenoId, IdProyInv, enDashboard) => {
     this.setState({
-      isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, nombreTerreno: TxtTerreno,
+      isInActive: false, isActive: true, idTerreno: IdTerreno, idProyecto: IdProyecto, NombrePI: NombrePI, nombreTerreno: TxtTerreno,
       Maco: maco, RFS: rfs, TerrenoId, IdProyInv, enDashboard: enDashboard
     });
   }
@@ -91,11 +92,11 @@ class App extends Component {
   }
 
   render(){
-    const { itemsT, itemsPI, idProyecto, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv, enDashboard, webs } = this.state;
+    const { itemsT, itemsPI, idProyecto, NombrePI, idTerreno, nombreTerreno, Maco, RFS, TerrenoId, IdProyInv, enDashboard, webs } = this.state;
     return (
       <div className="App">
         {this.state.isInActive && <Principal selecciontereno={this.onSeleccionTerreno} itemsT={itemsT} itemsPI={itemsPI} />}
-        {this.state.isActive && <Generico enDashboard={enDashboard} rfs = {RFS} idProyecto = {idProyecto} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} webs={webs} />}
+        {this.state.isActive && <Generico enDashboard={enDashboard} rfs = {RFS} idProyecto = {idProyecto} nombrePI = {NombrePI} idTerreno = {idTerreno} terreno = {nombreTerreno} idVentana = {this.state.ventana} maco = {Maco} TerrenoId={TerrenoId} IdProyInv={IdProyInv} webs={webs} />}
       </div>
     );
   }
